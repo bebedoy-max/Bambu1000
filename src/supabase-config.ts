@@ -9,11 +9,11 @@
  * PENTING: service_role / secret key TIDAK BOLEH ada di frontend.
  */
 export const CUSTOM_SUPABASE_URL =
-  import.meta.env['VITE_SUPABASE_URL_OVERRIDE'] || "https://zyuxmvdntetfjdysqpsy.supabase.co";
+  import.meta.env['VITE_SUPABASE_URL_OVERRIDE'] || "https://jbvkcmtloyjuizunrtfv.supabase.co";
 
 export const CUSTOM_SUPABASE_PUBLISHABLE_KEY =
   import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY_OVERRIDE'] ||
-  "sb_publishable_JCr98cE43qRc6ocRjbpx8g_gbv-FQxt";
+  "sb_publishable_oOgx2-lh53ULaFus_B6w4Q_gAxC__-a";
 
 export type SupabaseConnection = { url: string; key: string };
 

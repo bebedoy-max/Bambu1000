@@ -63,7 +63,12 @@ BEGIN
   INSERT INTO public.profiles (id, email, nama, username)
   VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'nama', NEW.email), split_part(NEW.email,'@',1))
   ON CONFLICT (id) DO NOTHING;
-  INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'employee') ON CONFLICT DO NOTHING;
+  -- User pertama yang registrasi otomatis menjadi superadmin
+  IF NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'superadmin') THEN
+    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'superadmin') ON CONFLICT DO NOTHING;
+  ELSE
+    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'employee') ON CONFLICT DO NOTHING;
+  END IF;
   RETURN NEW;
 END; $$;
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
