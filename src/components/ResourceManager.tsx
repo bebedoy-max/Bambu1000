@@ -1,0 +1,368 @@
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { toast } from "sonner";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
+
+// Dynamic table names need an untyped client.
+const db = supabase as unknown as SupabaseClient;
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+
+export type FieldType =
+  | "text"
+  | "number"
+  | "date"
+  | "datetime"
+  | "textarea"
+  | "boolean"
+  | "select"
+  | "uker";
+
+export type Field = {
+  key: string;
+  label: string;
+  type?: FieldType;
+  options?: string[];
+  required?: boolean;
+  hideInTable?: boolean;
+  hideInForm?: boolean;
+};
+
+type Row = Record<string, unknown>;
+
+export type ResourceManagerProps = {
+  table: string;
+  title: string;
+  description?: string;
+  fields: Field[];
+  orderBy?: string;
+  canWrite?: boolean;
+  /** Column set to the current user id on insert (e.g. uploaded_by, created_by). */
+  ownerColumn?: string;
+  extraActions?: (row: Row) => React.ReactNode;
+};
+
+function emptyForm(fields: Field[]): Row {
+  const out: Row = {};
+  for (const f of fields) {
+    if (f.hideInForm) continue;
+    out[f.key] = f.type === "boolean" ? true : "";
+  }
+  return out;
+}
+
+export function ResourceManager({
+  table,
+  title,
+  description,
+  fields,
+  orderBy = "created_at",
+  canWrite = true,
+  ownerColumn,
+  extraActions,
+}: ResourceManagerProps) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Row | null>(null);
+  const [form, setForm] = useState<Row>(() => emptyForm(fields));
+  const [q, setQ] = useState("");
+
+  const needsUkers = fields.some((f) => f.type === "uker");
+
+  const list = useQuery({
+    queryKey: [table, orderBy],
+    queryFn: async () => {
+      const { data, error } = await db
+        .from(table)
+        .select("*")
+        .order(orderBy, { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Row[];
+    },
+  });
+
+  const ukers = useQuery({
+    queryKey: ["ukers-options"],
+    enabled: needsUkers,
+    queryFn: async () => {
+      const { data, error } = await db
+        .from("ukers")
+        .select("id, kode_uker, nama_uker")
+        .order("kode_uker");
+      if (error) throw error;
+      return (data ?? []) as Row[];
+    },
+  });
+
+  const ukerLabel = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const u of ukers.data ?? [])
+      m.set(String(u["id"]), `${String(u["kode_uker"])} — ${String(u["nama_uker"])}`);
+    return m;
+  }, [ukers.data]);
+
+  const save = useMutation({
+    mutationFn: async (payload: Row) => {
+      const body: Row = {};
+      for (const f of fields) {
+        if (f.hideInForm) continue;
+        const v = payload[f.key];
+        if (f.type === "boolean") body[f.key] = Boolean(v);
+        else if (v === "" || v === undefined || v === null) body[f.key] = null;
+        else if (f.type === "number") body[f.key] = Number(v);
+        else body[f.key] = v;
+      }
+      if (editing) {
+        const { error } = await db.from(table).update(body).eq("id", editing["id"] as string);
+        if (error) throw error;
+      } else {
+        if (ownerColumn) {
+          const { data: auth } = await db.auth.getUser();
+          body[ownerColumn] = auth.user?.id ?? null;
+        }
+        const { error } = await db.from(table).insert(body);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success(editing ? "Data diperbarui" : "Data ditambahkan");
+      setOpen(false);
+      setEditing(null);
+      void qc.invalidateQueries({ queryKey: [table] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db.from(table).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Data dihapus");
+      void qc.invalidateQueries({ queryKey: [table] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const tableFields = fields.filter((f) => !f.hideInTable);
+  const formFields = fields.filter((f) => !f.hideInForm);
+
+  const rows = (list.data ?? []).filter((r) =>
+    q.trim() ? JSON.stringify(r).toLowerCase().includes(q.toLowerCase()) : true,
+  );
+
+  function renderCell(f: Field, row: Row) {
+    const v = row[f.key];
+    if (f.type === "boolean")
+      return (
+        <Badge variant={v ? "default" : "secondary"}>{v ? "Aktif" : "Nonaktif"}</Badge>
+      );
+    if (f.type === "uker") return ukerLabel.get(v as string) ?? "—";
+    if (v === null || v === undefined || v === "") return "—";
+    if (f.type === "datetime") return new Date(String(v)).toLocaleString("id-ID");
+    return String(v);
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{title}</h1>
+          {description ? (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          ) : null}
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Cari…"
+              className="w-56 pl-9"
+            />
+          </div>
+          {canWrite ? (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setForm(emptyForm(fields));
+                setOpen(true);
+              }}
+            >
+              <Plus className="size-4" /> Tambah
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="glass-card overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border/60 text-left text-xs tracking-wide text-muted-foreground uppercase">
+              {tableFields.map((f) => (
+                <th key={f.key} className="px-4 py-3 font-medium whitespace-nowrap">
+                  {f.label}
+                </th>
+              ))}
+              <th className="px-4 py-3" />
+            </tr>
+          </thead>
+          <tbody>
+            {list.isLoading ? (
+              <tr>
+                <td colSpan={tableFields.length + 1} className="px-4 py-8 text-center text-muted-foreground">
+                  Memuat data…
+                </td>
+              </tr>
+            ) : rows.length === 0 ? (
+              <tr>
+                <td colSpan={tableFields.length + 1} className="px-4 py-8 text-center text-muted-foreground">
+                  Belum ada data.
+                </td>
+              </tr>
+            ) : (
+              rows.map((row) => (
+                <tr key={String(row["id"])} className="border-b border-border/40 last:border-0 hover:bg-secondary/40">
+                  {tableFields.map((f) => (
+                    <td key={f.key} className="px-4 py-3 whitespace-nowrap">
+                      {renderCell(f, row)}
+                    </td>
+                  ))}
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1">
+                      {extraActions?.(row)}
+                      {canWrite ? (
+                        <>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditing(row);
+                              const next: Row = {};
+                              for (const f of formFields) next[f.key] = row[f.key] ?? "";
+                              setForm(next);
+                              setOpen(true);
+                            }}
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              if (confirm("Hapus data ini?")) remove.mutate(String(row["id"]));
+                            }}
+                          >
+                            <Trash2 className="size-4 text-destructive" />
+                          </Button>
+                        </>
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editing ? `Ubah ${title}` : `Tambah ${title}`}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            {formFields.map((f) => (
+              <div key={f.key} className="grid gap-2">
+                <Label htmlFor={f.key}>{f.label}</Label>
+                {f.type === "textarea" ? (
+                  <Textarea
+                    id={f.key}
+                    value={String(form[f.key] ?? "")}
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                  />
+                ) : f.type === "boolean" ? (
+                  <Switch
+                    id={f.key}
+                    checked={Boolean(form[f.key])}
+                    onCheckedChange={(v) => setForm({ ...form, [f.key]: v })}
+                  />
+                ) : f.type === "select" ? (
+                  <select
+                    id={f.key}
+                    className="h-10 rounded-xl border border-input bg-popover px-3 text-sm"
+                    value={String(form[f.key] ?? "")}
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                  >
+                    <option value="">— pilih —</option>
+                    {(f.options ?? []).map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                ) : f.type === "uker" ? (
+                  <select
+                    id={f.key}
+                    className="h-10 rounded-xl border border-input bg-popover px-3 text-sm"
+                    value={String(form[f.key] ?? "")}
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                  >
+                    <option value="">— pilih unit kerja —</option>
+                    {(ukers.data ?? []).map((u) => (
+                      <option key={String(u["id"])} value={String(u["id"])}>
+                        {String(u["kode_uker"])} — {String(u["nama_uker"])}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    id={f.key}
+                    type={
+                      f.type === "number"
+                        ? "number"
+                        : f.type === "date"
+                          ? "date"
+                          : f.type === "datetime"
+                            ? "datetime-local"
+                            : "text"
+                    }
+                    value={
+                      f.type === "datetime" && form[f.key]
+                        ? new Date(String(form[f.key])).toISOString().slice(0, 16)
+                        : String(form[f.key] ?? "")
+                    }
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              Batal
+            </Button>
+            <Button disabled={save.isPending} onClick={() => save.mutate(form)}>
+              Simpan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

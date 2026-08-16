@@ -1,0 +1,126 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Banknote, Building2, CreditCard, Users, CalendarDays, ArrowRight } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { PublicLayout } from "@/components/PublicLayout";
+import { StatCard } from "@/components/StatCard";
+import { Button } from "@/components/ui/button";
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Dashboard Monitoring — BRI BO Pringsewu" },
+      {
+        name: "description",
+        content:
+          "Ringkasan unit kerja, mesin ATM, mesin EDC, dan pegawai BRI Branch Office Pringsewu secara real-time.",
+      },
+      { property: "og:title", content: "Dashboard Monitoring — BRI BO Pringsewu" },
+      {
+        property: "og:description",
+        content: "Monitoring unit kerja, ATM, EDC, dan pegawai BRI Branch Office Pringsewu.",
+      },
+    ],
+  }),
+  component: Index,
+});
+
+async function count(table: string, filter?: { col: string; val: unknown }) {
+  let q = supabase.from(table as "ukers").select("id", { count: "exact", head: true });
+  if (filter) q = q.eq(filter.col as "id", filter.val as string);
+  const { count: c } = await q;
+  return c ?? 0;
+}
+
+function Index() {
+  const stats = useQuery({
+    queryKey: ["public-stats"],
+    queryFn: async () => ({
+      ukers: await count("ukers"),
+      atm: await count("atm_machines"),
+      edc: await count("edc_machines"),
+      employees: await count("employees"),
+      events: await count("events"),
+    }),
+  });
+
+  const upcoming = useQuery({
+    queryKey: ["public-events"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("events")
+        .select("id, nama_event, deskripsi, tanggal_mulai, qr_token")
+        .eq("is_active", true)
+        .order("tanggal_mulai", { ascending: true })
+        .limit(4);
+      return data ?? [];
+    },
+  });
+
+  const cards = [
+    { label: "Unit Kerja", value: stats.data?.ukers ?? "—", icon: Building2, hint: "Uker aktif terdaftar" },
+    { label: "Mesin ATM", value: stats.data?.atm ?? "—", icon: Banknote, hint: "Termonitor" },
+    { label: "Mesin EDC", value: stats.data?.edc ?? "—", icon: CreditCard, hint: "Merchant terpasang" },
+    { label: "Pegawai", value: stats.data?.employees ?? "—", icon: Users, hint: "Seluruh unit kerja" },
+    { label: "Event Aktif", value: stats.data?.events ?? "—", icon: CalendarDays, hint: "Kegiatan berjalan" },
+  ];
+
+  return (
+    <PublicLayout>
+      <section className="glass-card mb-8 overflow-hidden p-8 sm:p-10">
+        <p className="text-xs font-semibold tracking-[0.2em] text-accent uppercase">
+          Branch Office Pringsewu
+        </p>
+        <h1 className="mt-3 max-w-2xl text-3xl leading-tight font-bold sm:text-4xl">
+          <span className="gradient-text">Dashboard Monitoring</span> Operasional & Infrastruktur IT
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+          Pantau unit kerja, jaringan mesin ATM dan EDC, data pegawai, serta kegiatan kantor dalam
+          satu tampilan terpadu.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Button asChild>
+            <Link to="/profil">Profil Kantor</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link to="/informasi">Informasi Umum</Link>
+          </Button>
+        </div>
+      </section>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {cards.map((c) => (
+          <StatCard key={c.label} {...c} />
+        ))}
+      </div>
+
+      <section className="mt-8">
+        <h2 className="mb-4 text-lg font-semibold">Kegiatan Terbaru</h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          {(upcoming.data ?? []).map((e) => (
+            <div key={e.id} className="glass-card p-5">
+              <p className="text-xs text-accent">
+                {e.tanggal_mulai
+                  ? new Date(e.tanggal_mulai).toLocaleString("id-ID", {
+                      dateStyle: "full",
+                      timeStyle: "short",
+                    })
+                  : "Jadwal menyusul"}
+              </p>
+              <h3 className="mt-1 font-semibold">{e.nama_event}</h3>
+              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{e.deskripsi}</p>
+              <Button asChild size="sm" variant="secondary" className="mt-4">
+                <Link to="/absen/$token" params={{ token: e.qr_token }}>
+                  Isi Absensi <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+            </div>
+          ))}
+          {upcoming.data?.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Belum ada kegiatan aktif.</p>
+          ) : null}
+        </div>
+      </section>
+    </PublicLayout>
+  );
+}
