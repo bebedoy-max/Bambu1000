@@ -21,6 +21,7 @@ import { supabase } from "@/lib/supabase";
 import { useRoles } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import logoUrl from "@/assets/logo.png";
 
 type Item = { to: string; label: string; icon: typeof Gauge; need?: "it" | "event" | "super" };
 
@@ -59,23 +60,14 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     await qc.cancelQueries();
     qc.clear();
     await supabase.auth.signOut();
-    void navigate({ to: "/auth", replace: true });
+    void navigate({ to: "/", replace: true });
   }
 
   return (
     <div className="flex min-h-screen">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-1 overflow-y-auto border-r border-border/60 p-4 backdrop-blur-xl lg:flex">
         <Link to="/" className="mb-4 flex items-center gap-3 px-2">
-          <span
-            className="grid size-10 place-items-center rounded-2xl text-sm font-black text-primary-foreground"
-            style={{ backgroundImage: "var(--gradient-brand)" }}
-          >
-            BRI
-          </span>
-          <span className="leading-tight">
-            <span className="block text-sm font-semibold">BO Pringsewu</span>
-            <span className="block text-xs text-muted-foreground">Panel Internal</span>
-          </span>
+          <img src={logoUrl} alt="Logo" className="h-14 w-auto object-contain" />
         </Link>
         {visible.map((i) => (
           <Link

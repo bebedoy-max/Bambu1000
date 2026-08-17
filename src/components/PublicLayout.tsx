@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Building2, LayoutDashboard, LogIn, ShieldCheck } from "lucide-react";
 import { useSession } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
+import logoUrl from "@/assets/logo.png";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -18,16 +19,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border/60 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
           <Link to="/" className="flex items-center gap-3">
-            <span
-              className="grid size-10 place-items-center rounded-2xl text-sm font-black text-primary-foreground"
-              style={{ backgroundImage: "var(--gradient-brand)" }}
-            >
-              BRI
-            </span>
-            <span className="hidden leading-tight sm:block">
-              <span className="block text-sm font-semibold">BO Pringsewu</span>
-              <span className="block text-xs text-muted-foreground">Sistem Internal</span>
-            </span>
+            <img src={logoUrl} alt="Logo" className="h-14 w-auto object-contain" />
           </Link>
           <nav className="ml-auto flex items-center gap-1">
             {nav.map((item) => (

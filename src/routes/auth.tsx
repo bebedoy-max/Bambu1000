@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { toast } from "sonner";
+import { X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import logoUrl from "@/assets/logo.png";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -89,16 +91,17 @@ function Auth() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center px-4">
+    <div className="relative grid min-h-screen place-items-center px-4">
+      <button
+        type="button"
+        onClick={() => navigate({ to: "/", replace: true })}
+        aria-label="Tutup"
+        className="absolute left-4 top-4 z-10 grid size-10 place-items-center rounded-full border border-border/60 bg-background/60 text-foreground backdrop-blur transition-colors hover:bg-secondary"
+      >
+        <X className="size-5" />
+      </button>
       <div className="glass-card w-full max-w-md p-8">
-        <span
-          className="grid size-12 place-items-center rounded-2xl text-sm font-black text-primary-foreground"
-          style={{ backgroundImage: "var(--gradient-brand)" }}
-        >
-          BRI
-        </span>
-        <h1 className="mt-4 text-2xl font-bold">Panel Internal</h1>
-        <p className="text-sm text-muted-foreground">BRI Branch Office Pringsewu</p>
+        <img src={logoUrl} alt="Logo" className="h-[68px] w-auto object-contain" />
 
         <Tabs defaultValue="masuk" className="mt-6">
           <TabsList className="grid w-full grid-cols-2">
