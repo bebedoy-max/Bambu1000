@@ -22,7 +22,7 @@ import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin/crm'
 import { Route as AuthenticatedAdminEdcRouteImport } from './routes/_authenticated/admin/edc'
 import { Route as AuthenticatedAdminFotoRouteImport } from './routes/_authenticated/admin/foto'
-import { Route as AuthenticatedAdminIpRouteImport } from './routes/_authenticated/admin/ip'
+import { Route as AuthenticatedAdminJabatanRouteImport } from './routes/_authenticated/admin/jabatan'
 import { Route as AuthenticatedAdminPegawaiRouteImport } from './routes/_authenticated/admin/pegawai'
 import { Route as AuthenticatedAdminTiketRouteImport } from './routes/_authenticated/admin/tiket'
 import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin/tools'
@@ -95,11 +95,12 @@ const AuthenticatedAdminFotoRoute = AuthenticatedAdminFotoRouteImport.update({
   path: '/admin/foto',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdminIpRoute = AuthenticatedAdminIpRouteImport.update({
-  id: '/admin/ip',
-  path: '/admin/ip',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+const AuthenticatedAdminJabatanRoute =
+  AuthenticatedAdminJabatanRouteImport.update({
+    id: '/admin/jabatan',
+    path: '/admin/jabatan',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminPegawaiRoute =
   AuthenticatedAdminPegawaiRouteImport.update({
     id: '/admin/pegawai',
@@ -152,7 +153,7 @@ export interface FileRoutesByFullPath {
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/edc': typeof AuthenticatedAdminEdcRoute
   '/admin/foto': typeof AuthenticatedAdminFotoRoute
-  '/admin/ip': typeof AuthenticatedAdminIpRoute
+  '/admin/jabatan': typeof AuthenticatedAdminJabatanRoute
   '/admin/pegawai': typeof AuthenticatedAdminPegawaiRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/admin/tools': typeof AuthenticatedAdminToolsRoute
@@ -174,7 +175,7 @@ export interface FileRoutesByTo {
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/edc': typeof AuthenticatedAdminEdcRoute
   '/admin/foto': typeof AuthenticatedAdminFotoRoute
-  '/admin/ip': typeof AuthenticatedAdminIpRoute
+  '/admin/jabatan': typeof AuthenticatedAdminJabatanRoute
   '/admin/pegawai': typeof AuthenticatedAdminPegawaiRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/admin/tools': typeof AuthenticatedAdminToolsRoute
@@ -198,7 +199,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/_authenticated/admin/edc': typeof AuthenticatedAdminEdcRoute
   '/_authenticated/admin/foto': typeof AuthenticatedAdminFotoRoute
-  '/_authenticated/admin/ip': typeof AuthenticatedAdminIpRoute
+  '/_authenticated/admin/jabatan': typeof AuthenticatedAdminJabatanRoute
   '/_authenticated/admin/pegawai': typeof AuthenticatedAdminPegawaiRoute
   '/_authenticated/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/_authenticated/admin/tools': typeof AuthenticatedAdminToolsRoute
@@ -222,7 +223,7 @@ export interface FileRouteTypes {
     | '/admin/crm'
     | '/admin/edc'
     | '/admin/foto'
-    | '/admin/ip'
+    | '/admin/jabatan'
     | '/admin/pegawai'
     | '/admin/tiket'
     | '/admin/tools'
@@ -244,7 +245,7 @@ export interface FileRouteTypes {
     | '/admin/crm'
     | '/admin/edc'
     | '/admin/foto'
-    | '/admin/ip'
+    | '/admin/jabatan'
     | '/admin/pegawai'
     | '/admin/tiket'
     | '/admin/tools'
@@ -267,7 +268,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/crm'
     | '/_authenticated/admin/edc'
     | '/_authenticated/admin/foto'
-    | '/_authenticated/admin/ip'
+    | '/_authenticated/admin/jabatan'
     | '/_authenticated/admin/pegawai'
     | '/_authenticated/admin/tiket'
     | '/_authenticated/admin/tools'
@@ -380,11 +381,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFotoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin/ip': {
-      id: '/_authenticated/admin/ip'
-      path: '/admin/ip'
-      fullPath: '/admin/ip'
-      preLoaderRoute: typeof AuthenticatedAdminIpRouteImport
+    '/_authenticated/admin/jabatan': {
+      id: '/_authenticated/admin/jabatan'
+      path: '/admin/jabatan'
+      fullPath: '/admin/jabatan'
+      preLoaderRoute: typeof AuthenticatedAdminJabatanRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/pegawai': {
@@ -446,7 +447,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
   AuthenticatedAdminEdcRoute: typeof AuthenticatedAdminEdcRoute
   AuthenticatedAdminFotoRoute: typeof AuthenticatedAdminFotoRoute
-  AuthenticatedAdminIpRoute: typeof AuthenticatedAdminIpRoute
+  AuthenticatedAdminJabatanRoute: typeof AuthenticatedAdminJabatanRoute
   AuthenticatedAdminPegawaiRoute: typeof AuthenticatedAdminPegawaiRoute
   AuthenticatedAdminTiketRoute: typeof AuthenticatedAdminTiketRoute
   AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRoute
@@ -464,7 +465,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
   AuthenticatedAdminEdcRoute: AuthenticatedAdminEdcRoute,
   AuthenticatedAdminFotoRoute: AuthenticatedAdminFotoRoute,
-  AuthenticatedAdminIpRoute: AuthenticatedAdminIpRoute,
+  AuthenticatedAdminJabatanRoute: AuthenticatedAdminJabatanRoute,
   AuthenticatedAdminPegawaiRoute: AuthenticatedAdminPegawaiRoute,
   AuthenticatedAdminTiketRoute: AuthenticatedAdminTiketRoute,
   AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRoute,

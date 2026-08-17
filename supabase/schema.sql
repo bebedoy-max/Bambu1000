@@ -467,3 +467,62 @@ CREATE POLICY "crm read" ON public.crm_machines FOR SELECT TO anon, authenticate
 CREATE POLICY "crm admin write" ON public.crm_machines FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
 DROP TRIGGER IF EXISTS crm_updated ON public.crm_machines;
 CREATE TRIGGER crm_updated BEFORE UPDATE ON public.crm_machines FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- ============================================================
+-- Penyesuaian: EDC, Unit Kerja, Data Pekerja, Kategori Jabatan
+-- (jalankan di SQL Editor Supabase — idempoten)
+-- ============================================================
+
+-- EDC: kolom baru
+ALTER TABLE public.edc_machines
+  ADD COLUMN IF NOT EXISTS tid text,
+  ADD COLUMN IF NOT EXISTS nama_merchant text,
+  ADD COLUMN IF NOT EXISTS kategori_edc text,
+  ADD COLUMN IF NOT EXISTS alamat text,
+  ADD COLUMN IF NOT EXISTS keterangan text;
+ALTER TABLE public.edc_machines ALTER COLUMN kode_edc DROP NOT NULL;
+UPDATE public.edc_machines SET
+  tid = COALESCE(tid, NULLIF(regexp_replace(COALESCE(kode_edc,''), '\D', '', 'g'), '')),
+  nama_merchant = COALESCE(nama_merchant, merchant),
+  alamat = COALESCE(alamat, lokasi);
+
+-- UKERS: titik maps + akses kolom sensitif untuk pengguna terautentikasi
+ALTER TABLE public.ukers ADD COLUMN IF NOT EXISTS titik_maps text;
+UPDATE public.ukers SET titik_maps = COALESCE(titik_maps,
+  CASE WHEN latitude IS NOT NULL AND longitude IS NOT NULL
+       THEN latitude::text || ', ' || longitude::text END);
+GRANT SELECT ON public.ukers TO authenticated;
+GRANT SELECT (id,kode_uker,nama_uker,tipe,alamat,titik_maps,latitude,longitude,pic_it,status_aktif,created_at,updated_at) ON public.ukers TO anon;
+
+-- KATEGORI JABATAN
+CREATE TABLE IF NOT EXISTS public.job_titles (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  nama_jabatan text NOT NULL,
+  tipe_unit_kerja text,
+  akses_level text,
+  keterangan text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT ON public.job_titles TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.job_titles TO authenticated;
+GRANT ALL ON public.job_titles TO service_role;
+ALTER TABLE public.job_titles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "job_titles read" ON public.job_titles;
+DROP POLICY IF EXISTS "job_titles admin write" ON public.job_titles;
+CREATE POLICY "job_titles read" ON public.job_titles FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "job_titles admin write" ON public.job_titles FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
+DROP TRIGGER IF EXISTS job_titles_updated ON public.job_titles;
+CREATE TRIGGER job_titles_updated BEFORE UPDATE ON public.job_titles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- EMPLOYEES: kolom baru
+ALTER TABLE public.employees
+  ADD COLUMN IF NOT EXISTS personal_number text,
+  ADD COLUMN IF NOT EXISTS jabatan_id uuid REFERENCES public.job_titles(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS status_karyawan text,
+  ADD COLUMN IF NOT EXISTS no_telepon text;
+ALTER TABLE public.employees ALTER COLUMN nip DROP NOT NULL;
+UPDATE public.employees SET
+  personal_number = COALESCE(personal_number, lpad(regexp_replace(COALESCE(nip,''), '\D', '', 'g'), 8, '0')),
+  no_telepon = COALESCE(no_telepon, regexp_replace(COALESCE(no_hp,''), '\D', '', 'g'));
+GRANT SELECT (id,nip,personal_number,nama,jabatan,jabatan_id,uker_id,status_karyawan,status_aktif,foto_url,created_at,updated_at) ON public.employees TO anon;

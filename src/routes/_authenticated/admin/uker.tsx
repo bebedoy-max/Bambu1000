@@ -7,9 +7,9 @@ export const Route = createFileRoute("/_authenticated/admin/uker")({
   head: () => ({
     meta: [
       { title: "Unit Kerja — Panel BRI BO Pringsewu" },
-      { name: "description", content: "Data kode uker, lokasi, dan penanggung jawab IT." },
+      { name: "description", content: "Data kode uker, lokasi, titik maps, dan IP address." },
       { property: "og:title", content: "Unit Kerja — Panel BRI BO Pringsewu" },
-      { property: "og:description", content: "Data kode uker, lokasi, dan penanggung jawab IT." },
+      { property: "og:description", content: "Data kode uker, lokasi, titik maps, dan IP address." },
     ],
   }),
   component: Page,
@@ -24,17 +24,20 @@ function Page() {
         <ResourceManager
           table="ukers"
           title="Unit Kerja"
-          description="Data kode uker, lokasi, dan penanggung jawab IT."
+          description="Data kode uker, tipe kantor, alamat, titik maps, dan IP address."
           canWrite={r.isItAdmin}
           fields={[
-            { key: "kode_uker", label: "Kode Uker" },
-            { key: "nama_uker", label: "Nama Uker" },
-            { key: "tipe", label: "Tipe", type: "select", options: ["Kantor Cabang", "Kantor Cabang Pembantu", "Unit", "Kantor Kas"] },
+            { key: "kode_uker", label: "Kode Uker", type: "digits", required: true },
+            { key: "nama_uker", label: "Nama Uker", required: true },
+            {
+              key: "tipe",
+              label: "Tipe Kantor",
+              type: "select",
+              options: ["Kantor Cabang", "KCP", "BRI Unit", "Teras BRI"],
+            },
             { key: "alamat", label: "Alamat", type: "textarea" },
-            { key: "latitude", label: "Latitude", type: "number", hideInTable: true },
-            { key: "longitude", label: "Longitude", type: "number", hideInTable: true },
-            { key: "pic_it", label: "PIC IT" },
-            { key: "status_aktif", label: "Status", type: "boolean" },
+            { key: "titik_maps", label: "Titik Maps", type: "latlng" },
+            { key: "ip_address", label: "IP Address", type: "ip" },
           ]}
         />
       ) : (

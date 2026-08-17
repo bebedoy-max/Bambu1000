@@ -28,11 +28,20 @@ export const searchModules: SearchModule[] = [
   },
   {
     table: "employees",
-    label: "Pegawai",
+    label: "Data Pekerja",
     route: "/admin/pegawai",
-    columns: ["nip", "nama", "jabatan", "email", "no_hp"],
+    columns: ["personal_number", "nama", "status_karyawan", "no_telepon"],
     title: (r) => s(r["nama"]),
-    subtitle: (r) => [s(r["nip"]), s(r["jabatan"])].filter(Boolean).join(" · "),
+    subtitle: (r) => [s(r["personal_number"]), s(r["status_karyawan"])].filter(Boolean).join(" · "),
+  },
+  {
+    table: "job_titles",
+    label: "Kategori Jabatan",
+    route: "/admin/jabatan",
+    columns: ["nama_jabatan", "tipe_unit_kerja", "akses_level", "keterangan"],
+    title: (r) => s(r["nama_jabatan"]),
+    subtitle: (r) => [s(r["tipe_unit_kerja"]), s(r["akses_level"])].filter(Boolean).join(" · "),
+    need: "it",
   },
   {
     table: "atm_machines",
@@ -54,9 +63,9 @@ export const searchModules: SearchModule[] = [
     table: "edc_machines",
     label: "Mesin EDC",
     route: "/admin/edc",
-    columns: ["kode_edc", "merchant", "lokasi", "status"],
-    title: (r) => s(r["kode_edc"]),
-    subtitle: (r) => [s(r["merchant"]), s(r["lokasi"])].filter(Boolean).join(" · "),
+    columns: ["tid", "nama_merchant", "kategori_edc", "alamat", "keterangan"],
+    title: (r) => s(r["tid"]),
+    subtitle: (r) => [s(r["nama_merchant"]), s(r["kategori_edc"])].filter(Boolean).join(" · "),
   },
   {
     table: "events",
@@ -67,15 +76,7 @@ export const searchModules: SearchModule[] = [
     subtitle: (r) => s(r["deskripsi"]).slice(0, 80),
     need: "event",
   },
-  {
-    table: "ukers",
-    label: "IP Address Uker",
-    route: "/admin/ip",
-    columns: ["ip_address", "pic_it"],
-    title: (r) => `${s(r["ip_address"]) || "—"} · ${s(r["nama_uker"])}`,
-    subtitle: (r) => [s(r["kode_uker"]), s(r["pic_it"])].filter(Boolean).join(" · "),
-    need: "it",
-  },
+
   {
     table: "it_tools",
     label: "Tools IT",

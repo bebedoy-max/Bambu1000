@@ -27,12 +27,16 @@ function Page() {
           description="Daftar mesin EDC dan merchant terpasang."
           canWrite={r.isItAdmin}
           fields={[
-            { key: "kode_edc", label: "Kode EDC" },
-            { key: "uker_id", label: "Unit Kerja", type: "uker" },
-            { key: "merchant", label: "Merchant" },
-            { key: "lokasi", label: "Lokasi" },
-            { key: "status", label: "Status", type: "select", options: ["aktif", "gangguan", "nonaktif"] },
-            { key: "tanggal_pasang", label: "Tgl Pasang", type: "date" },
+            { key: "tid", label: "TID", type: "digits", required: true },
+            { key: "nama_merchant", label: "Nama Merchant" },
+            {
+              key: "kategori_edc",
+              label: "Kategori EDC",
+              type: "select",
+              options: ["Merchant", "Brilink", "UKO"],
+            },
+            { key: "alamat", label: "Alamat", type: "textarea" },
+            { key: "keterangan", label: "Keterangan", type: "textarea" },
           ]}
         />
       ) : (

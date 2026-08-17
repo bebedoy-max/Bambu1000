@@ -6,10 +6,10 @@ import { useRoles } from "@/lib/roles";
 export const Route = createFileRoute("/_authenticated/admin/pegawai")({
   head: () => ({
     meta: [
-      { title: "Pegawai — Panel BRI BO Pringsewu" },
-      { name: "description", content: "Data pegawai per unit kerja." },
-      { property: "og:title", content: "Pegawai — Panel BRI BO Pringsewu" },
-      { property: "og:description", content: "Data pegawai per unit kerja." },
+      { title: "Data Pekerja — Panel BRI BO Pringsewu" },
+      { name: "description", content: "Data pekerja per unit kerja." },
+      { property: "og:title", content: "Data Pekerja — Panel BRI BO Pringsewu" },
+      { property: "og:description", content: "Data pekerja per unit kerja." },
     ],
   }),
   component: Page,
@@ -23,18 +23,34 @@ function Page() {
       {r.loading ? null : allowed ? (
         <ResourceManager
           table="employees"
-          title="Pegawai"
-          description="Data pegawai per unit kerja."
+          title="Data Pekerja"
+          description="Data pekerja per unit kerja."
           canWrite={r.isItAdmin}
           fields={[
-            { key: "nip", label: "NIP" },
-            { key: "nama", label: "Nama" },
-            { key: "jabatan", label: "Jabatan" },
+            {
+              key: "personal_number",
+              label: "Personal Number",
+              type: "digits",
+              digitsLength: 8,
+              required: true,
+              placeholder: "00219541",
+            },
+            { key: "nama", label: "Nama Pekerja", required: true },
+            {
+              key: "jabatan_id",
+              label: "Jabatan",
+              type: "ref",
+              refTable: "job_titles",
+              refLabelColumn: "nama_jabatan",
+            },
             { key: "uker_id", label: "Unit Kerja", type: "uker" },
-            { key: "email", label: "Email" },
-            { key: "no_hp", label: "No. HP" },
-            { key: "foto_url", label: "URL Foto", hideInTable: true },
-            { key: "status_aktif", label: "Status", type: "boolean" },
+            {
+              key: "status_karyawan",
+              label: "Status Karyawan",
+              type: "select",
+              options: ["Pegawai Tetap", "Kontrak/Magang", "Outsourcing"],
+            },
+            { key: "no_telepon", label: "Nomor Telepon", type: "digits" },
           ]}
         />
       ) : (

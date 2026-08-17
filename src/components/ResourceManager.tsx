@@ -32,9 +32,11 @@ export type FieldType =
   | "boolean"
   | "select"
   | "uker"
+  | "ref"
   | "digits"
   | "ip"
   | "latlng";
+
 
 /** Hanya angka. */
 export function formatDigits(v: string) {
@@ -72,7 +74,16 @@ export type Field = {
   required?: boolean;
   hideInTable?: boolean;
   hideInForm?: boolean;
+  /** Untuk type "digits": jumlah digit wajib. */
+  digitsLength?: number;
+  /** Untuk type "ref": tabel sumber pilihan. */
+  refTable?: string;
+  /** Kolom teks yang dipakai sebagai label pilihan. */
+  refLabelColumn?: string;
+  /** Placeholder khusus. */
+  placeholder?: string;
 };
+
 
 type Row = Record<string, unknown>;
 
@@ -148,6 +159,26 @@ export function ResourceManager({
     },
   });
 
+  const refFields = useMemo(
+    () => fields.filter((f) => f.type === "ref" && f.refTable),
+    [fields],
+  );
+
+  const refs = useQuery({
+    queryKey: ["ref-options", refFields.map((f) => `${f.refTable}:${f.refLabelColumn}`).join(",")],
+    enabled: refFields.length > 0,
+    queryFn: async () => {
+      const out: Record<string, Row[]> = {};
+      for (const f of refFields) {
+        const col = f.refLabelColumn ?? "nama";
+        const { data, error } = await db.from(f.refTable!).select(`id, ${col}`).order(col);
+        if (error) throw error;
+        out[f.key] = (data ?? []) as unknown as Row[];
+      }
+      return out;
+    },
+  });
+
   const ukerLabel = useMemo(() => {
     const m = new Map<string, string>();
     for (const u of ukers.data ?? [])
@@ -168,7 +199,10 @@ export function ResourceManager({
           body[f.key] = null;
         } else if (f.type === "digits") {
           if (!/^\d+$/.test(String(str))) throw new Error(`${f.label} harus berupa angka saja`);
+          if (f.digitsLength && String(str).length !== f.digitsLength)
+            throw new Error(`${f.label} harus ${f.digitsLength} digit angka`);
           body[f.key] = String(str);
+
         } else if (f.type === "ip") {
           if (!isValidIp(String(str)))
             throw new Error(`${f.label} harus format IP valid, contoh 013.156.017.001`);
@@ -234,6 +268,11 @@ export function ResourceManager({
         <Badge variant={v ? "default" : "secondary"}>{v ? "Aktif" : "Nonaktif"}</Badge>
       );
     if (f.type === "uker") return ukerLabel.get(v as string) ?? "—";
+    if (f.type === "ref") {
+      const opt = (refs.data?.[f.key] ?? []).find((o) => String(o["id"]) === String(v));
+      return opt ? String(opt[f.refLabelColumn ?? "nama"] ?? "—") : "—";
+    }
+
     if (v === null || v === undefined || v === "") return "—";
     if (f.type === "datetime") return new Date(String(v)).toLocaleString("id-ID");
     return String(v);
@@ -399,7 +438,22 @@ export function ResourceManager({
                       </option>
                     ))}
                   </select>
+                ) : f.type === "ref" ? (
+                  <select
+                    id={f.key}
+                    className="h-10 rounded-xl border border-input bg-popover px-3 text-sm"
+                    value={String(form[f.key] ?? "")}
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                  >
+                    <option value="">— pilih —</option>
+                    {(refs.data?.[f.key] ?? []).map((o) => (
+                      <option key={String(o["id"])} value={String(o["id"])}>
+                        {String(o[f.refLabelColumn ?? "nama"] ?? "")}
+                      </option>
+                    ))}
+                  </select>
                 ) : (
+
                   <Input
                     id={f.key}
                     type={
@@ -417,12 +471,16 @@ export function ResourceManager({
                         : String(form[f.key] ?? "")
                     }
                     inputMode={f.type === "ip" || f.type === "digits" ? "numeric" : undefined}
+                    maxLength={
+                      f.type === "digits" && f.digitsLength ? f.digitsLength : undefined
+                    }
                     placeholder={
-                      f.type === "ip"
+                      f.placeholder ??
+                      (f.type === "ip"
                         ? "013.156.017.001"
                         : f.type === "latlng"
                           ? "-5.358000, 104.975000"
-                          : undefined
+                          : undefined)
                     }
                     onChange={(e) => {
                       const raw = e.target.value;
@@ -430,8 +488,9 @@ export function ResourceManager({
                         f.type === "ip"
                           ? formatIp(raw)
                           : f.type === "digits"
-                            ? formatDigits(raw)
+                            ? formatDigits(raw).slice(0, f.digitsLength ?? 32)
                             : raw;
+
                       setForm({ ...form, [f.key]: next });
                     }}
                   />
