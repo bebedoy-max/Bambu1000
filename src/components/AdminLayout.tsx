@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import logoUrl from "@/assets/logo.png";
 import { AuthSplash } from "@/components/AuthSplash";
+import { GlobalSearch } from "@/components/GlobalSearch";
+
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -33,6 +35,7 @@ const items: Item[] = [
   { to: "/admin/uker", label: "Unit Kerja", icon: Building2 },
   { to: "/admin/pegawai", label: "Pegawai", icon: Users },
   { to: "/admin/atm", label: "Mesin ATM", icon: Banknote },
+  { to: "/admin/crm", label: "Mesin CRM", icon: Banknote },
   { to: "/admin/edc", label: "Mesin EDC", icon: CreditCard },
   { to: "/admin/event", label: "Event & Absensi", icon: CalendarDays, need: "event" },
   { to: "/admin/ip", label: "IP Address Uker", icon: Network, need: "it" },
@@ -84,7 +87,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             key={i.to}
             to={i.to}
             activeOptions={{ exact: i.to === "/admin" }}
-            className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground [&.active]:bg-secondary [&.active]:text-foreground"
+            className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-all duration-200 hover:metal-item hover:text-foreground [&.active]:metal-item-active [&.active]:text-foreground"
           >
             <i.icon className="size-4" />
             {i.label}
@@ -107,6 +110,9 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
       <div className="min-w-0 flex-1">
+        <header className="sticky top-0 z-40 flex items-center justify-end gap-3 border-b border-border/60 bg-background/60 p-3 backdrop-blur-xl">
+          <GlobalSearch className="w-full max-w-md" />
+        </header>
         <div className="flex flex-wrap gap-1 border-b border-border/60 p-3 lg:hidden">
           {visible.map((i) => (
             <Link
@@ -121,6 +127,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         </div>
         <main className="p-4 sm:p-6">{children}</main>
       </div>
+
     </div>
   );
 }

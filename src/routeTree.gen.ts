@@ -19,6 +19,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminAsetRouteImport } from './routes/_authenticated/admin/aset'
 import { Route as AuthenticatedAdminAtmRouteImport } from './routes/_authenticated/admin/atm'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
+import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin/crm'
 import { Route as AuthenticatedAdminEdcRouteImport } from './routes/_authenticated/admin/edc'
 import { Route as AuthenticatedAdminFotoRouteImport } from './routes/_authenticated/admin/foto'
 import { Route as AuthenticatedAdminIpRouteImport } from './routes/_authenticated/admin/ip'
@@ -77,6 +78,11 @@ const AuthenticatedAdminAtmRoute = AuthenticatedAdminAtmRouteImport.update({
 const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
   id: '/admin/audit',
   path: '/admin/audit',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminCrmRoute = AuthenticatedAdminCrmRouteImport.update({
+  id: '/admin/crm',
+  path: '/admin/crm',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminEdcRoute = AuthenticatedAdminEdcRouteImport.update({
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/edc': typeof AuthenticatedAdminEdcRoute
   '/admin/foto': typeof AuthenticatedAdminFotoRoute
   '/admin/ip': typeof AuthenticatedAdminIpRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/edc': typeof AuthenticatedAdminEdcRoute
   '/admin/foto': typeof AuthenticatedAdminFotoRoute
   '/admin/ip': typeof AuthenticatedAdminIpRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/_authenticated/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/_authenticated/admin/edc': typeof AuthenticatedAdminEdcRoute
   '/_authenticated/admin/foto': typeof AuthenticatedAdminFotoRoute
   '/_authenticated/admin/ip': typeof AuthenticatedAdminIpRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/admin/aset'
     | '/admin/atm'
     | '/admin/audit'
+    | '/admin/crm'
     | '/admin/edc'
     | '/admin/foto'
     | '/admin/ip'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/admin/aset'
     | '/admin/atm'
     | '/admin/audit'
+    | '/admin/crm'
     | '/admin/edc'
     | '/admin/foto'
     | '/admin/ip'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/aset'
     | '/_authenticated/admin/atm'
     | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/crm'
     | '/_authenticated/admin/edc'
     | '/_authenticated/admin/foto'
     | '/_authenticated/admin/ip'
@@ -347,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/crm': {
+      id: '/_authenticated/admin/crm'
+      path: '/admin/crm'
+      fullPath: '/admin/crm'
+      preLoaderRoute: typeof AuthenticatedAdminCrmRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/edc': {
       id: '/_authenticated/admin/edc'
       path: '/admin/edc'
@@ -424,6 +443,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminAsetRoute: typeof AuthenticatedAdminAsetRoute
   AuthenticatedAdminAtmRoute: typeof AuthenticatedAdminAtmRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
   AuthenticatedAdminEdcRoute: typeof AuthenticatedAdminEdcRoute
   AuthenticatedAdminFotoRoute: typeof AuthenticatedAdminFotoRoute
   AuthenticatedAdminIpRoute: typeof AuthenticatedAdminIpRoute
@@ -441,6 +461,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminAsetRoute: AuthenticatedAdminAsetRoute,
   AuthenticatedAdminAtmRoute: AuthenticatedAdminAtmRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+  AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
   AuthenticatedAdminEdcRoute: AuthenticatedAdminEdcRoute,
   AuthenticatedAdminFotoRoute: AuthenticatedAdminFotoRoute,
   AuthenticatedAdminIpRoute: AuthenticatedAdminIpRoute,

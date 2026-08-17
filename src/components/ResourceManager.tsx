@@ -1,9 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearch } from "@tanstack/react-router";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+
 
 // Dynamic table names need an untyped client.
 const db = supabase as unknown as SupabaseClient;
@@ -29,7 +31,38 @@ export type FieldType =
   | "textarea"
   | "boolean"
   | "select"
-  | "uker";
+  | "uker"
+  | "digits"
+  | "ip"
+  | "latlng";
+
+/** Hanya angka. */
+export function formatDigits(v: string) {
+  return v.replace(/\D/g, "");
+}
+
+/** Auto format IP: user ketik angka → 013.156.017.001 */
+export function formatIp(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 12);
+  return (d.match(/.{1,3}/g) ?? []).join(".");
+}
+
+export function isValidIp(v: string) {
+  const parts = v.split(".");
+  if (parts.length !== 4) return false;
+  return parts.every((p) => /^\d{1,3}$/.test(p) && Number(p) <= 255);
+}
+
+/** "latitude, longitude" */
+export function isValidLatLng(v: string) {
+  const m = v.split(",").map((s) => s.trim());
+  if (m.length !== 2) return false;
+  const lat = Number(m[0]);
+  const lng = Number(m[1]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  if (!/^-?\d+(\.\d+)?$/.test(m[0]!) || !/^-?\d+(\.\d+)?$/.test(m[1]!)) return false;
+  return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+}
 
 export type Field = {
   key: string;
@@ -78,7 +111,15 @@ export function ResourceManager({
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
   const [form, setForm] = useState<Row>(() => emptyForm(fields));
-  const [q, setQ] = useState("");
+  const urlSearch = useSearch({ strict: false }) as { q?: string; focus?: string };
+  const [q, setQ] = useState(urlSearch.q ?? "");
+  const focusId = urlSearch.focus;
+  const focusRef = useRef<HTMLTableRowElement | null>(null);
+
+  useEffect(() => {
+    if (urlSearch.q !== undefined) setQ(urlSearch.q);
+  }, [urlSearch.q]);
+
 
   const needsUkers = fields.some((f) => f.type === "uker");
 
@@ -120,10 +161,24 @@ export function ResourceManager({
       for (const f of fields) {
         if (f.hideInForm) continue;
         const v = payload[f.key];
+        const str = typeof v === "string" ? v.trim() : v;
         if (f.type === "boolean") body[f.key] = Boolean(v);
-        else if (v === "" || v === undefined || v === null) body[f.key] = null;
-        else if (f.type === "number") body[f.key] = Number(v);
-        else body[f.key] = v;
+        else if (str === "" || str === undefined || str === null) {
+          if (f.required) throw new Error(`${f.label} wajib diisi`);
+          body[f.key] = null;
+        } else if (f.type === "digits") {
+          if (!/^\d+$/.test(String(str))) throw new Error(`${f.label} harus berupa angka saja`);
+          body[f.key] = String(str);
+        } else if (f.type === "ip") {
+          if (!isValidIp(String(str)))
+            throw new Error(`${f.label} harus format IP valid, contoh 013.156.017.001`);
+          body[f.key] = String(str);
+        } else if (f.type === "latlng") {
+          if (!isValidLatLng(String(str)))
+            throw new Error(`${f.label} harus format "latitude, longitude" yang valid`);
+          body[f.key] = String(str);
+        } else if (f.type === "number") body[f.key] = Number(str);
+        else body[f.key] = str;
       }
       if (editing) {
         const { error } = await db.from(table).update(body).eq("id", editing["id"] as string);
@@ -164,6 +219,13 @@ export function ResourceManager({
   const rows = (list.data ?? []).filter((r) =>
     q.trim() ? JSON.stringify(r).toLowerCase().includes(q.toLowerCase()) : true,
   );
+
+  useEffect(() => {
+    if (focusId && focusRef.current) {
+      focusRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [focusId, list.data]);
+
 
   function renderCell(f: Field, row: Row) {
     const v = row[f.key];
@@ -237,7 +299,14 @@ export function ResourceManager({
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={String(row["id"])} className="border-b border-border/40 last:border-0 hover:bg-secondary/40">
+                <tr
+                  key={String(row["id"])}
+                  ref={String(row["id"]) === focusId ? focusRef : undefined}
+                  className={`border-b border-border/40 last:border-0 hover:bg-secondary/40 ${
+                    String(row["id"]) === focusId ? "bg-primary/15 ring-1 ring-primary/40" : ""
+                  }`}
+                >
+
                   {tableFields.map((f) => (
                     <td key={f.key} className="px-4 py-3 whitespace-nowrap">
                       {renderCell(f, row)}
@@ -347,7 +416,24 @@ export function ResourceManager({
                         ? new Date(String(form[f.key])).toISOString().slice(0, 16)
                         : String(form[f.key] ?? "")
                     }
-                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                    inputMode={f.type === "ip" || f.type === "digits" ? "numeric" : undefined}
+                    placeholder={
+                      f.type === "ip"
+                        ? "013.156.017.001"
+                        : f.type === "latlng"
+                          ? "-5.358000, 104.975000"
+                          : undefined
+                    }
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const next =
+                        f.type === "ip"
+                          ? formatIp(raw)
+                          : f.type === "digits"
+                            ? formatDigits(raw)
+                            : raw;
+                      setForm({ ...form, [f.key]: next });
+                    }}
                   />
                 )}
               </div>

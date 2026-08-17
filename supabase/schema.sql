@@ -433,3 +433,37 @@ INSERT INTO public.events (nama_event, deskripsi, tanggal_mulai, tanggal_selesai
 ('Rapat Koordinasi Bulanan Agustus','Rapat koordinasi seluruh unit kerja BO Pringsewu','2026-08-20 08:00+07','2026-08-20 12:00+07','rakorbulanan082026', true),
 ('Sosialisasi Keamanan Siber','Sosialisasi keamanan informasi & phishing awareness','2026-08-25 13:00+07','2026-08-25 16:00+07','sosialisasicyber2026', true)
 ON CONFLICT (qr_token) DO NOTHING;
+
+-- ============================================================
+-- Mesin ATM: penyesuaian kolom + Mesin CRM (jalankan di SQL Editor)
+-- ============================================================
+ALTER TABLE public.atm_machines
+  ADD COLUMN IF NOT EXISTS tid text,
+  ADD COLUMN IF NOT EXISTS titik_maps text,
+  ADD COLUMN IF NOT EXISTS merk text,
+  ADD COLUMN IF NOT EXISTS ip_address text,
+  ADD COLUMN IF NOT EXISTS tgl_live date;
+ALTER TABLE public.atm_machines ALTER COLUMN kode_atm DROP NOT NULL;
+UPDATE public.atm_machines SET tid = COALESCE(tid, regexp_replace(kode_atm, '\D', '', 'g'));
+
+CREATE TABLE IF NOT EXISTS public.crm_machines (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tid text,
+  lokasi text,
+  titik_maps text,
+  merk text,
+  ip_address text,
+  tgl_live date,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT ON public.crm_machines TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.crm_machines TO authenticated;
+GRANT ALL ON public.crm_machines TO service_role;
+ALTER TABLE public.crm_machines ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "crm read" ON public.crm_machines;
+DROP POLICY IF EXISTS "crm admin write" ON public.crm_machines;
+CREATE POLICY "crm read" ON public.crm_machines FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "crm admin write" ON public.crm_machines FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
+DROP TRIGGER IF EXISTS crm_updated ON public.crm_machines;
+CREATE TRIGGER crm_updated BEFORE UPDATE ON public.crm_machines FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();

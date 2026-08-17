@@ -3,13 +3,13 @@ import { AdminLayout, AccessDenied } from "@/components/AdminLayout";
 import { ResourceManager } from "@/components/ResourceManager";
 import { useRoles } from "@/lib/roles";
 
-export const Route = createFileRoute("/_authenticated/admin/atm")({
+export const Route = createFileRoute("/_authenticated/admin/crm")({
   head: () => ({
     meta: [
-      { title: "Mesin ATM — Panel BRI BO Pringsewu" },
-      { name: "description", content: "Daftar mesin ATM beserta jadwal maintenance." },
-      { property: "og:title", content: "Mesin ATM — Panel BRI BO Pringsewu" },
-      { property: "og:description", content: "Daftar mesin ATM beserta jadwal maintenance." },
+      { title: "Mesin CRM — Panel BRI BO Pringsewu" },
+      { name: "description", content: "Daftar mesin CRM beserta lokasi, IP address, dan tanggal live." },
+      { property: "og:title", content: "Mesin CRM — Panel BRI BO Pringsewu" },
+      { property: "og:description", content: "Daftar mesin CRM beserta lokasi, IP address, dan tanggal live." },
     ],
   }),
   component: Page,
@@ -17,26 +17,23 @@ export const Route = createFileRoute("/_authenticated/admin/atm")({
 
 function Page() {
   const r = useRoles();
-  const allowed = true;
   return (
     <AdminLayout>
-      {r.loading ? null : allowed ? (
+      {r.loading ? null : (
         <ResourceManager
-          table="atm_machines"
-          title="Mesin ATM"
-          description="Daftar mesin ATM beserta jadwal maintenance."
+          table="crm_machines"
+          title="Mesin CRM"
+          description="Daftar mesin CRM beserta lokasi, IP address, dan tanggal live."
           canWrite={r.isItAdmin}
           fields={[
             { key: "tid", label: "TID", type: "digits", required: true },
             { key: "lokasi", label: "Lokasi" },
-            { key: "titik_maps", label: "Titik Maps" , type: "latlng" },
-            { key: "merk", label: "Merk ATM" },
+            { key: "titik_maps", label: "Titik Maps", type: "latlng" },
+            { key: "merk", label: "Merk CRM" },
             { key: "ip_address", label: "IP Address", type: "ip" },
             { key: "tgl_live", label: "Tgl. Live", type: "date" },
           ]}
         />
-      ) : (
-        <AccessDenied />
       )}
     </AdminLayout>
   );
