@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { createContext, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Clock, LogOut } from "lucide-react";
@@ -117,10 +117,20 @@ export function AccessDenied() {
   );
 }
 
+/** Konteks hak edit untuk halaman admin yang sedang dibuka. */
+export const PageEditContext = createContext(true);
+
 /** Membungkus halaman admin dengan pengecekan hak akses menu (menu Akses Halaman). */
 export function AdminPage({ menuKey, children }: { menuKey: string; children: ReactNode }) {
-  const { loading, canAccess } = useAccess();
+  const { loading, canAccess, canEdit } = useAccess();
   return (
-    <AdminLayout>{loading ? null : canAccess(menuKey) ? children : <AccessDenied />}</AdminLayout>
+    <AdminLayout>
+      {loading ? null : canAccess(menuKey) ? (
+        <PageEditContext.Provider value={canEdit(menuKey)}>{children}</PageEditContext.Provider>
+      ) : (
+        <AccessDenied />
+      )}
+    </AdminLayout>
   );
 }
+

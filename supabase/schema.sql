@@ -713,3 +713,8 @@ CREATE POLICY "page_access admin write" ON public.page_access FOR ALL TO authent
 DROP TRIGGER IF EXISTS page_access_updated ON public.page_access;
 CREATE TRIGGER page_access_updated BEFORE UPDATE ON public.page_access
 FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- =====================================================================
+-- Akses Halaman: pemisahan hak View dan Edit per level akses
+-- =====================================================================
+ALTER TABLE public.page_access ADD COLUMN IF NOT EXISTS can_edit boolean NOT NULL DEFAULT false;

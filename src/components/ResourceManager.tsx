@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { PageEditContext } from "@/components/AdminLayout";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearch } from "@tanstack/react-router";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
@@ -116,11 +118,14 @@ export function ResourceManager({
   description,
   fields,
   orderBy = "created_at",
-  canWrite = true,
+  canWrite,
   ownerColumn,
   extraActions,
 }: ResourceManagerProps) {
+  const mayEdit = useContext(PageEditContext);
+  canWrite = (canWrite ?? true) && mayEdit;
   const qc = useQueryClient();
+
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
   const [form, setForm] = useState<Row>(() => emptyForm(fields));

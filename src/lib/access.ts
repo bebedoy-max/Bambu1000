@@ -101,19 +101,27 @@ export const menuItems: MenuItem[] = [
   { key: "audit", to: "/admin/audit", label: "Audit Log", icon: ScrollText, defaults: ["super_admin"] },
 ];
 
-export type PageAccessRow = { page_key: string; akses_level: string; allowed: boolean };
+export type PageAccessRow = {
+  page_key: string;
+  akses_level: string;
+  allowed: boolean;
+  can_edit?: boolean;
+};
 
 export function usePageAccess() {
   return useQuery({
     queryKey: ["page_access"],
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await db.from("page_access").select("page_key,akses_level,allowed");
+      const { data, error } = await db
+        .from("page_access")
+        .select("page_key,akses_level,allowed,can_edit");
       if (error) return [] as PageAccessRow[];
       return (data ?? []) as PageAccessRow[];
     },
   });
 }
+
 
 export function useProfileStatus() {
   const { session } = useRoles();
@@ -147,6 +155,15 @@ export function useAccess() {
     return item.defaults.includes(level);
   }
 
+  /** Boleh mengubah data pada menu ini (tambah/edit/hapus). */
+  function canEdit(key: string) {
+    if (level === "super_admin") return true;
+    if (!canAccess(key)) return false;
+    const rule = (rules.data ?? []).find((x) => x.page_key === key && x.akses_level === level);
+    if (rule) return rule.can_edit === true;
+    return level === "admin";
+  }
+
   return {
     ...r,
     level,
@@ -154,6 +171,8 @@ export function useAccess() {
     loading: r.loading || rules.isLoading,
     isAdminLevel: level === "super_admin" || level === "admin",
     canAccess,
+    canEdit,
     visibleMenus: menuItems.filter((m) => canAccess(m.key)),
   };
 }
+
