@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { AdminLayout } from "@/components/AdminLayout";
 import { StatCard } from "@/components/StatCard";
+import { ProjectSummary } from "@/components/ProjectSummary";
 import { useRoles } from "@/lib/roles";
 
 const db = supabase as unknown as SupabaseClient;
@@ -59,6 +60,10 @@ function Page() {
         <StatCard label="Tiket IT" value={s?.tickets ?? "—"} icon={LifeBuoy} />
         {isItAdmin ? <StatCard label="Aset IT" value={s?.assets ?? "—"} icon={Boxes} /> : null}
       </div>
+      <section className="mt-8">
+        <h2 className="mb-4 text-lg font-semibold">Intisari Project IT</h2>
+        <ProjectSummary />
+      </section>
     </AdminLayout>
   );
 }

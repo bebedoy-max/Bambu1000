@@ -28,14 +28,15 @@ function Page() {
           canWrite={r.isItAdmin}
           fields={[
             { key: "tid", label: "TID", type: "digits", required: true },
-            { key: "nama_merchant", label: "Nama Merchant" },
+            { key: "nama_merchant", label: "Nama Merchant", required: true },
             {
               key: "kategori_edc",
               label: "Kategori EDC",
               type: "select",
               options: ["Merchant", "Brilink", "UKO"],
+              required: true,
             },
-            { key: "alamat", label: "Alamat", type: "textarea" },
+            { key: "alamat", label: "Alamat", type: "textarea", required: true },
             { key: "keterangan", label: "Keterangan", type: "textarea" },
           ]}
         />

@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Banknote, Building2, CreditCard, Users, CalendarDays, ArrowRight } from "lucide-react";
+import { Banknote, Building2, CreditCard, Users, CalendarDays } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { PublicLayout } from "@/components/PublicLayout";
 import { StatCard } from "@/components/StatCard";
+import { ProjectSummary } from "@/components/ProjectSummary";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -40,29 +41,17 @@ function Index() {
       atm: await count("atm_machines"),
       edc: await count("edc_machines"),
       employees: await count("employees"),
-      events: await count("events"),
+      projects: await count("projects"),
     }),
   });
 
-  const upcoming = useQuery({
-    queryKey: ["public-events"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("events")
-        .select("id, nama_event, deskripsi, tanggal_mulai, qr_token")
-        .eq("is_active", true)
-        .order("tanggal_mulai", { ascending: true })
-        .limit(4);
-      return data ?? [];
-    },
-  });
 
   const cards = [
     { label: "Unit Kerja", value: stats.data?.ukers ?? "—", icon: Building2, hint: "Uker aktif terdaftar" },
     { label: "Mesin ATM", value: stats.data?.atm ?? "—", icon: Banknote, hint: "Termonitor" },
     { label: "Mesin EDC", value: stats.data?.edc ?? "—", icon: CreditCard, hint: "Merchant terpasang" },
     { label: "Pegawai", value: stats.data?.employees ?? "—", icon: Users, hint: "Seluruh unit kerja" },
-    { label: "Event Aktif", value: stats.data?.events ?? "—", icon: CalendarDays, hint: "Kegiatan berjalan" },
+    { label: "Project IT", value: stats.data?.projects ?? "—", icon: CalendarDays, hint: "Project berjalan" },
   ];
 
   return (
@@ -95,31 +84,8 @@ function Index() {
       </div>
 
       <section className="mt-8">
-        <h2 className="mb-4 text-lg font-semibold">Kegiatan Terbaru</h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          {(upcoming.data ?? []).map((e) => (
-            <div key={e.id} className="glass-card p-5">
-              <p className="text-xs text-accent">
-                {e.tanggal_mulai
-                  ? new Date(e.tanggal_mulai).toLocaleString("id-ID", {
-                      dateStyle: "full",
-                      timeStyle: "short",
-                    })
-                  : "Jadwal menyusul"}
-              </p>
-              <h3 className="mt-1 font-semibold">{e.nama_event}</h3>
-              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{e.deskripsi}</p>
-              <Button asChild size="sm" variant="secondary" className="mt-4">
-                <Link to="/absen/$token" params={{ token: e.qr_token }}>
-                  Isi Absensi <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-            </div>
-          ))}
-          {upcoming.data?.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Belum ada kegiatan aktif.</p>
-          ) : null}
-        </div>
+        <h2 className="mb-4 text-lg font-semibold">Project IT Berjalan</h2>
+        <ProjectSummary limit={4} />
       </section>
     </PublicLayout>
   );

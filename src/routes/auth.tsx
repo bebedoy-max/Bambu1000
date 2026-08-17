@@ -10,6 +10,14 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import logoUrl from "@/assets/logo.png";
 import { AuthSplash } from "@/components/AuthSplash";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -41,6 +49,7 @@ function Auth() {
   const [nama, setNama] = useState("");
   const [busy, setBusy] = useState(false);
   const [splash, setSplash] = useState<string | null>("Memeriksa sesi...");
+  const [registered, setRegistered] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -98,7 +107,7 @@ function Auth() {
       toast.error(error.message);
       return;
     }
-    toast.success("Akun dibuat. Silakan masuk.");
+    setRegistered(true);
   }
 
   async function google() {
@@ -120,6 +129,21 @@ function Auth() {
 
   return (
     <div className="grid min-h-screen place-items-center px-4">
+      <Dialog open={registered} onOpenChange={setRegistered}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Registrasi Berhasil</DialogTitle>
+            <DialogDescription>
+              Akun Anda sudah dibuat, namun pendaftaran belum selesai. Registrasi harus disetujui
+              (approval) oleh admin terlebih dahulu sebelum Anda dapat mengakses data internal.
+              Silakan tunggu konfirmasi dari admin.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setRegistered(false)}>Mengerti</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="glass-card relative w-full max-w-md p-8">
         <button
           type="button"

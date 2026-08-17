@@ -526,3 +526,190 @@ UPDATE public.employees SET
   personal_number = COALESCE(personal_number, lpad(regexp_replace(COALESCE(nip,''), '\D', '', 'g'), 8, '0')),
   no_telepon = COALESCE(no_telepon, regexp_replace(COALESCE(no_hp,''), '\D', '', 'g'));
 GRANT SELECT (id,nip,personal_number,nama,jabatan,jabatan_id,uker_id,status_karyawan,status_aktif,foto_url,created_at,updated_at) ON public.employees TO anon;
+
+-- ============================================================
+-- Perangkat IT, Project IT, Update Progress Project
+-- (jalankan di SQL Editor Supabase — idempoten)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.it_devices (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  nama_perangkat text NOT NULL,
+  jenis_perangkat text,
+  nama_pengguna text,
+  ip_address text,
+  kondisi_perangkat text,
+  keterangan text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT ON public.it_devices TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.it_devices TO authenticated;
+GRANT ALL ON public.it_devices TO service_role;
+ALTER TABLE public.it_devices ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "it_devices read" ON public.it_devices;
+DROP POLICY IF EXISTS "it_devices admin write" ON public.it_devices;
+CREATE POLICY "it_devices read" ON public.it_devices FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "it_devices admin write" ON public.it_devices FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
+DROP TRIGGER IF EXISTS it_devices_updated ON public.it_devices;
+CREATE TRIGGER it_devices_updated BEFORE UPDATE ON public.it_devices FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TABLE IF NOT EXISTS public.projects (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  nama_project text NOT NULL,
+  deskripsi text,
+  parameter text,
+  tanggal_mulai date,
+  deadline date,
+  created_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT ON public.projects TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.projects TO authenticated;
+GRANT ALL ON public.projects TO service_role;
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "projects read" ON public.projects;
+DROP POLICY IF EXISTS "projects admin write" ON public.projects;
+CREATE POLICY "projects read" ON public.projects FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "projects admin write" ON public.projects FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
+DROP TRIGGER IF EXISTS projects_updated ON public.projects;
+CREATE TRIGGER projects_updated BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TABLE IF NOT EXISTS public.project_progress (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id uuid NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+  item_id text NOT NULL,
+  item_label text,
+  keterangan text,
+  created_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (project_id, item_id)
+);
+GRANT SELECT ON public.project_progress TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.project_progress TO authenticated;
+GRANT ALL ON public.project_progress TO service_role;
+ALTER TABLE public.project_progress ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "project_progress read" ON public.project_progress;
+DROP POLICY IF EXISTS "project_progress admin write" ON public.project_progress;
+CREATE POLICY "project_progress read" ON public.project_progress FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "project_progress admin write" ON public.project_progress FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
+DROP TRIGGER IF EXISTS project_progress_updated ON public.project_progress;
+CREATE TRIGGER project_progress_updated BEFORE UPDATE ON public.project_progress FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- ============================================================
+-- Approval user baru + Akses Halaman per level akses
+-- (jalankan di SQL Editor Supabase — idempoten)
+-- ============================================================
+
+-- Level akses: Super Admin (superadmin), Admin (it_admin),
+-- Manajemen (event_admin), Pekerja (employee) — memakai enum yang sudah ada.
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role IN ('it_admin','superadmin'));
+$$;
+
+-- Status approval pada profil pengguna
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'pending';
+UPDATE public.profiles SET status = 'approved' WHERE status IS NULL OR status = '';
+-- pengguna lama tetap aktif
+UPDATE public.profiles p SET status = 'approved'
+WHERE p.status = 'pending' AND EXISTS (SELECT 1 FROM public.user_roles r WHERE r.user_id = p.id AND r.role <> 'employee');
+
+DROP POLICY IF EXISTS "profiles self read" ON public.profiles;
+DROP POLICY IF EXISTS "profiles self update" ON public.profiles;
+CREATE POLICY "profiles self read" ON public.profiles FOR SELECT TO authenticated
+  USING (id = auth.uid() OR public.is_admin());
+CREATE POLICY "profiles self update" ON public.profiles FOR UPDATE TO authenticated
+  USING (id = auth.uid() OR public.is_admin()) WITH CHECK (id = auth.uid() OR public.is_admin());
+
+-- Admin boleh mengatur role pengguna (hasil approval)
+DROP POLICY IF EXISTS "roles read own" ON public.user_roles;
+DROP POLICY IF EXISTS "roles admin write" ON public.user_roles;
+CREATE POLICY "roles read own" ON public.user_roles FOR SELECT TO authenticated
+  USING (user_id = auth.uid() OR public.is_admin());
+CREATE POLICY "roles admin write" ON public.user_roles FOR ALL TO authenticated
+  USING (public.is_admin()) WITH CHECK (public.is_admin());
+
+-- Tabel approval generik (registrasi user & kebutuhan approval lainnya)
+CREATE TABLE IF NOT EXISTS public.approval_requests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  jenis text NOT NULL DEFAULT 'registrasi_user',
+  judul text,
+  detail jsonb NOT NULL DEFAULT '{}'::jsonb,
+  subject_user_id uuid,
+  requested_by uuid,
+  status text NOT NULL DEFAULT 'pending',
+  akses_level text,
+  catatan text,
+  decided_by uuid,
+  decided_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.approval_requests TO authenticated;
+GRANT ALL ON public.approval_requests TO service_role;
+ALTER TABLE public.approval_requests ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "approval read" ON public.approval_requests;
+DROP POLICY IF EXISTS "approval insert" ON public.approval_requests;
+DROP POLICY IF EXISTS "approval admin write" ON public.approval_requests;
+CREATE POLICY "approval read" ON public.approval_requests FOR SELECT TO authenticated
+  USING (requested_by = auth.uid() OR subject_user_id = auth.uid() OR public.is_admin());
+CREATE POLICY "approval insert" ON public.approval_requests FOR INSERT TO authenticated
+  WITH CHECK (requested_by = auth.uid() OR public.is_admin());
+CREATE POLICY "approval admin write" ON public.approval_requests FOR ALL TO authenticated
+  USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP TRIGGER IF EXISTS approval_requests_updated ON public.approval_requests;
+CREATE TRIGGER approval_requests_updated BEFORE UPDATE ON public.approval_requests
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- Registrasi user baru otomatis membuat permintaan approval
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE first_user boolean;
+BEGIN
+  first_user := NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'superadmin');
+
+  INSERT INTO public.profiles (id, email, nama, username, status)
+  VALUES (NEW.id, NEW.email,
+          COALESCE(NEW.raw_user_meta_data->>'nama', NEW.email),
+          split_part(COALESCE(NEW.email,''), '@', 1),
+          CASE WHEN first_user THEN 'approved' ELSE 'pending' END)
+  ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
+
+  IF first_user THEN
+    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'superadmin') ON CONFLICT DO NOTHING;
+  ELSE
+    INSERT INTO public.approval_requests (jenis, judul, detail, subject_user_id, requested_by, status)
+    VALUES ('registrasi_user',
+            'Registrasi user baru: ' || COALESCE(NEW.email, ''),
+            jsonb_build_object('email', NEW.email, 'nama', COALESCE(NEW.raw_user_meta_data->>'nama','')),
+            NEW.id, NEW.id, 'pending');
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+-- Pengaturan akses halaman per level akses
+CREATE TABLE IF NOT EXISTS public.page_access (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  page_key text NOT NULL,
+  akses_level text NOT NULL,
+  allowed boolean NOT NULL DEFAULT false,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (page_key, akses_level)
+);
+GRANT SELECT ON public.page_access TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.page_access TO authenticated;
+GRANT ALL ON public.page_access TO service_role;
+ALTER TABLE public.page_access ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "page_access read" ON public.page_access;
+DROP POLICY IF EXISTS "page_access admin write" ON public.page_access;
+CREATE POLICY "page_access read" ON public.page_access FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "page_access admin write" ON public.page_access FOR ALL TO authenticated
+  USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP TRIGGER IF EXISTS page_access_updated ON public.page_access;
+CREATE TRIGGER page_access_updated BEFORE UPDATE ON public.page_access
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();

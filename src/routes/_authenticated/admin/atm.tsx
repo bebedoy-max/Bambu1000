@@ -28,10 +28,21 @@ function Page() {
           canWrite={r.isItAdmin}
           fields={[
             { key: "tid", label: "TID", type: "digits", required: true },
-            { key: "lokasi", label: "Lokasi" },
-            { key: "titik_maps", label: "Titik Maps" , type: "latlng" },
-            { key: "merk", label: "Merk ATM" },
-            { key: "ip_address", label: "IP Address", type: "ip" },
+            { key: "lokasi", label: "Lokasi", required: true },
+            {
+              key: "titik_maps",
+              label: "Titik Maps",
+              type: "latlng",
+              placeholder: "isi dengan format latitude longitude contoh : -5.355185, 104.973334",
+            },
+            { key: "merk", label: "Merk ATM", required: true },
+            {
+              key: "ip_address",
+              label: "IP Address",
+              type: "ip",
+              required: true,
+              placeholder: "format xxx.xxx.xxx.xxx isi hanya angka saja",
+            },
             { key: "tgl_live", label: "Tgl. Live", type: "date" },
           ]}
         />

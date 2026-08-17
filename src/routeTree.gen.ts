@@ -16,6 +16,8 @@ import { Route as InformasiRouteImport } from './routes/informasi'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as AbsenTokenRouteImport } from './routes/absen.$token'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminAksesRouteImport } from './routes/_authenticated/admin/akses'
+import { Route as AuthenticatedAdminApprovalRouteImport } from './routes/_authenticated/admin/approval'
 import { Route as AuthenticatedAdminAsetRouteImport } from './routes/_authenticated/admin/aset'
 import { Route as AuthenticatedAdminAtmRouteImport } from './routes/_authenticated/admin/atm'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
@@ -24,6 +26,9 @@ import { Route as AuthenticatedAdminEdcRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminFotoRouteImport } from './routes/_authenticated/admin/foto'
 import { Route as AuthenticatedAdminJabatanRouteImport } from './routes/_authenticated/admin/jabatan'
 import { Route as AuthenticatedAdminPegawaiRouteImport } from './routes/_authenticated/admin/pegawai'
+import { Route as AuthenticatedAdminPerangkatRouteImport } from './routes/_authenticated/admin/perangkat'
+import { Route as AuthenticatedAdminProjectRouteImport } from './routes/_authenticated/admin/project'
+import { Route as AuthenticatedAdminProjectProgressRouteImport } from './routes/_authenticated/admin/project-progress'
 import { Route as AuthenticatedAdminTiketRouteImport } from './routes/_authenticated/admin/tiket'
 import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin/tools'
 import { Route as AuthenticatedAdminTutorialRouteImport } from './routes/_authenticated/admin/tutorial'
@@ -65,6 +70,17 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminAksesRoute = AuthenticatedAdminAksesRouteImport.update({
+  id: '/admin/akses',
+  path: '/admin/akses',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminApprovalRoute =
+  AuthenticatedAdminApprovalRouteImport.update({
+    id: '/admin/approval',
+    path: '/admin/approval',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminAsetRoute = AuthenticatedAdminAsetRouteImport.update({
   id: '/admin/aset',
   path: '/admin/aset',
@@ -107,6 +123,24 @@ const AuthenticatedAdminPegawaiRoute =
     path: '/admin/pegawai',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminPerangkatRoute =
+  AuthenticatedAdminPerangkatRouteImport.update({
+    id: '/admin/perangkat',
+    path: '/admin/perangkat',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminProjectRoute =
+  AuthenticatedAdminProjectRouteImport.update({
+    id: '/admin/project',
+    path: '/admin/project',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminProjectProgressRoute =
+  AuthenticatedAdminProjectProgressRouteImport.update({
+    id: '/admin/project-progress',
+    path: '/admin/project-progress',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminTiketRoute = AuthenticatedAdminTiketRouteImport.update({
   id: '/admin/tiket',
   path: '/admin/tiket',
@@ -147,6 +181,8 @@ export interface FileRoutesByFullPath {
   '/informasi': typeof InformasiRoute
   '/profil': typeof ProfilRoute
   '/absen/$token': typeof AbsenTokenRoute
+  '/admin/akses': typeof AuthenticatedAdminAksesRoute
+  '/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
@@ -155,6 +191,9 @@ export interface FileRoutesByFullPath {
   '/admin/foto': typeof AuthenticatedAdminFotoRoute
   '/admin/jabatan': typeof AuthenticatedAdminJabatanRoute
   '/admin/pegawai': typeof AuthenticatedAdminPegawaiRoute
+  '/admin/perangkat': typeof AuthenticatedAdminPerangkatRoute
+  '/admin/project': typeof AuthenticatedAdminProjectRoute
+  '/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/admin/tools': typeof AuthenticatedAdminToolsRoute
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
@@ -169,6 +208,8 @@ export interface FileRoutesByTo {
   '/informasi': typeof InformasiRoute
   '/profil': typeof ProfilRoute
   '/absen/$token': typeof AbsenTokenRoute
+  '/admin/akses': typeof AuthenticatedAdminAksesRoute
+  '/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
@@ -177,6 +218,9 @@ export interface FileRoutesByTo {
   '/admin/foto': typeof AuthenticatedAdminFotoRoute
   '/admin/jabatan': typeof AuthenticatedAdminJabatanRoute
   '/admin/pegawai': typeof AuthenticatedAdminPegawaiRoute
+  '/admin/perangkat': typeof AuthenticatedAdminPerangkatRoute
+  '/admin/project': typeof AuthenticatedAdminProjectRoute
+  '/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/admin/tools': typeof AuthenticatedAdminToolsRoute
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
@@ -193,6 +237,8 @@ export interface FileRoutesById {
   '/informasi': typeof InformasiRoute
   '/profil': typeof ProfilRoute
   '/absen/$token': typeof AbsenTokenRoute
+  '/_authenticated/admin/akses': typeof AuthenticatedAdminAksesRoute
+  '/_authenticated/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/_authenticated/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/_authenticated/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
@@ -201,6 +247,9 @@ export interface FileRoutesById {
   '/_authenticated/admin/foto': typeof AuthenticatedAdminFotoRoute
   '/_authenticated/admin/jabatan': typeof AuthenticatedAdminJabatanRoute
   '/_authenticated/admin/pegawai': typeof AuthenticatedAdminPegawaiRoute
+  '/_authenticated/admin/perangkat': typeof AuthenticatedAdminPerangkatRoute
+  '/_authenticated/admin/project': typeof AuthenticatedAdminProjectRoute
+  '/_authenticated/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/_authenticated/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/_authenticated/admin/tools': typeof AuthenticatedAdminToolsRoute
   '/_authenticated/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
@@ -217,6 +266,8 @@ export interface FileRouteTypes {
     | '/informasi'
     | '/profil'
     | '/absen/$token'
+    | '/admin/akses'
+    | '/admin/approval'
     | '/admin/aset'
     | '/admin/atm'
     | '/admin/audit'
@@ -225,6 +276,9 @@ export interface FileRouteTypes {
     | '/admin/foto'
     | '/admin/jabatan'
     | '/admin/pegawai'
+    | '/admin/perangkat'
+    | '/admin/project'
+    | '/admin/project-progress'
     | '/admin/tiket'
     | '/admin/tools'
     | '/admin/tutorial'
@@ -239,6 +293,8 @@ export interface FileRouteTypes {
     | '/informasi'
     | '/profil'
     | '/absen/$token'
+    | '/admin/akses'
+    | '/admin/approval'
     | '/admin/aset'
     | '/admin/atm'
     | '/admin/audit'
@@ -247,6 +303,9 @@ export interface FileRouteTypes {
     | '/admin/foto'
     | '/admin/jabatan'
     | '/admin/pegawai'
+    | '/admin/perangkat'
+    | '/admin/project'
+    | '/admin/project-progress'
     | '/admin/tiket'
     | '/admin/tools'
     | '/admin/tutorial'
@@ -262,6 +321,8 @@ export interface FileRouteTypes {
     | '/informasi'
     | '/profil'
     | '/absen/$token'
+    | '/_authenticated/admin/akses'
+    | '/_authenticated/admin/approval'
     | '/_authenticated/admin/aset'
     | '/_authenticated/admin/atm'
     | '/_authenticated/admin/audit'
@@ -270,6 +331,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/foto'
     | '/_authenticated/admin/jabatan'
     | '/_authenticated/admin/pegawai'
+    | '/_authenticated/admin/perangkat'
+    | '/_authenticated/admin/project'
+    | '/_authenticated/admin/project-progress'
     | '/_authenticated/admin/tiket'
     | '/_authenticated/admin/tools'
     | '/_authenticated/admin/tutorial'
@@ -339,6 +403,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/akses': {
+      id: '/_authenticated/admin/akses'
+      path: '/admin/akses'
+      fullPath: '/admin/akses'
+      preLoaderRoute: typeof AuthenticatedAdminAksesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/approval': {
+      id: '/_authenticated/admin/approval'
+      path: '/admin/approval'
+      fullPath: '/admin/approval'
+      preLoaderRoute: typeof AuthenticatedAdminApprovalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/aset': {
       id: '/_authenticated/admin/aset'
       path: '/admin/aset'
@@ -395,6 +473,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPegawaiRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/perangkat': {
+      id: '/_authenticated/admin/perangkat'
+      path: '/admin/perangkat'
+      fullPath: '/admin/perangkat'
+      preLoaderRoute: typeof AuthenticatedAdminPerangkatRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/project': {
+      id: '/_authenticated/admin/project'
+      path: '/admin/project'
+      fullPath: '/admin/project'
+      preLoaderRoute: typeof AuthenticatedAdminProjectRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/project-progress': {
+      id: '/_authenticated/admin/project-progress'
+      path: '/admin/project-progress'
+      fullPath: '/admin/project-progress'
+      preLoaderRoute: typeof AuthenticatedAdminProjectProgressRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/tiket': {
       id: '/_authenticated/admin/tiket'
       path: '/admin/tiket'
@@ -441,6 +540,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminAksesRoute: typeof AuthenticatedAdminAksesRoute
+  AuthenticatedAdminApprovalRoute: typeof AuthenticatedAdminApprovalRoute
   AuthenticatedAdminAsetRoute: typeof AuthenticatedAdminAsetRoute
   AuthenticatedAdminAtmRoute: typeof AuthenticatedAdminAtmRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
@@ -449,6 +550,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminFotoRoute: typeof AuthenticatedAdminFotoRoute
   AuthenticatedAdminJabatanRoute: typeof AuthenticatedAdminJabatanRoute
   AuthenticatedAdminPegawaiRoute: typeof AuthenticatedAdminPegawaiRoute
+  AuthenticatedAdminPerangkatRoute: typeof AuthenticatedAdminPerangkatRoute
+  AuthenticatedAdminProjectRoute: typeof AuthenticatedAdminProjectRoute
+  AuthenticatedAdminProjectProgressRoute: typeof AuthenticatedAdminProjectProgressRoute
   AuthenticatedAdminTiketRoute: typeof AuthenticatedAdminTiketRoute
   AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRoute
   AuthenticatedAdminTutorialRoute: typeof AuthenticatedAdminTutorialRoute
@@ -459,6 +563,8 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminAksesRoute: AuthenticatedAdminAksesRoute,
+  AuthenticatedAdminApprovalRoute: AuthenticatedAdminApprovalRoute,
   AuthenticatedAdminAsetRoute: AuthenticatedAdminAsetRoute,
   AuthenticatedAdminAtmRoute: AuthenticatedAdminAtmRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
@@ -467,6 +573,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminFotoRoute: AuthenticatedAdminFotoRoute,
   AuthenticatedAdminJabatanRoute: AuthenticatedAdminJabatanRoute,
   AuthenticatedAdminPegawaiRoute: AuthenticatedAdminPegawaiRoute,
+  AuthenticatedAdminPerangkatRoute: AuthenticatedAdminPerangkatRoute,
+  AuthenticatedAdminProjectRoute: AuthenticatedAdminProjectRoute,
+  AuthenticatedAdminProjectProgressRoute:
+    AuthenticatedAdminProjectProgressRoute,
   AuthenticatedAdminTiketRoute: AuthenticatedAdminTiketRoute,
   AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRoute,
   AuthenticatedAdminTutorialRoute: AuthenticatedAdminTutorialRoute,

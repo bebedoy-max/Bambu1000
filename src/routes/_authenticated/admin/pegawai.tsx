@@ -33,7 +33,7 @@ function Page() {
               type: "digits",
               digitsLength: 8,
               required: true,
-              placeholder: "00219541",
+              placeholder: "8 digit angka",
             },
             { key: "nama", label: "Nama Pekerja", required: true },
             {
@@ -42,15 +42,23 @@ function Page() {
               type: "ref",
               refTable: "job_titles",
               refLabelColumn: "nama_jabatan",
+              required: true,
             },
-            { key: "uker_id", label: "Unit Kerja", type: "uker" },
+            { key: "uker_id", label: "Unit Kerja", type: "uker", required: true },
             {
               key: "status_karyawan",
               label: "Status Karyawan",
               type: "select",
               options: ["Pegawai Tetap", "Kontrak/Magang", "Outsourcing"],
+              required: true,
             },
-            { key: "no_telepon", label: "Nomor Telepon", type: "digits" },
+            {
+              key: "no_telepon",
+              label: "Nomor Telepon",
+              type: "digits",
+              required: true,
+              placeholder: "hanya angka",
+            },
           ]}
         />
       ) : (

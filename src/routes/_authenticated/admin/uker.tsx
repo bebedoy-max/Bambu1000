@@ -27,17 +27,36 @@ function Page() {
           description="Data kode uker, tipe kantor, alamat, titik maps, dan IP address."
           canWrite={r.isItAdmin}
           fields={[
-            { key: "kode_uker", label: "Kode Uker", type: "digits", required: true },
+            {
+              key: "kode_uker",
+              label: "Kode Uker",
+              type: "digits",
+              digitsLength: 4,
+              required: true,
+              placeholder: "4 digit angka",
+            },
             { key: "nama_uker", label: "Nama Uker", required: true },
             {
               key: "tipe",
               label: "Tipe Kantor",
               type: "select",
               options: ["Kantor Cabang", "KCP", "BRI Unit", "Teras BRI"],
+              required: true,
             },
-            { key: "alamat", label: "Alamat", type: "textarea" },
-            { key: "titik_maps", label: "Titik Maps", type: "latlng" },
-            { key: "ip_address", label: "IP Address", type: "ip" },
+            { key: "alamat", label: "Alamat", type: "textarea", required: true },
+            {
+              key: "titik_maps",
+              label: "Titik Maps",
+              type: "latlng",
+              placeholder: "isi dengan format latitude longitude contoh : -5.355185, 104.973334",
+            },
+            {
+              key: "ip_address",
+              label: "IP Address",
+              type: "ip",
+              required: true,
+              placeholder: "format xxx.xxx.xxx.xxx isi hanya angka saja",
+            },
           ]}
         />
       ) : (

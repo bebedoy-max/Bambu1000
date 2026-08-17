@@ -1,69 +1,23 @@
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Banknote,
-  Boxes,
-  Building2,
-  CalendarDays,
-  CreditCard,
-  Gauge,
-  IdCard,
-  Image,
-  LifeBuoy,
-  LogOut,
-  ScrollText,
-
-  Users,
-  Wrench,
-  BookOpen,
-} from "lucide-react";
+import { Clock, LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { useRoles } from "@/lib/roles";
+import { useAccess, useProfileStatus } from "@/lib/access";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import logoUrl from "@/assets/logo.png";
 import { AuthSplash } from "@/components/AuthSplash";
 import { GlobalSearch } from "@/components/GlobalSearch";
 
-
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-type Item = { to: string; label: string; icon: typeof Gauge; need?: "it" | "event" | "super" };
-
-const items: Item[] = [
-  { to: "/admin", label: "Ringkasan", icon: Gauge },
-  { to: "/admin/uker", label: "Unit Kerja", icon: Building2 },
-  { to: "/admin/pegawai", label: "Data Pekerja", icon: Users },
-  { to: "/admin/jabatan", label: "Kategori Jabatan", icon: IdCard, need: "it" },
-  { to: "/admin/atm", label: "Mesin ATM", icon: Banknote },
-  { to: "/admin/crm", label: "Mesin CRM", icon: Banknote },
-  { to: "/admin/edc", label: "Mesin EDC", icon: CreditCard },
-  { to: "/admin/event", label: "Event & Absensi", icon: CalendarDays, need: "event" },
-
-  { to: "/admin/tools", label: "Tools IT", icon: Wrench, need: "it" },
-  { to: "/admin/tutorial", label: "Tutorial", icon: BookOpen, need: "it" },
-  { to: "/admin/foto", label: "Galeri Foto", icon: Image, need: "it" },
-  { to: "/admin/tiket", label: "Tiket IT", icon: LifeBuoy },
-  { to: "/admin/aset", label: "Inventaris Aset", icon: Boxes, need: "it" },
-  { to: "/admin/audit", label: "Audit Log", icon: ScrollText, need: "super" },
-];
-
 export function AdminLayout({ children }: { children: ReactNode }) {
-  const { isItAdmin, isEventAdmin, isSuperadmin, session, roles } = useRoles();
+  const { session, levelLabel, visibleMenus } = useAccess();
+  const status = useProfileStatus();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [signingOut, setSigningOut] = useState(false);
-
-  const visible = items.filter((i) =>
-    i.need === "it"
-      ? isItAdmin
-      : i.need === "event"
-        ? isEventAdmin
-        : i.need === "super"
-          ? isSuperadmin
-          : true,
-  );
 
   async function signOut() {
     const start = Date.now();
@@ -78,13 +32,34 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
   if (signingOut) return <AuthSplash label="Bye My Friends.. See You Later...." />;
 
+  if (status.data === "pending" || status.data === "rejected") {
+    return (
+      <div className="grid min-h-screen place-items-center px-4">
+        <div className="glass-card max-w-md p-8 text-center">
+          <Clock className="mx-auto size-8 text-muted-foreground" />
+          <h1 className="mt-4 text-xl font-semibold">
+            {status.data === "pending" ? "Menunggu Approval Admin" : "Registrasi Ditolak"}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {status.data === "pending"
+              ? "Registrasi Anda berhasil, namun akses ke data internal baru aktif setelah disetujui admin."
+              : "Pendaftaran Anda ditolak admin. Silakan hubungi tim IT untuk informasi lebih lanjut."}
+          </p>
+          <Button className="mt-6" variant="secondary" onClick={signOut}>
+            <LogOut className="size-4" /> Keluar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-1 overflow-y-auto border-r border-border/60 p-4 backdrop-blur-xl lg:flex">
         <Link to="/" className="mb-4 flex items-center gap-3 px-2">
           <img src={logoUrl} alt="Logo" className="h-14 w-auto object-contain" />
         </Link>
-        {visible.map((i) => (
+        {visibleMenus.map((i) => (
           <Link
             key={i.to}
             to={i.to}
@@ -99,11 +74,9 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           <div className="glass-card p-3">
             <p className="truncate text-xs text-muted-foreground">{session?.user.email}</p>
             <div className="mt-2 flex flex-wrap gap-1">
-              {roles.map((r) => (
-                <Badge key={r} variant="secondary" className="text-[10px]">
-                  {r}
-                </Badge>
-              ))}
+              <Badge variant="secondary" className="text-[10px]">
+                {levelLabel}
+              </Badge>
             </div>
           </div>
           <Button variant="ghost" className="w-full justify-start" onClick={signOut}>
@@ -116,7 +89,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           <GlobalSearch className="w-full max-w-md" />
         </header>
         <div className="flex flex-wrap gap-1 border-b border-border/60 p-3 lg:hidden">
-          {visible.map((i) => (
+          {visibleMenus.map((i) => (
             <Link
               key={i.to}
               to={i.to}
@@ -129,7 +102,6 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         </div>
         <main className="p-4 sm:p-6">{children}</main>
       </div>
-
     </div>
   );
 }
@@ -142,5 +114,13 @@ export function AccessDenied() {
         Anda tidak memiliki peran yang diperlukan untuk membuka halaman ini.
       </p>
     </div>
+  );
+}
+
+/** Membungkus halaman admin dengan pengecekan hak akses menu (menu Akses Halaman). */
+export function AdminPage({ menuKey, children }: { menuKey: string; children: ReactNode }) {
+  const { loading, canAccess } = useAccess();
+  return (
+    <AdminLayout>{loading ? null : canAccess(menuKey) ? children : <AccessDenied />}</AdminLayout>
   );
 }

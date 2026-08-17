@@ -68,14 +68,24 @@ export const searchModules: SearchModule[] = [
     subtitle: (r) => [s(r["nama_merchant"]), s(r["kategori_edc"])].filter(Boolean).join(" · "),
   },
   {
-    table: "events",
-    label: "Event & Absensi",
-    route: "/admin/event",
-    columns: ["nama_event", "deskripsi"],
-    title: (r) => s(r["nama_event"]),
-    subtitle: (r) => s(r["deskripsi"]).slice(0, 80),
-    need: "event",
+    table: "it_devices",
+    label: "Data Perangkat IT",
+    route: "/admin/perangkat",
+    columns: ["nama_perangkat", "jenis_perangkat", "nama_pengguna", "ip_address", "kondisi_perangkat"],
+    title: (r) => s(r["nama_perangkat"]),
+    subtitle: (r) => [s(r["jenis_perangkat"]), s(r["nama_pengguna"])].filter(Boolean).join(" · "),
+    need: "it",
   },
+  {
+    table: "projects",
+    label: "Project IT",
+    route: "/admin/project",
+    columns: ["nama_project", "deskripsi"],
+    title: (r) => s(r["nama_project"]),
+    subtitle: (r) => s(r["deskripsi"]).slice(0, 80),
+    need: "it",
+  },
+
 
   {
     table: "it_tools",

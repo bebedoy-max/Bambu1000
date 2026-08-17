@@ -71,6 +71,8 @@ export type Field = {
   label: string;
   type?: FieldType;
   options?: string[];
+  /** Opsi select dengan value & label berbeda. */
+  optionItems?: { value: string; label: string }[];
   required?: boolean;
   hideInTable?: boolean;
   hideInForm?: boolean;
@@ -268,6 +270,8 @@ export function ResourceManager({
         <Badge variant={v ? "default" : "secondary"}>{v ? "Aktif" : "Nonaktif"}</Badge>
       );
     if (f.type === "uker") return ukerLabel.get(v as string) ?? "—";
+    if (f.type === "select" && f.optionItems)
+      return f.optionItems.find((o) => o.value === String(v))?.label ?? "—";
     if (f.type === "ref") {
       const opt = (refs.data?.[f.key] ?? []).find((o) => String(o["id"]) === String(v));
       return opt ? String(opt[f.refLabelColumn ?? "nama"] ?? "—") : "—";
@@ -397,11 +401,15 @@ export function ResourceManager({
           <div className="grid gap-4">
             {formFields.map((f) => (
               <div key={f.key} className="grid gap-2">
-                <Label htmlFor={f.key}>{f.label}</Label>
+                <Label htmlFor={f.key}>
+                  {f.label}
+                  {f.required ? <span className="ml-1 text-destructive">*</span> : null}
+                </Label>
                 {f.type === "textarea" ? (
                   <Textarea
                     id={f.key}
                     value={String(form[f.key] ?? "")}
+                    placeholder={f.placeholder}
                     onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
                   />
                 ) : f.type === "boolean" ? (
@@ -418,11 +426,13 @@ export function ResourceManager({
                     onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
                   >
                     <option value="">— pilih —</option>
-                    {(f.options ?? []).map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
+                    {(f.optionItems ?? (f.options ?? []).map((o) => ({ value: o, label: o }))).map(
+                      (o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ),
+                    )}
                   </select>
                 ) : f.type === "uker" ? (
                   <select

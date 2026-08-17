@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AdminLayout, AccessDenied } from "@/components/AdminLayout";
 import { ResourceManager } from "@/components/ResourceManager";
 import { useRoles } from "@/lib/roles";
+import { accessLevelLabels } from "@/lib/access";
+
 
 export const Route = createFileRoute("/_authenticated/admin/jabatan")({
   head: () => ({
@@ -32,14 +34,17 @@ function Page() {
               label: "Tipe Unit Kerja",
               type: "select",
               options: ["Kantor Cabang", "KCP", "BRI Unit", "Teras BRI"],
+              required: true,
             },
             {
               key: "akses_level",
               label: "Akses Level",
               type: "select",
-              options: ["Superadmin", "IT Admin", "Event Admin", "Pekerja"],
+              options: accessLevelLabels,
+              required: true,
             },
-            { key: "keterangan", label: "Keterangan", type: "textarea" },
+
+            { key: "keterangan", label: "Keterangan", type: "textarea", required: true },
           ]}
         />
       ) : (
