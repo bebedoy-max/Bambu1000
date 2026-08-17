@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -22,6 +22,9 @@ import { useRoles } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import logoUrl from "@/assets/logo.png";
+import { AuthSplash } from "@/components/AuthSplash";
+
+const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 type Item = { to: string; label: string; icon: typeof Gauge; need?: "it" | "event" | "super" };
 
@@ -45,6 +48,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const { isItAdmin, isEventAdmin, isSuperadmin, session, roles } = useRoles();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [signingOut, setSigningOut] = useState(false);
 
   const visible = items.filter((i) =>
     i.need === "it"
@@ -57,11 +61,17 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   );
 
   async function signOut() {
+    const start = Date.now();
+    setSigningOut(true);
     await qc.cancelQueries();
     qc.clear();
     await supabase.auth.signOut();
+    const elapsed = Date.now() - start;
+    await wait(Math.max(0, 2000 - elapsed));
     void navigate({ to: "/", replace: true });
   }
+
+  if (signingOut) return <AuthSplash label="Bye My Friends.. See You Later...." />;
 
   return (
     <div className="flex min-h-screen">

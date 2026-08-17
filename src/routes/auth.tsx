@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import logoUrl from "@/assets/logo.png";
+import { AuthSplash } from "@/components/AuthSplash";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -31,17 +32,30 @@ const schema = z.object({
   password: z.string().min(6, "Password minimal 6 karakter").max(72),
 });
 
+const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
 function Auth() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nama, setNama] = useState("");
   const [busy, setBusy] = useState(false);
+  const [splash, setSplash] = useState<string | null>("Memeriksa sesi...");
 
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) void navigate({ to: "/admin", replace: true });
+    let mounted = true;
+    void supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) {
+        const start = Date.now();
+        setSplash("Welcome to Super IT Zone...");
+        const elapsed = Date.now() - start;
+        await wait(Math.max(0, 2000 - elapsed));
+        if (mounted) void navigate({ to: "/admin", replace: true });
+      } else {
+        if (mounted) setSplash(null);
+      }
     });
+    return () => { mounted = false; };
   }, [navigate]);
 
   async function signIn() {
@@ -51,12 +65,17 @@ function Auth() {
       return;
     }
     setBusy(true);
+    const start = Date.now();
+    setSplash("Welcome to Super IT Zone...");
     const { error } = await supabase.auth.signInWithPassword(p.data);
     setBusy(false);
     if (error) {
+      setSplash(null);
       toast.error(error.message);
       return;
     }
+    const elapsed = Date.now() - start;
+    await wait(Math.max(0, 2000 - elapsed));
     void navigate({ to: "/admin", replace: true });
   }
 
@@ -83,25 +102,35 @@ function Auth() {
   }
 
   async function google() {
+    const start = Date.now();
+    setSplash("Welcome to Super IT Zone...");
+    const elapsed = Date.now() - start;
+    await wait(Math.max(0, 2000 - elapsed));
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth` },
     });
-    if (error) toast.error(error.message || "Gagal masuk dengan Google");
+    if (error) {
+      setSplash(null);
+      toast.error(error.message || "Gagal masuk dengan Google");
+    }
   }
 
+  if (splash) return <AuthSplash label={splash} />;
+
   return (
-    <div className="relative grid min-h-screen place-items-center px-4">
-      <button
-        type="button"
-        onClick={() => navigate({ to: "/", replace: true })}
-        aria-label="Tutup"
-        className="absolute left-4 top-4 z-10 grid size-10 place-items-center rounded-full border border-border/60 bg-background/60 text-foreground backdrop-blur transition-colors hover:bg-secondary"
-      >
-        <X className="size-5" />
-      </button>
-      <div className="glass-card w-full max-w-md p-8">
+    <div className="grid min-h-screen place-items-center px-4">
+      <div className="glass-card relative w-full max-w-md p-8">
+        <button
+          type="button"
+          onClick={() => navigate({ to: "/", replace: true })}
+          aria-label="Tutup"
+          className="absolute right-3 top-3 z-10 grid size-9 place-items-center rounded-full border border-border/60 bg-background/60 text-muted-foreground backdrop-blur transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <X className="size-4" />
+        </button>
         <img src={logoUrl} alt="Logo" className="h-[68px] w-auto object-contain" />
+
 
         <Tabs defaultValue="masuk" className="mt-6">
           <TabsList className="grid w-full grid-cols-2">
