@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { DatePickerField } from "@/components/DatePickerField";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 /** Normalisasi nilai dari DB ke format date picker. */
 function toPickerValue(raw: unknown, withTime: boolean) {
@@ -135,6 +136,7 @@ export function ResourceManager({
   ownerColumn,
   extraActions,
 }: ResourceManagerProps) {
+  const confirmDialog = useConfirm();
   const mayEdit = useContext(PageEditContext);
   canWrite = (canWrite ?? true) && mayEdit;
   const qc = useQueryClient();
@@ -427,7 +429,14 @@ export function ResourceManager({
                             size="icon"
                             variant="ghost"
                             onClick={() => {
-                              if (confirm("Hapus data ini?")) remove.mutate(String(row["id"]));
+                              void confirmDialog({
+                                title: "Hapus data ini?",
+                                description: "Data yang dihapus tidak dapat dikembalikan.",
+                                confirmText: "Hapus",
+                                destructive: true,
+                              }).then((ok) => {
+                                if (ok) remove.mutate(String(row["id"]));
+                              });
                             }}
                           >
                             <Trash2 className="size-4 text-destructive" />

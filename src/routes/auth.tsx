@@ -57,6 +57,7 @@ function Auth() {
   const [pn, setPn] = useState("");
   const [busy, setBusy] = useState(false);
   const [splash, setSplash] = useState<string | null>("Memeriksa sesi...");
+  const [tab, setTab] = useState("masuk");
   const [googleOpen, setGoogleOpen] = useState(false);
   const [googlePn, setGooglePn] = useState("");
   const done = useRef(false);
@@ -139,6 +140,19 @@ function Auth() {
     toast.success("Registrasi berhasil. Silakan masuk dengan email & password Anda.");
   }
 
+  /** Login Google langsung tanpa verifikasi PN (khusus pengguna yang sudah terdaftar). */
+  async function googleSignIn() {
+    setSplash("Menghubungkan ke Google...");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth` },
+    });
+    if (error) {
+      setSplash(null);
+      toast.error(error.message || "Gagal masuk dengan Google");
+    }
+  }
+
   async function googleContinue() {
     const parsed = pnSchema.safeParse(googlePn);
     if (!parsed.success) {
@@ -210,7 +224,7 @@ function Auth() {
         </button>
         <img src={logoUrl} alt="Logo" className="h-[68px] w-auto object-contain" />
 
-        <Tabs defaultValue="masuk" className="mt-6">
+        <Tabs value={tab} onValueChange={setTab} className="mt-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="masuk">Masuk</TabsTrigger>
             <TabsTrigger value="daftar">Daftar</TabsTrigger>
@@ -266,16 +280,22 @@ function Auth() {
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
           <span className="h-px flex-1 bg-border" /> atau <span className="h-px flex-1 bg-border" />
         </div>
-        <Button
-          variant="secondary"
-          className="w-full"
-          onClick={() => {
-            setGooglePn("");
-            setGoogleOpen(true);
-          }}
-        >
-          Masuk dengan Google
-        </Button>
+        {tab === "masuk" ? (
+          <Button variant="secondary" className="w-full" disabled={busy} onClick={googleSignIn}>
+            Masuk dengan Google
+          </Button>
+        ) : (
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => {
+              setGooglePn("");
+              setGoogleOpen(true);
+            }}
+          >
+            Daftar dengan Google
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { DatePickerField } from "@/components/DatePickerField";
+import { useConfirm } from "@/components/ConfirmDialog";
 import {
   Dialog,
   DialogContent,
@@ -58,6 +59,7 @@ const fmt = (v: unknown) =>
 
 export function ProjectManager({ canWrite }: { canWrite: boolean }) {
   const qc = useQueryClient();
+  const confirmDialog = useConfirm();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
@@ -237,7 +239,14 @@ export function ProjectManager({ canWrite }: { canWrite: boolean }) {
                           variant="ghost"
                           aria-label="Hapus"
                           onClick={() => {
-                            if (confirm("Hapus project ini?")) remove.mutate(String(row["id"]));
+                            void confirmDialog({
+                              title: "Hapus project ini?",
+                              description: "Data project yang dihapus tidak dapat dikembalikan.",
+                              confirmText: "Hapus",
+                              destructive: true,
+                            }).then((ok) => {
+                              if (ok) remove.mutate(String(row["id"]));
+                            });
                           }}
                         >
                           <Trash2 className="size-4" />

@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRoles } from "@/lib/roles";
+import { useConfirm } from "@/components/ConfirmDialog";
 import {
   deleteUser,
   isOnline,
@@ -61,6 +62,7 @@ function relative(v: string | null) {
 
 function Page() {
   const qc = useQueryClient();
+  const confirmDialog = useConfirm();
   const { isSuperadmin, session } = useRoles();
   const users = useAdminUsers();
   const [q, setQ] = useState("");
@@ -245,9 +247,14 @@ function Page() {
                               className="text-destructive"
                               disabled={busy !== null || self}
                               onClick={() => {
-                                if (!confirm(`Hapus pengguna ${u.email}? Tindakan permanen.`))
-                                  return;
-                                void run(u.id, () => deleteUser(u.id), "Pengguna dihapus");
+                                void confirmDialog({
+                                  title: "Hapus pengguna ini?",
+                                  description: `${u.email} akan dihapus permanen dari sistem.`,
+                                  confirmText: "Hapus",
+                                  destructive: true,
+                                }).then((ok) => {
+                                  if (ok) void run(u.id, () => deleteUser(u.id), "Pengguna dihapus");
+                                });
                               }}
                             >
                               <Trash2 className="size-4" /> Hapus
