@@ -31,6 +31,15 @@ export const paramDefs: ParamDef[] = [
       })),
   },
   {
+    key: "pekerja",
+    noun: "Pekerja",
+    fetch: async () =>
+      (await rows("employees", "id, nama, personal_number", "nama")).map((r) => ({
+        id: `pekerja:${s(r["id"])}`,
+        label: [s(r["personal_number"]), s(r["nama"])].filter(Boolean).join(" — "),
+      })),
+  },
+  {
     key: "perangkat",
     noun: "Perangkat",
     fetch: async () =>
@@ -56,17 +65,6 @@ export const paramDefs: ParamDef[] = [
         id: `crm:${s(r["id"])}`,
         label: `CRM ${s(r["tid"])} — ${s(r["lokasi"])}`,
       })),
-  },
-  {
-    key: "atm_crm",
-    noun: "ATM/CRM",
-    fetch: async () => {
-      const [a, c] = await Promise.all([
-        paramDefs[2]!.fetch(),
-        paramDefs[3]!.fetch(),
-      ]);
-      return [...a, ...c];
-    },
   },
   {
     key: "edc_uko",
@@ -112,4 +110,89 @@ export async function fetchParamTotals(): Promise<Record<string, number>> {
     }
   }
   return out;
+}
+
+/* ------------------------------------------------------------------ */
+/* Target custom                                                       */
+/* ------------------------------------------------------------------ */
+
+/** Sumber data yang bisa dipilih pada target pencapaian custom. */
+export const customSources: { key: string; label: string; fetch: () => Promise<ProjectItem[]> }[] = [
+  { key: "uker", label: "Data Unit Kerja", fetch: () => findParam("uker")!.fetch() },
+  { key: "pekerja", label: "Data Pekerja", fetch: () => findParam("pekerja")!.fetch() },
+  { key: "atm", label: "Mesin ATM", fetch: () => findParam("atm")!.fetch() },
+  { key: "crm", label: "Mesin CRM", fetch: () => findParam("crm")!.fetch() },
+  {
+    key: "edc",
+    label: "Mesin EDC",
+    fetch: async () =>
+      (await rows("edc_machines", "id, tid, nama_merchant, kategori_edc", "tid")).map((r) => ({
+        id: `edc:${s(r["id"])}`,
+        label: `${s(r["tid"])} — ${s(r["nama_merchant"])} (${s(r["kategori_edc"])})`,
+      })),
+  },
+  { key: "perangkat", label: "Data Perangkat IT", fetch: () => findParam("perangkat")!.fetch() },
+];
+
+export type ProjectRow = Record<string, unknown>;
+
+/** Daftar parameter (multi) sebuah project, kompatibel dengan kolom lama `parameter`. */
+export function projectParamKeys(p: ProjectRow | null | undefined): string[] {
+  if (!p) return [];
+  const raw = p["parameters"];
+  const arr = Array.isArray(raw) ? raw.map((v) => String(v)) : [];
+  if (arr.length) return arr;
+  const legacy = p["parameter"] ? String(p["parameter"]) : "";
+  if (!legacy) return [];
+  if (legacy === "atm_crm") return ["atm", "crm"];
+  return [legacy];
+}
+
+/** Item custom yang tersimpan pada project. */
+export function projectCustomItems(p: ProjectRow | null | undefined): ProjectItem[] {
+  const raw = p?.["custom_items"];
+  const arr = typeof raw === "string" ? safeJson(raw) : raw;
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .map((v) => v as Record<string, unknown>)
+    .filter((v) => v && v["id"])
+    .map((v) => ({ id: String(v["id"]), label: String(v["label"] ?? v["id"]) }));
+}
+
+function safeJson(v: string): unknown {
+  try {
+    return JSON.parse(v);
+  } catch {
+    return null;
+  }
+}
+
+/** Ringkasan label parameter untuk tampilan. */
+export function projectParamSummary(p: ProjectRow): string {
+  const nouns = projectParamKeys(p)
+    .map((k) => findParam(k)?.noun)
+    .filter(Boolean) as string[];
+  const custom = projectCustomItems(p);
+  if (custom.length) nouns.push(`Custom (${custom.length})`);
+  return nouns.length ? nouns.join(", ") : "—";
+}
+
+/** Seluruh item target sebuah project (parameter terceklis + item custom), unik per id. */
+export async function resolveProjectItems(p: ProjectRow): Promise<ProjectItem[]> {
+  const keys = projectParamKeys(p);
+  const lists = await Promise.all(
+    keys.map(async (k) => {
+      const def = findParam(k);
+      if (!def) return [] as ProjectItem[];
+      try {
+        return await def.fetch();
+      } catch {
+        return [] as ProjectItem[];
+      }
+    }),
+  );
+  const map = new Map<string, ProjectItem>();
+  for (const list of [...lists, projectCustomItems(p)])
+    for (const i of list) if (!map.has(i.id)) map.set(i.id, i);
+  return [...map.values()];
 }

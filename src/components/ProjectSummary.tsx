@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { findParam } from "@/lib/projects";
+import { projectParamSummary, resolveProjectItems } from "@/lib/projects";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -22,16 +22,15 @@ export type ProjectSummaryRow = {
 async function loadSummary(): Promise<ProjectSummaryRow[]> {
   const { data, error } = await db
     .from("projects")
-    .select("id, nama_project, deskripsi, parameter, tanggal_mulai, deadline")
+    .select("*")
     .order("deadline", { ascending: true });
   if (error) throw error;
 
   const out: ProjectSummaryRow[] = [];
   for (const p of (data ?? []) as Row[]) {
-    const def = findParam(p["parameter"] as string);
     let total = 0;
     try {
-      total = def ? (await def.fetch()).length : 0;
+      total = (await resolveProjectItems(p)).length;
     } catch {
       total = 0;
     }
@@ -44,7 +43,7 @@ async function loadSummary(): Promise<ProjectSummaryRow[]> {
       id: String(p["id"]),
       nama: String(p["nama_project"] ?? ""),
       deskripsi: String(p["deskripsi"] ?? ""),
-      parameterNoun: def?.noun ?? "—",
+      parameterNoun: projectParamSummary(p),
       tanggalMulai: p["tanggal_mulai"] ? String(p["tanggal_mulai"]) : null,
       deadline: p["deadline"] ? String(p["deadline"]) : null,
       total,
@@ -94,7 +93,7 @@ export function ProjectSummary({ limit }: { limit?: number }) {
             <div>
               <dt>Pencapaian</dt>
               <dd className="text-foreground">
-                {p.done}/{p.total} {p.parameterNoun}
+                {p.done}/{p.total} item
               </dd>
             </div>
           </dl>

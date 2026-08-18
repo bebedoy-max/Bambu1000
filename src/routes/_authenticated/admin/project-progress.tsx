@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useRoles } from "@/lib/roles";
-import { findParam } from "@/lib/projects";
+import { projectParamSummary, resolveProjectItems } from "@/lib/projects";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -50,7 +50,7 @@ function Progress() {
     queryFn: async () => {
       const { data, error } = await db
         .from("projects")
-        .select("id, nama_project, deskripsi, parameter, tanggal_mulai, deadline")
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Row[];
@@ -58,12 +58,10 @@ function Progress() {
   });
 
   const project = (projects.data ?? []).find((p) => String(p["id"]) === projectId) ?? null;
-  const def = findParam(project ? String(project["parameter"]) : null);
-
   const items = useQuery({
-    queryKey: ["project-items", def?.key],
-    enabled: !!def,
-    queryFn: async () => def!.fetch(),
+    queryKey: ["project-items", projectId],
+    enabled: !!project,
+    queryFn: async () => resolveProjectItems(project!),
   });
 
   const done = useQuery({
@@ -163,7 +161,7 @@ function Progress() {
             <div>
               <p className="text-sm text-muted-foreground">{String(project["deskripsi"] ?? "")}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Parameter: {def ? def.noun : "—"} · Deadline:{" "}
+                Parameter: {projectParamSummary(project)} · Deadline:{" "}
                 {project["deadline"]
                   ? new Date(String(project["deadline"])).toLocaleDateString("id-ID")
                   : "—"}
@@ -172,7 +170,7 @@ function Progress() {
             <div className="text-right">
               <p className="text-3xl font-bold tabular-nums">{pct}%</p>
               <p className="text-xs text-muted-foreground">
-                {doneCount} dari {total} {def?.noun ?? "item"}
+                {doneCount} dari {total} item
               </p>
             </div>
           </div>

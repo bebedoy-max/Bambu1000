@@ -124,20 +124,16 @@ REVOKE ALL ON FUNCTION public.get_uker_ips() FROM public, anon;
 GRANT EXECUTE ON FUNCTION public.get_uker_ips() TO authenticated;
 
 -- EMPLOYEES
+-- Catatan: kolom lama (nip, jabatan, email, no_hp, foto_url, status_aktif) sudah
+-- tidak dipakai lagi. Definisi di bawah hanya kolom dasar; kolom aktif lainnya
+-- ditambahkan pada bagian "EMPLOYEES: kolom baru" di bawah. Data lama tetap utuh.
 CREATE TABLE IF NOT EXISTS public.employees (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nip text NOT NULL UNIQUE,
   nama text NOT NULL,
-  jabatan text,
   uker_id uuid REFERENCES public.ukers(id) ON DELETE SET NULL,
-  email text,
-  no_hp text,
-  foto_url text,
-  status_aktif boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
-GRANT SELECT (id,nip,nama,jabatan,uker_id,status_aktif,foto_url,created_at,updated_at) ON public.employees TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.employees TO authenticated;
 GRANT ALL ON public.employees TO service_role;
 ALTER TABLE public.employees ENABLE ROW LEVEL SECURITY;
@@ -147,6 +143,7 @@ CREATE POLICY "employees read" ON public.employees FOR SELECT TO anon, authentic
 CREATE POLICY "employees admin write" ON public.employees FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
 DROP TRIGGER IF EXISTS employees_updated ON public.employees;
 CREATE TRIGGER employees_updated BEFORE UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
 
 -- ATM
 CREATE TABLE IF NOT EXISTS public.atm_machines (
@@ -474,11 +471,39 @@ ALTER TABLE public.employees
   ADD COLUMN IF NOT EXISTS jabatan_id uuid REFERENCES public.job_titles(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS status_karyawan text,
   ADD COLUMN IF NOT EXISTS no_telepon text;
-ALTER TABLE public.employees ALTER COLUMN nip DROP NOT NULL;
-UPDATE public.employees SET
-  personal_number = COALESCE(personal_number, lpad(regexp_replace(COALESCE(nip,''), '\D', '', 'g'), 8, '0')),
-  no_telepon = COALESCE(no_telepon, regexp_replace(COALESCE(no_hp,''), '\D', '', 'g'));
-GRANT SELECT (id,nip,personal_number,nama,jabatan,jabatan_id,uker_id,status_karyawan,status_aktif,foto_url,created_at,updated_at) ON public.employees TO anon;
+-- Migrasi kolom lama -> kolom baru (hanya dijalankan bila kolom lama masih ada).
+-- Tidak menimpa data yang sudah terisi.
+DO $mig$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = 'employees' AND column_name = 'nip') THEN
+    EXECUTE 'ALTER TABLE public.employees ALTER COLUMN nip DROP NOT NULL';
+    EXECUTE $q$UPDATE public.employees
+                 SET personal_number = lpad(regexp_replace(COALESCE(nip,''), '\D', '', 'g'), 8, '0')
+               WHERE personal_number IS NULL AND COALESCE(nip,'') <> ''$q$;
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = 'employees' AND column_name = 'no_hp') THEN
+    EXECUTE $q$UPDATE public.employees
+                 SET no_telepon = regexp_replace(COALESCE(no_hp,''), '\D', '', 'g')
+               WHERE no_telepon IS NULL AND COALESCE(no_hp,'') <> ''$q$;
+  END IF;
+END $mig$;
+
+-- Hak baca publik hanya untuk kolom yang benar-benar ada saat ini.
+DO $grant$
+DECLARE cols text;
+BEGIN
+  SELECT string_agg(quote_ident(column_name), ',') INTO cols
+  FROM information_schema.columns
+  WHERE table_schema = 'public' AND table_name = 'employees'
+    AND column_name = ANY (ARRAY['id','personal_number','nama','jabatan_id','uker_id',
+                                 'status_karyawan','created_at','updated_at']);
+  IF cols IS NOT NULL THEN
+    EXECUTE format('GRANT SELECT (%s) ON public.employees TO anon', cols);
+  END IF;
+END $grant$;
+
 
 -- ============================================================
 -- Perangkat IT, Project IT, Update Progress Project
@@ -518,6 +543,13 @@ CREATE TABLE IF NOT EXISTS public.projects (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+-- Multi parameter pencapaian (ceklis) + target custom per item.
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS parameters text[] NOT NULL DEFAULT '{}'::text[];
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS custom_items jsonb NOT NULL DEFAULT '[]'::jsonb;
+-- Backfill dari kolom lama `parameter` tanpa mengubah data yang sudah terisi.
+UPDATE public.projects
+   SET parameters = CASE WHEN parameter = 'atm_crm' THEN ARRAY['atm','crm'] ELSE ARRAY[parameter] END
+ WHERE parameter IS NOT NULL AND parameter <> '' AND coalesce(array_length(parameters, 1), 0) = 0;
 GRANT SELECT ON public.projects TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.projects TO authenticated;
 GRANT ALL ON public.projects TO service_role;
