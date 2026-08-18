@@ -775,3 +775,38 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+-- ============================================================
+-- Penjagaan: akun hanya sah bila terhubung ke Data Pekerja
+-- (mencegah login Google akun asing bisa masuk aplikasi)
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.is_account_registered()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.profiles p
+    JOIN public.employees e ON e.personal_number = p.personal_number
+    WHERE p.id = auth.uid() AND COALESCE(p.personal_number, '') <> ''
+  )
+  -- Akun dengan peran administratif (mis. superadmin awal) tetap sah
+  OR EXISTS (
+    SELECT 1 FROM public.user_roles r
+    WHERE r.user_id = auth.uid()
+      AND r.role IN ('superadmin', 'it_admin', 'event_admin')
+  );
+$$;
+GRANT EXECUTE ON FUNCTION public.is_account_registered() TO authenticated;
+
+-- Hapus akun yang tidak terhubung ke Data Pekerja (dipanggil saat gagal verifikasi)
+CREATE OR REPLACE FUNCTION public.discard_unregistered_account()
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE uid uuid := auth.uid();
+BEGIN
+  IF uid IS NULL OR public.is_account_registered() THEN RETURN false; END IF;
+  DELETE FROM public.user_roles WHERE user_id = uid;
+  DELETE FROM public.profiles WHERE id = uid;
+  DELETE FROM auth.users WHERE id = uid;
+  RETURN true;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.discard_unregistered_account() TO authenticated;

@@ -19,7 +19,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { checkPersonalNumber, claimPendingPersonalNumber, PENDING_PN_KEY } from "@/lib/registration";
+import {
+  checkPersonalNumber,
+  claimPendingPersonalNumber,
+  isAccountRegistered,
+  rejectUnregisteredAccount,
+  PENDING_PN_KEY,
+} from "@/lib/registration";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -66,8 +72,21 @@ function Auth() {
   async function finish() {
     if (done.current) return;
     done.current = true;
-    setSplash("Welcome to Super IT Zone...");
+    setSplash("Memverifikasi akun...");
     await claimPendingPersonalNumber();
+
+    // Akun hanya boleh masuk bila Personal Number-nya ada di Data Pekerja.
+    if (!(await isAccountRegistered())) {
+      await rejectUnregisteredAccount();
+      done.current = false;
+      setSplash(null);
+      toast.error(
+        "Akun ini tidak terdaftar di Data Pekerja. Silakan daftar dengan Personal Number Anda.",
+      );
+      return;
+    }
+
+    setSplash("Welcome to Super IT Zone...");
     await qc.invalidateQueries();
     await wait(1200);
     void navigate({ to: "/admin", replace: true });
@@ -75,6 +94,10 @@ function Auth() {
 
   useEffect(() => {
     let mounted = true;
+    if (typeof window !== "undefined" && sessionStorage.getItem("unregistered_account")) {
+      sessionStorage.removeItem("unregistered_account");
+      toast.error("Akun ini tidak terdaftar di Data Pekerja.");
+    }
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session && mounted) void finish();
     });

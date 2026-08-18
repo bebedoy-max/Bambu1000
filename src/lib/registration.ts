@@ -38,3 +38,42 @@ export async function claimPendingPersonalNumber(): Promise<void> {
   const { error } = await db.rpc("claim_personal_number", { p_pn: pn });
   if (!error) localStorage.removeItem(PENDING_PN_KEY);
 }
+
+/**
+ * Memastikan akun yang sedang login benar-benar terhubung ke Data Pekerja.
+ * Mengembalikan false untuk akun asing (mis. login Google tanpa Personal Number).
+ */
+export async function isAccountRegistered(): Promise<boolean> {
+  const { data, error } = await db.rpc("is_account_registered");
+  if (!error) return data === true;
+
+  // Fallback bila fungsi belum ada di database: cek profil sendiri.
+  const { data: auth } = await db.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return false;
+  const [{ data: prof }, { data: roles }] = await Promise.all([
+    db.from("profiles").select("personal_number").eq("id", uid).maybeSingle(),
+    db.from("user_roles").select("role").eq("user_id", uid),
+  ]);
+  const adminRole = (roles ?? []).some((r: { role: string }) =>
+    ["superadmin", "it_admin", "event_admin"].includes(r.role),
+  );
+  const pn = (prof as { personal_number?: string } | null)?.personal_number;
+  if (adminRole) return true;
+  if (!pn) return false;
+  const { count } = await db
+    .from("employees")
+    .select("id", { count: "exact", head: true })
+    .eq("personal_number", pn);
+  return (count ?? 0) > 0;
+}
+
+/** Menolak akun yang tidak terdaftar: hapus jejaknya lalu keluar dari sesi. */
+export async function rejectUnregisteredAccount(): Promise<void> {
+  try {
+    await db.rpc("discard_unregistered_account");
+  } catch {
+    /* abaikan */
+  }
+  await db.auth.signOut();
+}
