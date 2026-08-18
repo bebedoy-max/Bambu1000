@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import logoUrl from "@/assets/logo.png";
 import { AuthSplash } from "@/components/AuthSplash";
+import { useConfirm } from "@/components/ConfirmDialog";
+
 import {
   Dialog,
   DialogContent,
@@ -58,6 +60,8 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 function Auth() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const confirm = useConfirm();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pn, setPn] = useState("");
@@ -67,6 +71,19 @@ function Auth() {
   const [googleOpen, setGoogleOpen] = useState(false);
   const [googlePn, setGooglePn] = useState("");
   const done = useRef(false);
+
+  /** Info akun tidak terdaftar lalu kembali ke dashboard umum. */
+  async function showUnregistered() {
+    setSplash(null);
+    await confirm({
+      title: "Akun tidak terdaftar",
+      description:
+        "Akun Google Anda tidak terdaftar. Silakan registrasi menggunakan Personal Number Anda di halaman menu login.",
+      infoOnly: true,
+      confirmText: "Mengerti",
+    });
+    void navigate({ to: "/", replace: true });
+  }
 
   /** Dipanggil begitu sesi tersedia (login email maupun Google). */
   async function finish() {
@@ -79,10 +96,7 @@ function Auth() {
     if (!(await isAccountRegistered())) {
       await rejectUnregisteredAccount();
       done.current = false;
-      setSplash(null);
-      toast.error(
-        "Akun ini tidak terdaftar di Data Pekerja. Silakan daftar dengan Personal Number Anda.",
-      );
+      await showUnregistered();
       return;
     }
 
@@ -96,7 +110,8 @@ function Auth() {
     let mounted = true;
     if (typeof window !== "undefined" && sessionStorage.getItem("unregistered_account")) {
       sessionStorage.removeItem("unregistered_account");
-      toast.error("Akun ini tidak terdaftar di Data Pekerja.");
+      void showUnregistered();
+      return;
     }
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session && mounted) void finish();
@@ -112,6 +127,7 @@ function Auth() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   async function signIn() {
     const p = loginSchema.safeParse({ email, password });
