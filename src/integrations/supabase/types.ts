@@ -449,6 +449,10 @@ export type Database = {
           email: string | null
           id: string
           is_active: boolean
+          is_blocked: boolean
+          last_activity: string | null
+          last_activity_at: string | null
+          last_online: string | null
           nama: string | null
           updated_at: string
           username: string | null
@@ -458,6 +462,10 @@ export type Database = {
           email?: string | null
           id: string
           is_active?: boolean
+          is_blocked?: boolean
+          last_activity?: string | null
+          last_activity_at?: string | null
+          last_online?: string | null
           nama?: string | null
           updated_at?: string
           username?: string | null
@@ -467,6 +475,10 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean
+          is_blocked?: boolean
+          last_activity?: string | null
+          last_activity_at?: string | null
+          last_online?: string | null
           nama?: string | null
           updated_at?: string
           username?: string | null
@@ -577,6 +589,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_user: { Args: { p_user_id: string }; Returns: undefined }
+      admin_list_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          is_blocked: boolean
+          last_activity: string
+          last_activity_at: string
+          last_online: string
+          nama: string
+          roles: string[]
+          username: string
+        }[]
+      }
+      admin_set_blocked: {
+        Args: { p_blocked: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      admin_set_password: {
+        Args: { p_password: string; p_user_id: string }
+        Returns: undefined
+      }
       get_uker_ips: {
         Args: never
         Returns: {
@@ -596,6 +633,7 @@ export type Database = {
       is_event_admin: { Args: never; Returns: boolean }
       is_it_admin: { Args: never; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
+      touch_presence: { Args: { p_activity?: string }; Returns: undefined }
     }
     Enums: {
       app_role: "superadmin" | "it_admin" | "event_admin" | "employee"

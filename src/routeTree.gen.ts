@@ -14,10 +14,10 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InformasiRouteImport } from './routes/informasi'
 import { Route as ProfilRouteImport } from './routes/profil'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AbsenTokenRouteImport } from './routes/absen.$token'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAksesRouteImport } from './routes/_authenticated/admin/akses'
-import { Route as AuthenticatedAdminApprovalRouteImport } from './routes/_authenticated/admin/approval'
 import { Route as AuthenticatedAdminAsetRouteImport } from './routes/_authenticated/admin/aset'
 import { Route as AuthenticatedAdminAtmRouteImport } from './routes/_authenticated/admin/atm'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
@@ -33,6 +33,7 @@ import { Route as AuthenticatedAdminTiketRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin/tools'
 import { Route as AuthenticatedAdminTutorialRouteImport } from './routes/_authenticated/admin/tutorial'
 import { Route as AuthenticatedAdminUkerRouteImport } from './routes/_authenticated/admin/uker'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminEventIndexRouteImport } from './routes/_authenticated/admin/event/index'
 import { Route as AuthenticatedAdminEventIdRouteImport } from './routes/_authenticated/admin/event/$id'
 
@@ -60,6 +61,11 @@ const ProfilRoute = ProfilRouteImport.update({
   path: '/profil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AbsenTokenRoute = AbsenTokenRouteImport.update({
   id: '/absen/$token',
   path: '/absen/$token',
@@ -75,12 +81,6 @@ const AuthenticatedAdminAksesRoute = AuthenticatedAdminAksesRouteImport.update({
   path: '/admin/akses',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdminApprovalRoute =
-  AuthenticatedAdminApprovalRouteImport.update({
-    id: '/admin/approval',
-    path: '/admin/approval',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedAdminAsetRoute = AuthenticatedAdminAsetRouteImport.update({
   id: '/admin/aset',
   path: '/admin/aset',
@@ -162,6 +162,11 @@ const AuthenticatedAdminUkerRoute = AuthenticatedAdminUkerRouteImport.update({
   path: '/admin/uker',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminEventIndexRoute =
   AuthenticatedAdminEventIndexRouteImport.update({
     id: '/admin/event/',
@@ -180,9 +185,9 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/informasi': typeof InformasiRoute
   '/profil': typeof ProfilRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
-  '/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
@@ -198,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/admin/tools': typeof AuthenticatedAdminToolsRoute
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
   '/admin/uker': typeof AuthenticatedAdminUkerRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/admin/event/': typeof AuthenticatedAdminEventIndexRoute
@@ -207,9 +213,9 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/informasi': typeof InformasiRoute
   '/profil': typeof ProfilRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
-  '/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
@@ -225,6 +231,7 @@ export interface FileRoutesByTo {
   '/admin/tools': typeof AuthenticatedAdminToolsRoute
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
   '/admin/uker': typeof AuthenticatedAdminUkerRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/admin/event': typeof AuthenticatedAdminEventIndexRoute
@@ -236,9 +243,9 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/informasi': typeof InformasiRoute
   '/profil': typeof ProfilRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/_authenticated/admin/akses': typeof AuthenticatedAdminAksesRoute
-  '/_authenticated/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/_authenticated/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/_authenticated/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
@@ -254,6 +261,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/tools': typeof AuthenticatedAdminToolsRoute
   '/_authenticated/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
   '/_authenticated/admin/uker': typeof AuthenticatedAdminUkerRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/_authenticated/admin/event/': typeof AuthenticatedAdminEventIndexRoute
@@ -265,9 +273,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/informasi'
     | '/profil'
+    | '/reset-password'
     | '/absen/$token'
     | '/admin/akses'
-    | '/admin/approval'
     | '/admin/aset'
     | '/admin/atm'
     | '/admin/audit'
@@ -283,6 +291,7 @@ export interface FileRouteTypes {
     | '/admin/tools'
     | '/admin/tutorial'
     | '/admin/uker'
+    | '/admin/users'
     | '/admin/'
     | '/admin/event/$id'
     | '/admin/event/'
@@ -292,9 +301,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/informasi'
     | '/profil'
+    | '/reset-password'
     | '/absen/$token'
     | '/admin/akses'
-    | '/admin/approval'
     | '/admin/aset'
     | '/admin/atm'
     | '/admin/audit'
@@ -310,6 +319,7 @@ export interface FileRouteTypes {
     | '/admin/tools'
     | '/admin/tutorial'
     | '/admin/uker'
+    | '/admin/users'
     | '/admin'
     | '/admin/event/$id'
     | '/admin/event'
@@ -320,9 +330,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/informasi'
     | '/profil'
+    | '/reset-password'
     | '/absen/$token'
     | '/_authenticated/admin/akses'
-    | '/_authenticated/admin/approval'
     | '/_authenticated/admin/aset'
     | '/_authenticated/admin/atm'
     | '/_authenticated/admin/audit'
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/tools'
     | '/_authenticated/admin/tutorial'
     | '/_authenticated/admin/uker'
+    | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/event/$id'
     | '/_authenticated/admin/event/'
@@ -349,6 +360,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   InformasiRoute: typeof InformasiRoute
   ProfilRoute: typeof ProfilRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   AbsenTokenRoute: typeof AbsenTokenRoute
 }
 
@@ -389,6 +401,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/absen/$token': {
       id: '/absen/$token'
       path: '/absen/$token'
@@ -408,13 +427,6 @@ declare module '@tanstack/react-router' {
       path: '/admin/akses'
       fullPath: '/admin/akses'
       preLoaderRoute: typeof AuthenticatedAdminAksesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/approval': {
-      id: '/_authenticated/admin/approval'
-      path: '/admin/approval'
-      fullPath: '/admin/approval'
-      preLoaderRoute: typeof AuthenticatedAdminApprovalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/aset': {
@@ -522,6 +534,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUkerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/event/': {
       id: '/_authenticated/admin/event/'
       path: '/admin/event'
@@ -541,7 +560,6 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminAksesRoute: typeof AuthenticatedAdminAksesRoute
-  AuthenticatedAdminApprovalRoute: typeof AuthenticatedAdminApprovalRoute
   AuthenticatedAdminAsetRoute: typeof AuthenticatedAdminAsetRoute
   AuthenticatedAdminAtmRoute: typeof AuthenticatedAdminAtmRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
@@ -557,6 +575,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRoute
   AuthenticatedAdminTutorialRoute: typeof AuthenticatedAdminTutorialRoute
   AuthenticatedAdminUkerRoute: typeof AuthenticatedAdminUkerRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminEventIdRoute: typeof AuthenticatedAdminEventIdRoute
   AuthenticatedAdminEventIndexRoute: typeof AuthenticatedAdminEventIndexRoute
@@ -564,7 +583,6 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminAksesRoute: AuthenticatedAdminAksesRoute,
-  AuthenticatedAdminApprovalRoute: AuthenticatedAdminApprovalRoute,
   AuthenticatedAdminAsetRoute: AuthenticatedAdminAsetRoute,
   AuthenticatedAdminAtmRoute: AuthenticatedAdminAtmRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
@@ -581,6 +599,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRoute,
   AuthenticatedAdminTutorialRoute: AuthenticatedAdminTutorialRoute,
   AuthenticatedAdminUkerRoute: AuthenticatedAdminUkerRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminEventIdRoute: AuthenticatedAdminEventIdRoute,
   AuthenticatedAdminEventIndexRoute: AuthenticatedAdminEventIndexRoute,
@@ -595,6 +614,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   InformasiRoute: InformasiRoute,
   ProfilRoute: ProfilRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   AbsenTokenRoute: AbsenTokenRoute,
 }
 export const routeTree = rootRouteImport

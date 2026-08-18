@@ -385,54 +385,7 @@ CREATE TRIGGER audit_employees AFTER INSERT OR UPDATE OR DELETE ON public.employ
 CREATE TRIGGER audit_profiles AFTER INSERT OR UPDATE OR DELETE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.write_audit_log();
 CREATE TRIGGER audit_user_roles AFTER INSERT OR UPDATE OR DELETE ON public.user_roles FOR EACH ROW EXECUTE FUNCTION public.write_audit_log();
 
--- SEED DATA (idempoten — ON CONFLICT DO NOTHING)
-INSERT INTO public.ukers (kode_uker, nama_uker, tipe, alamat, latitude, longitude, ip_address, pic_it) VALUES
-('0123','BRI KC Pringsewu','Kantor Cabang','Jl. Jend. Ahmad Yani No. 12, Pringsewu', -5.3583, 104.9750, '10.12.3.1','Rizky Ananda'),
-('0124','BRI KCP Gadingrejo','Kantor Cabang Pembantu','Jl. Raya Gadingrejo, Pringsewu', -5.3411, 105.0512, '10.12.3.2','Rizky Ananda'),
-('0125','BRI KCP Sukoharjo','Kantor Cabang Pembantu','Jl. Pasar Sukoharjo, Pringsewu', -5.3820, 104.9020, '10.12.3.3','Dwi Saputra'),
-('0126','BRI Unit Pardasuka','Unit','Jl. Raya Pardasuka, Pringsewu', -5.4402, 105.0021, '10.12.3.4','Dwi Saputra'),
-('0127','BRI Unit Ambarawa','Unit','Jl. Raya Ambarawa, Pringsewu', -5.3705, 104.9310, '10.12.3.5','Rizky Ananda'),
-('0128','BRI Unit Banyumas','Unit','Jl. Raya Banyumas, Pringsewu', -5.3120, 104.8402, '10.12.3.6','Dwi Saputra')
-ON CONFLICT (kode_uker) DO NOTHING;
-
-INSERT INTO public.employees (nip, nama, jabatan, uker_id, email, no_hp)
-SELECT v.nip, v.nama, v.jabatan, u.id, v.email, v.hp FROM (VALUES
-('00123456','Ahmad Fauzi','Pemimpin Cabang','0123','ahmad.fauzi@bri.co.id','081234567801'),
-('00123457','Siti Rahmawati','Supervisor Layanan','0123','siti.r@bri.co.id','081234567802'),
-('00123458','Rizky Ananda','IT Support','0123','rizky.a@bri.co.id','081234567803'),
-('00123459','Dwi Saputra','IT Support','0124','dwi.s@bri.co.id','081234567804'),
-('00123460','Nurul Hidayah','Teller','0124','nurul.h@bri.co.id','081234567805'),
-('00123461','Budi Santoso','Kepala Unit','0126','budi.s@bri.co.id','081234567806'),
-('00123462','Eka Pratiwi','Customer Service','0125','eka.p@bri.co.id','081234567807'),
-('00123463','Yusuf Maulana','Mantri','0127','yusuf.m@bri.co.id','081234567808')
-) AS v(nip,nama,jabatan,kode,email,hp) JOIN public.ukers u ON u.kode_uker = v.kode
-ON CONFLICT (nip) DO NOTHING;
-
-INSERT INTO public.atm_machines (kode_atm, uker_id, lokasi, status, tanggal_pasang, tanggal_maintenance_terakhir)
-SELECT v.kode, u.id, v.lokasi, v.status, v.pasang::date, v.maint::date FROM (VALUES
-('ATM-PRW-001','0123','Lobby KC Pringsewu','aktif','2021-03-10','2026-06-01'),
-('ATM-PRW-002','0123','Halaman KC Pringsewu','aktif','2021-03-10','2026-05-12'),
-('ATM-GDR-001','0124','KCP Gadingrejo','aktif','2022-07-19','2026-04-20'),
-('ATM-SKH-001','0125','KCP Sukoharjo','gangguan','2022-09-02','2026-02-15'),
-('ATM-PDS-001','0126','Unit Pardasuka','aktif','2023-01-25','2026-07-01'),
-('ATM-AMB-001','0127','Unit Ambarawa','maintenance','2023-05-11','2026-03-08')
-) AS v(kode,uker,lokasi,status,pasang,maint) JOIN public.ukers u ON u.kode_uker = v.uker
-ON CONFLICT (kode_atm) DO NOTHING;
-
-INSERT INTO public.edc_machines (kode_edc, uker_id, merchant, lokasi, status, tanggal_pasang)
-SELECT v.kode, u.id, v.merchant, v.lokasi, v.status, v.pasang::date FROM (VALUES
-('EDC-001','0123','Apotek Sehat Pringsewu','Jl. A. Yani','aktif','2023-02-14'),
-('EDC-002','0123','RM Padang Sederhana','Jl. A. Yani','aktif','2023-02-14'),
-('EDC-003','0124','Toko Bangunan Jaya','Gadingrejo','aktif','2023-08-01'),
-('EDC-004','0125','Klinik Medika','Sukoharjo','nonaktif','2022-11-30'),
-('EDC-005','0127','Swalayan Ambarawa','Ambarawa','aktif','2024-04-17')
-) AS v(kode,uker,merchant,lokasi,status,pasang) JOIN public.ukers u ON u.kode_uker = v.uker
-ON CONFLICT (kode_edc) DO NOTHING;
-
-INSERT INTO public.events (nama_event, deskripsi, tanggal_mulai, tanggal_selesai, qr_token, is_active) VALUES
-('Rapat Koordinasi Bulanan Agustus','Rapat koordinasi seluruh unit kerja BO Pringsewu','2026-08-20 08:00+07','2026-08-20 12:00+07','rakorbulanan082026', true),
-('Sosialisasi Keamanan Siber','Sosialisasi keamanan informasi & phishing awareness','2026-08-25 13:00+07','2026-08-25 16:00+07','sosialisasicyber2026', true)
-ON CONFLICT (qr_token) DO NOTHING;
+-- (Data contoh dihapus: file ini hanya berisi perintah SQL/struktur)
 
 -- ============================================================
 -- Mesin ATM: penyesuaian kolom + Mesin CRM (jalankan di SQL Editor)
@@ -718,3 +671,75 @@ FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 -- Akses Halaman: pemisahan hak View dan Edit per level akses
 -- =====================================================================
 ALTER TABLE public.page_access ADD COLUMN IF NOT EXISTS can_edit boolean NOT NULL DEFAULT false;
+
+-- ============================================================
+-- Registrasi berbasis Data Pekerja (approval dihapus)
+-- (jalankan di SQL Editor Supabase — idempoten)
+-- ============================================================
+
+-- Semua profil aktif; tidak ada lagi status pending
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS personal_number text;
+UPDATE public.profiles SET status = 'approved' WHERE status <> 'approved';
+ALTER TABLE public.profiles ALTER COLUMN status SET DEFAULT 'approved';
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_personal_number_key
+  ON public.profiles (personal_number) WHERE personal_number IS NOT NULL;
+
+DROP TABLE IF EXISTS public.approval_requests CASCADE;
+
+-- Cek Personal Number terhadap Data Pekerja (boleh dipanggil sebelum login)
+CREATE OR REPLACE FUNCTION public.check_personal_number(p_pn text)
+RETURNS TABLE (pn_exists boolean, pn_claimed boolean)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT
+    EXISTS (SELECT 1 FROM public.employees e WHERE e.personal_number = p_pn),
+    EXISTS (SELECT 1 FROM public.profiles p WHERE p.personal_number = p_pn);
+$$;
+GRANT EXECUTE ON FUNCTION public.check_personal_number(text) TO anon, authenticated;
+
+-- Hubungkan akun yang sudah login dengan Personal Number pekerja
+CREATE OR REPLACE FUNCTION public.claim_personal_number(p_pn text)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE emp_nama text;
+BEGIN
+  IF auth.uid() IS NULL THEN RETURN false; END IF;
+  SELECT e.nama INTO emp_nama FROM public.employees e WHERE e.personal_number = p_pn;
+  IF emp_nama IS NULL THEN RETURN false; END IF;
+  IF EXISTS (SELECT 1 FROM public.profiles p WHERE p.personal_number = p_pn AND p.id <> auth.uid()) THEN
+    RETURN false;
+  END IF;
+  UPDATE public.profiles
+     SET personal_number = p_pn,
+         nama = COALESCE(NULLIF(nama, ''), emp_nama),
+         status = 'approved'
+   WHERE id = auth.uid();
+  RETURN true;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.claim_personal_number(text) TO authenticated;
+
+-- Trigger user baru: tanpa approval, langsung aktif + simpan personal number
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE first_user boolean; pn text;
+BEGIN
+  first_user := NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'superadmin');
+  pn := NULLIF(NEW.raw_user_meta_data->>'personal_number', '');
+
+  INSERT INTO public.profiles (id, email, nama, username, status, personal_number)
+  VALUES (NEW.id, NEW.email,
+          COALESCE(NEW.raw_user_meta_data->>'nama',
+                   (SELECT e.nama FROM public.employees e WHERE e.personal_number = pn),
+                   NEW.email),
+          split_part(COALESCE(NEW.email,''), '@', 1),
+          'approved',
+          pn)
+  ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
+
+  IF first_user THEN
+    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'superadmin') ON CONFLICT DO NOTHING;
+  ELSE
+    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'employee') ON CONFLICT DO NOTHING;
+  END IF;
+  RETURN NEW;
+END;
+$$;

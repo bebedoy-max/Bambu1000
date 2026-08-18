@@ -24,6 +24,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { DatePickerField } from "@/components/DatePickerField";
+
+/** Normalisasi nilai dari DB ke format date picker. */
+function toPickerValue(raw: unknown, withTime: boolean) {
+  if (raw === null || raw === undefined || raw === "") return "";
+  const s = String(raw);
+  if (!withTime) return s.slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)) return s.slice(0, 16);
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export type FieldType =
   | "text"
@@ -257,9 +270,41 @@ export function ResourceManager({
   const tableFields = fields.filter((f) => !f.hideInTable);
   const formFields = fields.filter((f) => !f.hideInForm);
 
-  const rows = (list.data ?? []).filter((r) =>
-    q.trim() ? JSON.stringify(r).toLowerCase().includes(q.toLowerCase()) : true,
-  );
+  /** Teks yang tampil di sel — dipakai juga sebagai bahan pencarian. */
+  function cellText(f: Field, row: Row): string {
+    const v = row[f.key];
+    if (f.type === "boolean") return v ? "Aktif" : "Nonaktif";
+    if (f.type === "uker") return ukerLabel.get(v as string) ?? "";
+    if (f.type === "select" && f.optionItems)
+      return f.optionItems.find((o) => o.value === String(v))?.label ?? "";
+    if (f.type === "ref") {
+      const opt = (refs.data?.[f.key] ?? []).find((o) => String(o["id"]) === String(v));
+      return opt ? String(opt[f.refLabelColumn ?? "nama"] ?? "") : "";
+    }
+    if (v === null || v === undefined || v === "") return "";
+    if (f.type === "datetime") return new Date(String(v)).toLocaleString("id-ID");
+    if (f.type === "date") return `${String(v)} ${new Date(String(v)).toLocaleDateString("id-ID")}`;
+    return String(v);
+  }
+
+  /** Semua kolom (termasuk relasi & kolom mentah) jadi satu haystack. */
+  function rowHaystack(row: Row): string {
+    const parts = fields.map((f) => cellText(f, row));
+    for (const [k, v] of Object.entries(row)) {
+      if (v === null || v === undefined) continue;
+      if (typeof v === "object") continue;
+      if (k === "id" || k.endsWith("_id")) continue;
+      parts.push(String(v));
+    }
+    return parts.join(" ").toLowerCase();
+  }
+
+  const terms = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const rows = (list.data ?? []).filter((r) => {
+    if (terms.length === 0) return true;
+    const hay = rowHaystack(r);
+    return terms.every((t) => hay.includes(t));
+  });
 
   useEffect(() => {
     if (focusId && focusRef.current) {
@@ -267,13 +312,10 @@ export function ResourceManager({
     }
   }, [focusId, list.data]);
 
-
   function renderCell(f: Field, row: Row) {
     const v = row[f.key];
     if (f.type === "boolean")
-      return (
-        <Badge variant={v ? "default" : "secondary"}>{v ? "Aktif" : "Nonaktif"}</Badge>
-      );
+      return <Badge variant={v ? "default" : "secondary"}>{v ? "Aktif" : "Nonaktif"}</Badge>;
     if (f.type === "uker") return ukerLabel.get(v as string) ?? "—";
     if (f.type === "select" && f.optionItems)
       return f.optionItems.find((o) => o.value === String(v))?.label ?? "—";
@@ -286,6 +328,7 @@ export function ResourceManager({
     if (f.type === "datetime") return new Date(String(v)).toLocaleString("id-ID");
     return String(v);
   }
+
 
   return (
     <div className="space-y-5">
@@ -302,10 +345,12 @@ export function ResourceManager({
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Cari…"
-              className="w-56 pl-9"
+              placeholder="Cari / filter semua kolom…"
+              aria-label={`Cari di ${title}`}
+              className="w-64 pl-9"
             />
           </div>
+
           {canWrite ? (
             <Button
               onClick={() => {
@@ -467,24 +512,22 @@ export function ResourceManager({
                       </option>
                     ))}
                   </select>
+                ) : f.type === "date" || f.type === "datetime" ? (
+                  <DatePickerField
+                    id={f.key}
+                    withTime={f.type === "datetime"}
+                    {...(f.placeholder ? { placeholder: f.placeholder } : {})}
+                    value={toPickerValue(form[f.key], f.type === "datetime")}
+                    onChange={(v: string) => setForm({ ...form, [f.key]: v })}
+                  />
                 ) : (
 
                   <Input
                     id={f.key}
-                    type={
-                      f.type === "number"
-                        ? "number"
-                        : f.type === "date"
-                          ? "date"
-                          : f.type === "datetime"
-                            ? "datetime-local"
-                            : "text"
-                    }
-                    value={
-                      f.type === "datetime" && form[f.key]
-                        ? new Date(String(form[f.key])).toISOString().slice(0, 16)
-                        : String(form[f.key] ?? "")
-                    }
+                    type={f.type === "number" ? "number" : "text"}
+
+                    value={String(form[f.key] ?? "")}
+
                     inputMode={f.type === "ip" || f.type === "digits" ? "numeric" : undefined}
                     maxLength={
                       f.type === "digits" && f.digitsLength ? f.digitsLength : undefined

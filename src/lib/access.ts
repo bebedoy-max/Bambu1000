@@ -14,8 +14,8 @@ import {
   LifeBuoy,
   ListChecks,
   ScrollText,
-  ShieldCheck,
   SlidersHorizontal,
+  UserCog,
   Users,
   Wrench,
 } from "lucide-react";
@@ -90,7 +90,7 @@ export const menuItems: MenuItem[] = [
   { key: "foto", to: "/admin/foto", label: "Galeri Foto", icon: Image, defaults: ADMIN_ONLY },
   { key: "tiket", to: "/admin/tiket", label: "Tiket IT", icon: LifeBuoy, defaults: ALL },
   { key: "aset", to: "/admin/aset", label: "Inventaris Aset", icon: Boxes, defaults: ADMIN_ONLY },
-  { key: "approval", to: "/admin/approval", label: "Approval", icon: ShieldCheck, defaults: ADMIN_ONLY },
+  { key: "users", to: "/admin/users", label: "Daftar User", icon: UserCog, defaults: ADMIN_ONLY },
   {
     key: "akses",
     to: "/admin/akses",
@@ -122,23 +122,6 @@ export function usePageAccess() {
   });
 }
 
-
-export function useProfileStatus() {
-  const { session } = useRoles();
-  return useQuery({
-    queryKey: ["profile-status", session?.user.id],
-    enabled: !!session?.user.id,
-    queryFn: async () => {
-      const { data, error } = await db
-        .from("profiles")
-        .select("status")
-        .eq("id", session!.user.id)
-        .maybeSingle();
-      if (error) return "approved";
-      return ((data?.["status"] as string | undefined) ?? "approved") || "approved";
-    },
-  });
-}
 
 /** Hak akses menu untuk pengguna saat ini. */
 export function useAccess() {

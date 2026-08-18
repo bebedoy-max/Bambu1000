@@ -1,23 +1,24 @@
 import { createContext, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Clock, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { useAccess, useProfileStatus } from "@/lib/access";
+import { useAccess } from "@/lib/access";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import logoUrl from "@/assets/logo.png";
 import { AuthSplash } from "@/components/AuthSplash";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { usePresenceHeartbeat, useSelfBlocked } from "@/lib/users";
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const { session, levelLabel, visibleMenus } = useAccess();
-  const status = useProfileStatus();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [signingOut, setSigningOut] = useState(false);
+  usePresenceHeartbeat();
 
   async function signOut() {
     const start = Date.now();
@@ -31,27 +32,6 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   if (signingOut) return <AuthSplash label="Bye My Friends.. See You Later...." />;
-
-  if (status.data === "pending" || status.data === "rejected") {
-    return (
-      <div className="grid min-h-screen place-items-center px-4">
-        <div className="glass-card max-w-md p-8 text-center">
-          <Clock className="mx-auto size-8 text-muted-foreground" />
-          <h1 className="mt-4 text-xl font-semibold">
-            {status.data === "pending" ? "Menunggu Approval Admin" : "Registrasi Ditolak"}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {status.data === "pending"
-              ? "Registrasi Anda berhasil, namun akses ke data internal baru aktif setelah disetujui admin."
-              : "Pendaftaran Anda ditolak admin. Silakan hubungi tim IT untuk informasi lebih lanjut."}
-          </p>
-          <Button className="mt-6" variant="secondary" onClick={signOut}>
-            <LogOut className="size-4" /> Keluar
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen">
@@ -123,9 +103,17 @@ export const PageEditContext = createContext(true);
 /** Membungkus halaman admin dengan pengecekan hak akses menu (menu Akses Halaman). */
 export function AdminPage({ menuKey, children }: { menuKey: string; children: ReactNode }) {
   const { loading, canAccess, canEdit } = useAccess();
+  const blocked = useSelfBlocked();
   return (
     <AdminLayout>
-      {loading ? null : canAccess(menuKey) ? (
+      {blocked.data ? (
+        <div className="glass-card p-10 text-center">
+          <h1 className="text-xl font-semibold">Akun diblokir</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Akun Anda diblokir oleh administrator. Hubungi admin untuk membuka blokir.
+          </p>
+        </div>
+      ) : loading ? null : canAccess(menuKey) ? (
         <PageEditContext.Provider value={canEdit(menuKey)}>{children}</PageEditContext.Provider>
       ) : (
         <AccessDenied />
