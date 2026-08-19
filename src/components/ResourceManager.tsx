@@ -49,9 +49,11 @@ export type FieldType =
   | "select"
   | "uker"
   | "ref"
+  | "reftext"
   | "digits"
   | "ip"
   | "latlng";
+
 
 
 /** Hanya angka. */
@@ -99,6 +101,11 @@ export type Field = {
   /** Kolom teks yang dipakai sebagai label pilihan. */
   refLabelColumn?: string;
   /**
+   * Untuk type "reftext": kolom teks tempat menyimpan nama bebas
+   * ketika pengguna tidak ada di tabel relasi.
+   */
+  textColumn?: string;
+  /**
    * Isi otomatis field ini dari baris relasi field lain.
    * Contoh: uker_id diisi dari employees.uker_id saat memilih pengguna.
    */
@@ -106,6 +113,80 @@ export type Field = {
   /** Placeholder khusus. */
   placeholder?: string;
 };
+
+/** Input teks manual + saran otomatis dari tabel relasi. */
+function RefTextField({
+  id,
+  options,
+  labelColumn,
+  text,
+  matchedId,
+  onPick,
+  onText,
+  placeholder,
+}: {
+  id: string;
+  options: Row[];
+  labelColumn: string;
+  text: string;
+  matchedId: string;
+  onPick: (row: Row) => void;
+  onText: (v: string) => void;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const term = text.trim().toLowerCase();
+  const suggestions = useMemo(() => {
+    if (!term) return options.slice(0, 8);
+    return options
+      .filter((o) => String(o[labelColumn] ?? "").toLowerCase().includes(term))
+      .slice(0, 8);
+  }, [options, labelColumn, term]);
+
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        autoComplete="off"
+        value={text}
+        placeholder={placeholder ?? "Ketik nama…"}
+        onChange={(e) => {
+          onText(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+      />
+      {open && suggestions.length > 0 ? (
+        <ul className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-input bg-popover py-1 shadow-lg">
+          {suggestions.map((o) => (
+            <li key={String(o["id"])}>
+              <button
+                type="button"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-secondary/60"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  onPick(o);
+                  setOpen(false);
+                }}
+              >
+                {String(o[labelColumn] ?? "")}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <p className="text-xs text-muted-foreground">
+        {matchedId
+          ? "Terhubung ke data pekerja."
+          : text.trim()
+            ? "Nama manual (tidak ada di data pekerja)."
+            : "Ketik untuk mencari di data pekerja, atau isi manual."}
+      </p>
+    </div>
+  );
+}
+
 
 
 type Row = Record<string, unknown>;
@@ -127,9 +208,11 @@ function emptyForm(fields: Field[]): Row {
   for (const f of fields) {
     if (f.hideInForm) continue;
     out[f.key] = f.type === "boolean" ? true : "";
+    if (f.type === "reftext" && f.textColumn) out[f.textColumn] = "";
   }
   return out;
 }
+
 
 export function ResourceManager({
   table,
@@ -187,9 +270,10 @@ export function ResourceManager({
   });
 
   const refFields = useMemo(
-    () => fields.filter((f) => f.type === "ref" && f.refTable),
+    () => fields.filter((f) => (f.type === "ref" || f.type === "reftext") && f.refTable),
     [fields],
   );
+
 
   /** Field yang terisi otomatis dari relasi field lain. */
   const autoFillFields = useMemo(
@@ -233,9 +317,29 @@ export function ResourceManager({
       const body: Row = {};
       for (const f of fields) {
         if (f.hideInForm) continue;
+        if (f.type === "reftext") {
+          const label = String(payload[f.textColumn ?? ""] ?? "").trim();
+          const opts = refs.data?.[f.key] ?? [];
+          const matched = opts.find(
+            (o) =>
+              String(o[f.refLabelColumn ?? "nama"] ?? "").trim().toLowerCase() ===
+              label.toLowerCase(),
+          );
+          if (!label) {
+            if (f.required) throw new Error(`${f.label} wajib diisi`);
+            body[f.key] = null;
+            if (f.textColumn) body[f.textColumn] = null;
+          } else {
+            body[f.key] = matched ? String(matched["id"]) : null;
+            if (f.textColumn) body[f.textColumn] = label;
+          }
+
+          continue;
+        }
         const v = payload[f.key];
         const str = typeof v === "string" ? v.trim() : v;
         if (f.type === "boolean") body[f.key] = Boolean(v);
+
         else if (str === "" || str === undefined || str === null) {
           if (f.required) throw new Error(`${f.label} wajib diisi`);
           body[f.key] = null;
@@ -303,6 +407,13 @@ export function ResourceManager({
       const opt = (refs.data?.[f.key] ?? []).find((o) => String(o["id"]) === String(v));
       return opt ? String(opt[f.refLabelColumn ?? "nama"] ?? "") : "";
     }
+    if (f.type === "reftext") {
+      const opt = (refs.data?.[f.key] ?? []).find((o) => String(o["id"]) === String(v));
+      if (opt) return String(opt[f.refLabelColumn ?? "nama"] ?? "");
+      const raw = f.textColumn ? row[f.textColumn] : null;
+      return raw == null ? "" : String(raw);
+    }
+
     if (v === null || v === undefined || v === "") return "";
     if (f.type === "datetime") return new Date(String(v)).toLocaleString("id-ID");
     if (f.type === "date") return `${String(v)} ${new Date(String(v)).toLocaleDateString("id-ID")}`;
@@ -345,6 +456,8 @@ export function ResourceManager({
       const opt = (refs.data?.[f.key] ?? []).find((o) => String(o["id"]) === String(v));
       return opt ? String(opt[f.refLabelColumn ?? "nama"] ?? "—") : "—";
     }
+    if (f.type === "reftext") return cellText(f, row) || "—";
+
 
     if (v === null || v === undefined || v === "") return "—";
     if (f.type === "datetime") return new Date(String(v)).toLocaleString("id-ID");
@@ -438,8 +551,13 @@ export function ResourceManager({
                             onClick={() => {
                               setEditing(row);
                               const next: Row = {};
-                              for (const f of formFields) next[f.key] = row[f.key] ?? "";
+                              for (const f of formFields) {
+                                next[f.key] = row[f.key] ?? "";
+                                if (f.type === "reftext" && f.textColumn)
+                                  next[f.textColumn] = cellText(f, row);
+                              }
                               setForm(next);
+
                               setOpen(true);
                             }}
                           >
@@ -553,6 +671,32 @@ export function ResourceManager({
                       </option>
                     ))}
                   </select>
+                ) : f.type === "reftext" ? (
+                  <RefTextField
+                    id={f.key}
+                    options={refs.data?.[f.key] ?? []}
+                    labelColumn={f.refLabelColumn ?? "nama"}
+                    text={String(form[f.textColumn ?? ""] ?? "")}
+                    matchedId={String(form[f.key] ?? "")}
+                    {...(f.placeholder ? { placeholder: f.placeholder } : {})}
+                    onText={(v) =>
+                      setForm({ ...form, [f.textColumn ?? "_text"]: v, [f.key]: "" })
+                    }
+                    onPick={(o) => {
+                      const next: Row = {
+                        ...form,
+                        [f.key]: String(o["id"]),
+                        [f.textColumn ?? "_text"]: String(o[f.refLabelColumn ?? "nama"] ?? ""),
+                      };
+                      for (const a of autoFillFields) {
+                        if (a.autoFill!.fromField !== f.key) continue;
+                        const filled = o[a.autoFill!.column];
+                        next[a.key] = filled == null ? "" : String(filled);
+                      }
+                      setForm(next);
+                    }}
+                  />
+
                 ) : f.type === "date" || f.type === "datetime" ? (
                   <DatePickerField
                     id={f.key}

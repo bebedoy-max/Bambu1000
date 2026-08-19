@@ -38,11 +38,14 @@ function Page() {
             {
               key: "pengguna_id",
               label: "Nama Pengguna",
-              type: "ref",
+              type: "reftext",
               refTable: "employees",
               refLabelColumn: "nama",
+              textColumn: "nama_pengguna",
+              placeholder: "Ketik nama pengguna…",
               required: true,
             },
+
             {
               key: "uker_id",
               label: "Unit Kerja",
