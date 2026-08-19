@@ -557,6 +557,7 @@ CREATE TRIGGER it_devices_updated BEFORE UPDATE ON public.it_devices FOR EACH RO
 ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS jenis_id uuid REFERENCES public.device_types(id) ON DELETE SET NULL;
 ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS pengguna_id uuid REFERENCES public.employees(id) ON DELETE SET NULL;
 ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS uker_id uuid REFERENCES public.ukers(id) ON DELETE SET NULL;
+ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS ip_address text;
 ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS merk text;
 ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS serial_number text;
 ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS processor text;

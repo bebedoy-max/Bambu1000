@@ -55,6 +55,7 @@ function Page() {
             },
             { key: "merk", label: "Merk" },
             { key: "serial_number", label: "Serial Number" },
+            { key: "ip_address", label: "IP Address", placeholder: "contoh: 10.10.1.25" },
             { key: "processor", label: "Processor" },
             { key: "ram", label: "RAM" },
             {
