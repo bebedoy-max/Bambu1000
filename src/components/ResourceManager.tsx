@@ -98,6 +98,11 @@ export type Field = {
   refTable?: string;
   /** Kolom teks yang dipakai sebagai label pilihan. */
   refLabelColumn?: string;
+  /**
+   * Isi otomatis field ini dari baris relasi field lain.
+   * Contoh: uker_id diisi dari employees.uker_id saat memilih pengguna.
+   */
+  autoFill?: { fromField: string; column: string };
   /** Placeholder khusus. */
   placeholder?: string;
 };
@@ -186,14 +191,29 @@ export function ResourceManager({
     [fields],
   );
 
+  /** Field yang terisi otomatis dari relasi field lain. */
+  const autoFillFields = useMemo(
+    () => fields.filter((f) => f.autoFill),
+    [fields],
+  );
+
   const refs = useQuery({
-    queryKey: ["ref-options", refFields.map((f) => `${f.refTable}:${f.refLabelColumn}`).join(",")],
+    queryKey: [
+      "ref-options",
+      refFields.map((f) => `${f.refTable}:${f.refLabelColumn}`).join(","),
+      autoFillFields.map((f) => `${f.autoFill!.fromField}.${f.autoFill!.column}`).join(","),
+    ],
     enabled: refFields.length > 0,
     queryFn: async () => {
       const out: Record<string, Row[]> = {};
       for (const f of refFields) {
         const col = f.refLabelColumn ?? "nama";
-        const { data, error } = await db.from(f.refTable!).select(`id, ${col}`).order(col);
+        const extras = autoFillFields
+          .filter((a) => a.autoFill!.fromField === f.key)
+          .map((a) => a.autoFill!.column)
+          .filter((c) => c !== col && c !== "id");
+        const select = ["id", col, ...new Set(extras)].join(", ");
+        const { data, error } = await db.from(f.refTable!).select(select).order(col);
         if (error) throw error;
         out[f.key] = (data ?? []) as unknown as Row[];
       }
@@ -512,7 +532,19 @@ export function ResourceManager({
                     id={f.key}
                     className="h-10 rounded-xl border border-input bg-popover px-3 text-sm"
                     value={String(form[f.key] ?? "")}
-                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const next: Row = { ...form, [f.key]: value };
+                      for (const a of autoFillFields) {
+                        if (a.autoFill!.fromField !== f.key) continue;
+                        const src = (refs.data?.[f.key] ?? []).find(
+                          (o) => String(o["id"]) === value,
+                        );
+                        const filled = src?.[a.autoFill!.column];
+                        next[a.key] = filled == null ? "" : String(filled);
+                      }
+                      setForm(next);
+                    }}
                   >
                     <option value="">— pilih —</option>
                     {(refs.data?.[f.key] ?? []).map((o) => (

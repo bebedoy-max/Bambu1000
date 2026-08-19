@@ -76,6 +76,7 @@ export const menuItems: MenuItem[] = [
   { key: "atm", to: "/admin/atm", label: "Mesin ATM", icon: Banknote, defaults: MGMT },
   { key: "crm", to: "/admin/crm", label: "Mesin CRM", icon: Banknote, defaults: MGMT },
   { key: "edc", to: "/admin/edc", label: "Mesin EDC", icon: CreditCard, defaults: MGMT },
+  { key: "jenis-perangkat", to: "/admin/jenis-perangkat", label: "Jenis Perangkat", icon: Boxes, defaults: ADMIN_ONLY },
   { key: "perangkat", to: "/admin/perangkat", label: "Data Perangkat IT", icon: Laptop, defaults: ADMIN_ONLY },
   { key: "project", to: "/admin/project", label: "Project IT", icon: CalendarDays, defaults: MGMT },
   {

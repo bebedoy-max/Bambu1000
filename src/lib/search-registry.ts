@@ -89,14 +89,27 @@ export const searchModules: SearchModule[] = [
     subtitle: (r) => [s(r["nama_merchant"]), s(r["kategori_edc"])].filter(Boolean).join(" · "),
   },
   {
+    table: "device_types",
+    label: "Jenis Perangkat",
+    route: "/admin/jenis-perangkat",
+    title: (r) => s(r["jenis_perangkat"]),
+    subtitle: (r) => [s(r["level_fungsi"]), s(r["deskripsi"])].filter(Boolean).join(" · "),
+    need: "it",
+  },
+  {
     table: "it_devices",
     label: "Data Perangkat IT",
     route: "/admin/perangkat",
-    refs: [ukerRef()],
+    refs: [
+      ukerRef(),
+      { column: "jenis_id", table: "device_types", labelColumns: ["jenis_perangkat", "level_fungsi"] },
+      { column: "pengguna_id", table: "employees", labelColumns: ["nama", "personal_number"] },
+    ],
     title: (r) => s(r["nama_perangkat"]),
-    subtitle: (r) => [s(r["jenis_perangkat"]), s(r["nama_pengguna"])].filter(Boolean).join(" · "),
+    subtitle: (r) => [s(r["merk"]), s(r["serial_number"])].filter(Boolean).join(" · "),
     need: "it",
   },
+
   {
     table: "projects",
     label: "Project IT",

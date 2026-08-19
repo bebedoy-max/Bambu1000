@@ -510,6 +510,27 @@ END $grant$;
 -- (jalankan di SQL Editor Supabase — idempoten)
 -- ============================================================
 
+-- Master data Jenis Perangkat
+CREATE TABLE IF NOT EXISTS public.device_types (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  jenis_perangkat text NOT NULL,
+  deskripsi text,
+  level_fungsi text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT ON public.device_types TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.device_types TO authenticated;
+GRANT ALL ON public.device_types TO service_role;
+ALTER TABLE public.device_types ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "device_types read" ON public.device_types;
+DROP POLICY IF EXISTS "device_types admin write" ON public.device_types;
+CREATE POLICY "device_types read" ON public.device_types FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "device_types admin write" ON public.device_types FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
+DROP TRIGGER IF EXISTS device_types_updated ON public.device_types;
+CREATE TRIGGER device_types_updated BEFORE UPDATE ON public.device_types FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+
 CREATE TABLE IF NOT EXISTS public.it_devices (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   nama_perangkat text NOT NULL,
@@ -531,6 +552,39 @@ CREATE POLICY "it_devices read" ON public.it_devices FOR SELECT TO anon, authent
 CREATE POLICY "it_devices admin write" ON public.it_devices FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
 DROP TRIGGER IF EXISTS it_devices_updated ON public.it_devices;
 CREATE TRIGGER it_devices_updated BEFORE UPDATE ON public.it_devices FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- Kolom baru Data Perangkat IT (aman, tidak menghapus data lama)
+ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS jenis_id uuid REFERENCES public.device_types(id) ON DELETE SET NULL;
+ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS pengguna_id uuid REFERENCES public.employees(id) ON DELETE SET NULL;
+ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS uker_id uuid REFERENCES public.ukers(id) ON DELETE SET NULL;
+ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS merk text;
+ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS serial_number text;
+ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS processor text;
+ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS ram text;
+ALTER TABLE public.it_devices ADD COLUMN IF NOT EXISTS storage_type text;
+
+-- Migrasi data lama: jenis_perangkat (teks) -> master device_types
+INSERT INTO public.device_types (jenis_perangkat)
+SELECT DISTINCT btrim(d.jenis_perangkat)
+FROM public.it_devices d
+WHERE coalesce(btrim(d.jenis_perangkat), '') <> ''
+  AND NOT EXISTS (
+    SELECT 1 FROM public.device_types t
+    WHERE lower(t.jenis_perangkat) = lower(btrim(d.jenis_perangkat))
+  );
+
+UPDATE public.it_devices d
+SET jenis_id = t.id
+FROM public.device_types t
+WHERE d.jenis_id IS NULL
+  AND lower(btrim(d.jenis_perangkat)) = lower(t.jenis_perangkat);
+
+-- Migrasi data lama: nama_pengguna (teks) -> relasi ke data pekerja
+UPDATE public.it_devices d
+SET pengguna_id = e.id
+FROM public.employees e
+WHERE d.pengguna_id IS NULL
+  AND lower(btrim(coalesce(d.nama_pengguna, ''))) = lower(btrim(e.nama));
 
 CREATE TABLE IF NOT EXISTS public.projects (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
