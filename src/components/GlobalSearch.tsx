@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Filter, Loader2, Search, X } from "lucide-react";
+import { ExternalLink, Filter, Loader2, Search, X } from "lucide-react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { useRoles } from "@/lib/roles";
@@ -13,6 +13,10 @@ import {
 } from "@/lib/search-registry";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { EmployeeProfileLink } from "@/components/EmployeeProfileLink";
+import { UkerProfileLink } from "@/components/UkerProfileLink";
+import { MachineProfileLink } from "@/components/MachineProfileLink";
+import { RecordDetailDialog } from "@/components/RecordDetailDialog";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -126,6 +130,78 @@ async function searchModule(m: SearchModule, terms: string[]): Promise<Group> {
   };
 }
 
+/**
+ * Satu baris hasil pencarian. Bila tabelnya punya label entitas yang bisa
+ * diklik (pekerja, unit kerja, mesin ATM/CRM), pop up khusus entitas itu yang
+ * dipakai; tabel lain memakai pop up detail generik yang isinya mengikuti
+ * kolom data sehingga otomatis menyesuaikan data/menu baru.
+ */
+function HitRow({
+  group,
+  hit,
+  onOpenMenu,
+}: {
+  group: Group;
+  hit: Hit;
+  onOpenMenu: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const table = group.module.table;
+
+  const entityTrigger =
+    table === "employees" ? (
+      <EmployeeProfileLink employeeId={hit.id} nama={hit.title} />
+    ) : table === "ukers" ? (
+      <UkerProfileLink ukerId={hit.id} nama={hit.title} />
+    ) : table === "atm_machines" || table === "crm_machines" ? (
+      <MachineProfileLink
+        machineId={hit.id}
+        lokasi={hit.title}
+        jenis={table === "crm_machines" ? "CRM" : "ATM"}
+      />
+    ) : null;
+
+  return (
+    <div className="group/hit flex items-start justify-between gap-2 rounded-xl px-3 py-2 transition-colors hover:bg-secondary/60">
+      <div className="min-w-0 flex-1">
+        {entityTrigger ?? (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="truncate text-left text-sm font-medium text-primary underline-offset-4 hover:underline"
+            aria-label={`Lihat detail ${hit.title}`}
+          >
+            {hit.title}
+          </button>
+        )}
+        {hit.subtitle ? (
+          <p className="truncate text-xs text-muted-foreground">{hit.subtitle}</p>
+        ) : null}
+      </div>
+      <button
+        type="button"
+        onClick={onOpenMenu}
+        aria-label={`Buka di menu ${group.module.label}`}
+        title={`Buka di menu ${group.module.label}`}
+        className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
+      >
+        <ExternalLink className="size-3.5" />
+      </button>
+
+      {entityTrigger ? null : (
+        <RecordDetailDialog
+          open={open}
+          onOpenChange={setOpen}
+          table={table}
+          id={hit.id}
+          title={hit.title}
+          label={group.module.label}
+          refs={group.module.refs}
+        />
+      )}
+    </div>
+  );
+}
 
 export function GlobalSearch({ className = "" }: { className?: string }) {
   const navigate = useNavigate();
@@ -246,17 +322,12 @@ export function GlobalSearch({ className = "" }: { className?: string }) {
                     </button>
                   </div>
                   {g.hits.map((h) => (
-                    <button
+                    <HitRow
                       key={`${g.module.route}-${h.id}`}
-                      type="button"
-                      onClick={() => goToRow(g, h)}
-                      className="flex w-full flex-col items-start gap-0.5 rounded-xl px-3 py-2 text-left transition-colors hover:bg-secondary/60"
-                    >
-                      <span className="truncate text-sm font-medium">{h.title}</span>
-                      {h.subtitle ? (
-                        <span className="truncate text-xs text-muted-foreground">{h.subtitle}</span>
-                      ) : null}
-                    </button>
+                      group={g}
+                      hit={h}
+                      onOpenMenu={() => goToRow(g, h)}
+                    />
                   ))}
                   {g.total > g.hits.length ? (
                     <button
