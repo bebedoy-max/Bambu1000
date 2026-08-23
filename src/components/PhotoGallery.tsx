@@ -1,12 +1,23 @@
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { ImagePlus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { supabase } from "@/lib/supabase";
 import { driveImageUrl, type PhotoEntity } from "@/lib/drive-entities";
-import { listEntityPhotos, uploadEntityPhoto, deleteEntityPhoto } from "@/lib/drive.functions";
+import { uploadEntityPhoto, deleteEntityPhoto } from "@/lib/drive.functions";
+
+const db = supabase as unknown as SupabaseClient;
+
+type PhotoRow = {
+  id: string;
+  drive_file_id: string;
+  file_name: string | null;
+};
+
 
 function toBase64(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -32,15 +43,24 @@ export function PhotoGallery({
   const qc = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const list = useServerFn(listEntityPhotos);
   const upload = useServerFn(uploadEntityPhoto);
   const remove = useServerFn(deleteEntityPhoto);
 
-  const photos = useQuery({
+  const photos = useQuery<PhotoRow[]>({
     queryKey: ["entity_photos", entity, entityId],
     enabled: !!entityId,
-    queryFn: () => list({ data: { entity, entityId } }),
+    queryFn: async () => {
+      const { data, error } = await db
+        .from("entity_photos")
+        .select("id,drive_file_id,file_name")
+        .eq("entity_type", entity)
+        .eq("entity_id", entityId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as PhotoRow[];
+    },
   });
+
 
   const invalidate = () =>
     void qc.invalidateQueries({ queryKey: ["entity_photos", entity, entityId] });

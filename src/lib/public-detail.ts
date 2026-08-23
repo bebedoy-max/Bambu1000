@@ -21,7 +21,7 @@ export type PublicDetailConfig = {
   /** Sembunyikan kolom "Foto" pada tabel detail (foto tetap ada di Titik Maps). */
   hidePhotoColumn?: boolean;
   /** Kolom yang ditampilkan (bila ada pada data). */
-  columns: { key: string; label: string; type?: "latlng" }[];
+  columns: { key: string; label: string; type?: "latlng" | "ukername" }[];
 };
 
 export const publicDetails: PublicDetailConfig[] = [
@@ -37,7 +37,7 @@ export const publicDetails: PublicDetailConfig[] = [
     nameColumn: "nama_uker",
     columns: [
       { key: "kode_uker", label: "Kode Uker" },
-      { key: "nama_uker", label: "Nama Uker" },
+      { key: "nama_uker", label: "Nama Uker", type: "ukername" },
       { key: "alamat", label: "Alamat" },
       { key: "titik_maps", label: "Titik Maps", type: "latlng" },
     ],

@@ -46,6 +46,12 @@ function Page() {
             },
             { key: "alamat", label: "Alamat", type: "textarea", required: true },
             {
+              key: "deskripsi",
+              label: "Deskripsi Profil Uker",
+              type: "textarea",
+              placeholder: "Deskripsi singkat profil unit kerja",
+            },
+            {
               key: "titik_maps",
               label: "Titik Maps",
               type: "latlng",

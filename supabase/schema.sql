@@ -1041,3 +1041,7 @@ GRANT ALL ON public.entity_photos TO service_role;
 ALTER TABLE public.entity_photos ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS entity_photos_read ON public.entity_photos;
 CREATE POLICY entity_photos_read ON public.entity_photos FOR SELECT TO anon, authenticated USING (true);
+
+-- UKERS: deskripsi profil unit kerja (ditampilkan pada pop up profil uker)
+ALTER TABLE public.ukers ADD COLUMN IF NOT EXISTS deskripsi text;
+GRANT SELECT (deskripsi) ON public.ukers TO anon;

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useDetailAccess } from "@/lib/access";
 import { findPublicDetail } from "@/lib/public-detail";
 import { MapsLink } from "@/components/MapsLink";
+import { UkerProfileLink } from "@/components/UkerProfileLink";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { Images } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -170,7 +171,15 @@ function DetailTable({
             <tr key={String(r["id"] ?? idx)} className="transition-colors hover:bg-secondary/20">
               {columns.map((c) => (
                 <td key={c.key} className="border-t border-border/40 p-3 align-top">
-                  {c.type === "latlng" ? (
+                  {c.type === "ukername" ? (
+                    <UkerProfileLink
+                      ukerId={String(r["id"] ?? "")}
+                      nama={String(r[c.key] ?? "—")}
+                      kode={r["kode_uker"] ? String(r["kode_uker"]) : undefined}
+                      tipe={r["tipe"] as string | null}
+                      deskripsi={r["deskripsi"] as string | null}
+                    />
+                  ) : c.type === "latlng" ? (
                     <MapsLink
                       value={r[c.key]}
                       name={(cfg.nameParts

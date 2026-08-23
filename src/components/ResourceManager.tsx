@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { DatePickerField } from "@/components/DatePickerField";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { MapsLink } from "@/components/MapsLink";
+import { UkerProfileLink } from "@/components/UkerProfileLink";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import type { PhotoEntity } from "@/lib/drive-entities";
 
@@ -477,6 +478,16 @@ export function ResourceManager({
 
   function renderCell(f: Field, row: Row) {
     const v = row[f.key];
+    if (table === "ukers" && f.key === "nama_uker")
+      return (
+        <UkerProfileLink
+          ukerId={String(row["id"] ?? "")}
+          nama={String(v ?? "—")}
+          kode={row["kode_uker"] ? String(row["kode_uker"]) : undefined}
+          tipe={row["tipe"] as string | null}
+          deskripsi={row["deskripsi"] as string | null}
+        />
+      );
     if (f.type === "boolean")
       return <Badge variant={v ? "default" : "secondary"}>{v ? "Aktif" : "Nonaktif"}</Badge>;
     if (f.type === "uker") return ukerLabel.get(v as string) ?? "—";
