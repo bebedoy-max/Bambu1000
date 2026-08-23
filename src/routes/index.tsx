@@ -40,9 +40,20 @@ function Index() {
   const navigate = useNavigate();
   const [redirecting, setRedirecting] = useState(false);
 
+  // Bila Supabase mengembalikan hasil login ke Site URL ("/"), teruskan ke /auth
+  // lengkap dengan parameternya supaya prosesnya bisa diselesaikan / dijelaskan.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const s = window.location.search;
+    const h = window.location.hash;
+    const isOAuth = /[?&](code|error|error_description)=/.test(s) || /(access_token|error)=/.test(h);
+    if (isOAuth) window.location.replace(`/auth${s}${h}`);
+  }, []);
+
   // Setelah login sukses (email maupun Google), langsung buka panel sesuai akun.
   useEffect(() => {
     if (!hasPostLogin()) return;
+
     let mounted = true;
     setRedirecting(true);
     const go = () => {
