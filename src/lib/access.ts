@@ -36,6 +36,11 @@ export const accessLevels: { value: AccessLevel; label: string; role: AppRole }[
 
 export const accessLevelLabels = accessLevels.map((l) => l.label);
 
+/** Level yang boleh dipakai di Kategori Jabatan (Super Admin tidak bisa dipilih). */
+export const jobAccessLevelLabels = accessLevels
+  .filter((l) => l.value !== "super_admin")
+  .map((l) => l.label);
+
 export function labelToLevel(label: string | null | undefined): AccessLevel {
   return accessLevels.find((l) => l.label === label)?.value ?? "pekerja";
 }
@@ -76,6 +81,7 @@ export const menuItems: MenuItem[] = [
   { key: "atm", to: "/admin/atm", label: "Mesin ATM", icon: Banknote, defaults: MGMT },
   { key: "crm", to: "/admin/crm", label: "Mesin CRM", icon: Banknote, defaults: MGMT },
   { key: "edc", to: "/admin/edc", label: "Mesin EDC", icon: CreditCard, defaults: MGMT },
+  { key: "jenis-perangkat", to: "/admin/jenis-perangkat", label: "Jenis Perangkat", icon: Boxes, defaults: ADMIN_ONLY },
   { key: "perangkat", to: "/admin/perangkat", label: "Data Perangkat IT", icon: Laptop, defaults: ADMIN_ONLY },
   { key: "project", to: "/admin/project", label: "Project IT", icon: CalendarDays, defaults: MGMT },
   {
@@ -122,6 +128,30 @@ export function usePageAccess() {
   });
 }
 
+/** Level khusus untuk pengunjung umum (belum login). */
+export const PUBLIC_LEVEL = "publik";
+export const PUBLIC_LEVEL_LABEL = "Pengunjung Umum";
+
+/** Menu yang boleh ditampilkan pada dashboard umum bila belum diatur. */
+export const publicDefaults: string[] = [];
+
+/** Hak lihat detail untuk pengunjung umum (tanpa login). */
+export function usePublicAccess() {
+  const rules = usePageAccess();
+
+  function canPublicView(key: string) {
+    const rule = (rules.data ?? []).find(
+      (x) => x.page_key === key && x.akses_level === PUBLIC_LEVEL,
+    );
+    if (rule) return rule.allowed;
+    return publicDefaults.includes(key);
+  }
+
+  return { canPublicView, loading: rules.isLoading };
+}
+
+
+
 
 /** Hak akses menu untuk pengguna saat ini. */
 export function useAccess() {
@@ -159,3 +189,17 @@ export function useAccess() {
   };
 }
 
+
+/**
+ * Hak lihat detail pada dashboard umum:
+ * - pengunjung tanpa login mengikuti pengaturan level "Pengunjung Umum"
+ * - pengguna login mengikuti hak akses menu miliknya
+ */
+export function useDetailAccess(key: string) {
+  const access = useAccess();
+  const pub = usePublicAccess();
+  const loading = access.loading || pub.loading;
+  const loggedIn = !!access.session;
+  const allowed = loggedIn ? access.canAccess(key) : pub.canPublicView(key);
+  return { loading, loggedIn, allowed, level: access.level };
+}

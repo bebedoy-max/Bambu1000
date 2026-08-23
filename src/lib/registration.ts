@@ -30,13 +30,29 @@ export async function checkPersonalNumber(
   return { ok: true };
 }
 
+/**
+ * Menyesuaikan level akses akun dengan jabatan pada Data Pekerja
+ * (kuota Super Admin 1, Admin 10; kelebihan otomatis turun ke Manajemen).
+ */
+export async function syncAccessLevel(): Promise<void> {
+  try {
+    await db.rpc("sync_my_access_level");
+  } catch {
+    /* abaikan bila fungsi belum tersedia */
+  }
+}
+
 /** Menghubungkan akun yang baru login dengan Personal Number yang sudah diverifikasi. */
 export async function claimPendingPersonalNumber(): Promise<void> {
   if (typeof window === "undefined") return;
   const pn = localStorage.getItem(PENDING_PN_KEY);
-  if (!pn) return;
+  if (!pn) {
+    await syncAccessLevel();
+    return;
+  }
   const { error } = await db.rpc("claim_personal_number", { p_pn: pn });
   if (!error) localStorage.removeItem(PENDING_PN_KEY);
+  await syncAccessLevel();
 }
 
 /**

@@ -28,6 +28,7 @@ import {
   rejectUnregisteredAccount,
   PENDING_PN_KEY,
 } from "@/lib/registration";
+import { clearPostLogin, markPostLogin } from "@/lib/post-login";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -74,6 +75,7 @@ function Auth() {
 
   /** Info akun tidak terdaftar lalu kembali ke dashboard umum. */
   async function showUnregistered() {
+    clearPostLogin();
     setSplash(null);
     await confirm({
       title: "Akun tidak terdaftar",
@@ -100,6 +102,7 @@ function Auth() {
       return;
     }
 
+    clearPostLogin();
     setSplash("Welcome to Super IT Zone...");
     await qc.invalidateQueries();
     await wait(1200);
@@ -136,9 +139,11 @@ function Auth() {
       return;
     }
     setBusy(true);
+    markPostLogin();
     const { error } = await supabase.auth.signInWithPassword(p.data);
     setBusy(false);
     if (error) {
+      clearPostLogin();
       toast.error(error.message);
       return;
     }
@@ -181,12 +186,14 @@ function Auth() {
 
   /** Login Google langsung tanpa verifikasi PN (khusus pengguna yang sudah terdaftar). */
   async function googleSignIn() {
+    markPostLogin();
     setSplash("Menghubungkan ke Google...");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth` },
     });
     if (error) {
+      clearPostLogin();
       setSplash(null);
       toast.error(error.message || "Gagal masuk dengan Google");
     }
@@ -207,12 +214,14 @@ function Auth() {
     }
     localStorage.setItem(PENDING_PN_KEY, parsed.data);
     setGoogleOpen(false);
+    markPostLogin();
     setSplash("Menghubungkan ke Google...");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth` },
     });
     if (error) {
+      clearPostLogin();
       setSplash(null);
       toast.error(error.message || "Gagal masuk dengan Google");
     }

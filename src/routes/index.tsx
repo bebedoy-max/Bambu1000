@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Banknote, Building2, CreditCard, Users, CalendarDays } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -6,6 +7,8 @@ import { PublicLayout } from "@/components/PublicLayout";
 import { StatCard } from "@/components/StatCard";
 import { ProjectSummary } from "@/components/ProjectSummary";
 import { Button } from "@/components/ui/button";
+import { AuthSplash } from "@/components/AuthSplash";
+import { clearPostLogin, hasPostLogin, POST_LOGIN_TARGET } from "@/lib/post-login";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,6 +37,37 @@ async function count(table: string, filter?: { col: string; val: unknown }) {
 }
 
 function Index() {
+  const navigate = useNavigate();
+  const [redirecting, setRedirecting] = useState(false);
+
+  // Setelah login sukses (email maupun Google), langsung buka panel sesuai akun.
+  useEffect(() => {
+    if (!hasPostLogin()) return;
+    let mounted = true;
+    setRedirecting(true);
+    const go = () => {
+      if (!mounted) return;
+      clearPostLogin();
+      void navigate({ to: POST_LOGIN_TARGET, replace: true });
+    };
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session) go();
+    });
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      if (data.session) go();
+      else {
+        clearPostLogin();
+        setRedirecting(false);
+      }
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const stats = useQuery({
     queryKey: ["public-stats"],
     queryFn: async () => ({
@@ -47,12 +81,14 @@ function Index() {
 
 
   const cards = [
-    { label: "Unit Kerja", value: stats.data?.ukers ?? "—", icon: Building2, hint: "Uker aktif terdaftar" },
-    { label: "Mesin ATM", value: stats.data?.atm ?? "—", icon: Banknote, hint: "Termonitor" },
-    { label: "Mesin EDC", value: stats.data?.edc ?? "—", icon: CreditCard, hint: "Merchant terpasang" },
-    { label: "Pegawai", value: stats.data?.employees ?? "—", icon: Users, hint: "Seluruh unit kerja" },
-    { label: "Project IT", value: stats.data?.projects ?? "—", icon: CalendarDays, hint: "Project berjalan" },
+    { label: "Unit Kerja", value: stats.data?.ukers ?? "—", icon: Building2, hint: "Uker aktif terdaftar", detailKey: "uker" },
+    { label: "Mesin ATM", value: stats.data?.atm ?? "—", icon: Banknote, hint: "Termonitor", detailKey: "atm" },
+    { label: "Mesin EDC", value: stats.data?.edc ?? "—", icon: CreditCard, hint: "Merchant terpasang", detailKey: "edc" },
+    { label: "Pegawai", value: stats.data?.employees ?? "—", icon: Users, hint: "Seluruh unit kerja", detailKey: "pegawai" },
+    { label: "Project IT", value: stats.data?.projects ?? "—", icon: CalendarDays, hint: "Project berjalan", detailKey: "project" },
   ];
+
+  if (redirecting) return <AuthSplash label="Menyiapkan panel Anda..." />;
 
   return (
     <PublicLayout>

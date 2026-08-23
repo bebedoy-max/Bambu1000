@@ -28,29 +28,52 @@ function Page() {
           fields={[
             { key: "nama_perangkat", label: "Nama Perangkat", required: true },
             {
-              key: "jenis_perangkat",
+              key: "jenis_id",
               label: "Jenis Perangkat",
-              type: "select",
+              type: "ref",
+              refTable: "device_types",
+              refLabelColumn: "jenis_perangkat",
               required: true,
-              options: ["PC", "Laptop", "Printer", "Tablet", "Handphone", "UPS", "Router", "Hub Switch", "Modem"],
             },
-            { key: "nama_pengguna", label: "Nama Pengguna", required: true },
             {
-              key: "ip_address",
-              label: "IP Address",
-              type: "ip",
+              key: "pengguna_id",
+              label: "Nama Pengguna",
+              type: "reftext",
+              refTable: "employees",
+              refLabelColumn: "nama",
+              textColumn: "nama_pengguna",
+              placeholder: "Ketik nama pengguna…",
               required: true,
-              placeholder: "format xxx.xxx.xxx.xxx isi hanya angka saja",
+            },
+
+            {
+              key: "uker_id",
+              label: "Unit Kerja",
+              type: "uker",
+              required: true,
+              autoFill: { fromField: "pengguna_id", column: "uker_id" },
+            },
+            { key: "merk", label: "Merk" },
+            { key: "serial_number", label: "Serial Number" },
+            { key: "ip_address", label: "IP Address", placeholder: "contoh: 10.10.1.25" },
+            { key: "processor", label: "Processor" },
+            { key: "ram", label: "RAM" },
+            {
+              key: "storage_type",
+              label: "SSD/HDD",
+              type: "select",
+              options: ["SSD", "HDD"],
             },
             {
               key: "kondisi_perangkat",
-              label: "Kondisi Perangkat",
+              label: "Kondisi",
               type: "select",
               required: true,
               options: ["Baik", "Rusak"],
             },
             { key: "keterangan", label: "Keterangan", type: "textarea", hideInTable: true },
           ]}
+
         />
       ) : (
         <AccessDenied />
