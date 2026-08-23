@@ -1045,3 +1045,6 @@ CREATE POLICY entity_photos_read ON public.entity_photos FOR SELECT TO anon, aut
 -- UKERS: deskripsi profil unit kerja (ditampilkan pada pop up profil uker)
 ALTER TABLE public.ukers ADD COLUMN IF NOT EXISTS deskripsi text;
 GRANT SELECT (deskripsi) ON public.ukers TO anon;
+
+-- Deskripsi profil pekerja (ditampilkan pada pop up detail pekerja)
+ALTER TABLE public.employees ADD COLUMN IF NOT EXISTS profil text;

@@ -12,6 +12,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { MapsLink } from "@/components/MapsLink";
+import { EmployeeProfileLink } from "@/components/EmployeeProfileLink";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -184,7 +185,9 @@ export function UkerProfileLink({
                               {(ci === 0 ? 0 : half) + i + 1}.
                             </span>
                             <span className="flex-1">
-                              <span className="font-medium">{w.nama}</span>
+                              <span className="font-medium">
+                                <EmployeeProfileLink employeeId={w.id} nama={w.nama} />
+                              </span>
                               <span className="block text-xs text-muted-foreground">
                                 {w.jabatan}
                               </span>

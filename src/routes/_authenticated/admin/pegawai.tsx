@@ -60,6 +60,13 @@ function Page() {
               required: true,
               placeholder: "hanya angka",
             },
+            {
+              key: "profil",
+              label: "Deskripsi Profile",
+              type: "textarea",
+              hideInTable: true,
+              placeholder: "Deskripsi singkat profil pekerja",
+            },
           ]}
         />
       ) : (

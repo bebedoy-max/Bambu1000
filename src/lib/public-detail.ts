@@ -21,7 +21,17 @@ export type PublicDetailConfig = {
   /** Sembunyikan kolom "Foto" pada tabel detail (foto tetap ada di Titik Maps). */
   hidePhotoColumn?: boolean;
   /** Kolom yang ditampilkan (bila ada pada data). */
-  columns: { key: string; label: string; type?: "latlng" | "ukername" }[];
+  columns: {
+    key: string;
+    label: string;
+    type?: "latlng" | "ukername" | "link" | "empname" | "machinename";
+    /** Saat type === "link", nilai kolom menjadi tautan ke route ini. */
+    linkTo?: string;
+    /** Field baris yang dipakai sebagai nilai param (default: "id"). */
+    linkParamField?: string;
+    /** Nama param pada route (mis. "id" untuk /project/$id). Default: "id". */
+    linkParamName?: string;
+  }[];
 };
 
 export const publicDetails: PublicDetailConfig[] = [
@@ -60,7 +70,7 @@ export const publicDetails: PublicDetailConfig[] = [
     columns: [
       { key: "tid", label: "TID" },
       { key: "jenis_mesin", label: "Jenis Mesin" },
-      { key: "lokasi", label: "Lokasi" },
+      { key: "lokasi", label: "Lokasi", type: "machinename" },
       { key: "titik_maps", label: "Titik Maps", type: "latlng" },
     ],
   },
@@ -90,7 +100,7 @@ export const publicDetails: PublicDetailConfig[] = [
     nameColumn: "nama",
     columns: [
       { key: "personal_number", label: "PN" },
-      { key: "nama", label: "Nama" },
+      { key: "nama", label: "Nama", type: "empname" },
       { key: "jabatan", label: "Jabatan" },
       { key: "uker", label: "Unit Kerja" },
     ],
@@ -104,7 +114,7 @@ export const publicDetails: PublicDetailConfig[] = [
     orderBy: "deadline",
     nameColumn: "nama_project",
     columns: [
-      { key: "nama_project", label: "Nama Project" },
+      { key: "nama_project", label: "Nama Project", type: "link", linkTo: "/project/$id", linkParamField: "id", linkParamName: "id" },
       { key: "deskripsi", label: "Deskripsi" },
       { key: "tanggal_mulai", label: "Mulai" },
       { key: "deadline", label: "Deadline" },

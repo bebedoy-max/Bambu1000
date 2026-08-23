@@ -28,6 +28,8 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { MapsLink } from "@/components/MapsLink";
 import { UkerProfileLink } from "@/components/UkerProfileLink";
+import { EmployeeProfileLink } from "@/components/EmployeeProfileLink";
+import { MachineProfileLink } from "@/components/MachineProfileLink";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import type { PhotoEntity } from "@/lib/drive-entities";
 
@@ -486,6 +488,16 @@ export function ResourceManager({
           kode={row["kode_uker"] ? String(row["kode_uker"]) : undefined}
           tipe={row["tipe"] as string | null}
           deskripsi={row["deskripsi"] as string | null}
+        />
+      );
+    if (table === "employees" && f.key === "nama")
+      return <EmployeeProfileLink employeeId={String(row["id"] ?? "")} nama={String(v ?? "—")} />;
+    if ((table === "atm_machines" || table === "crm_machines") && f.key === "lokasi")
+      return (
+        <MachineProfileLink
+          machineId={String(row["id"] ?? "")}
+          lokasi={String(v ?? "—")}
+          jenis={table === "crm_machines" ? "CRM" : "ATM"}
         />
       );
     if (f.type === "boolean")

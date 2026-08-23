@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ArrowLeft, Lock } from "lucide-react";
@@ -9,6 +9,8 @@ import { useDetailAccess } from "@/lib/access";
 import { findPublicDetail } from "@/lib/public-detail";
 import { MapsLink } from "@/components/MapsLink";
 import { UkerProfileLink } from "@/components/UkerProfileLink";
+import { EmployeeProfileLink } from "@/components/EmployeeProfileLink";
+import { MachineProfileLink } from "@/components/MachineProfileLink";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { Images } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -137,6 +139,7 @@ function DetailTable({
 }) {
   const [photoRow, setPhotoRow] = useState<Record<string, unknown> | null>(null);
   const showPhotoCol = !!cfg.photoEntity && !cfg.hidePhotoColumn;
+  const fromPath = useRouterState({ select: (st) => st.location.pathname });
   const sample = rows[0] ?? {};
   const cols = cfg.columns.filter((c) => c.key in sample);
   const columns = cols.length
@@ -171,7 +174,18 @@ function DetailTable({
             <tr key={String(r["id"] ?? idx)} className="transition-colors hover:bg-secondary/20">
               {columns.map((c) => (
                 <td key={c.key} className="border-t border-border/40 p-3 align-top">
-                  {c.type === "ukername" ? (
+                  {c.type === "machinename" ? (
+                    <MachineProfileLink
+                      machineId={String(r["id"] ?? "")}
+                      lokasi={String(r[c.key] ?? "—")}
+                      jenis={String(r["jenis_mesin"] ?? "ATM")}
+                    />
+                  ) : c.type === "empname" ? (
+                    <EmployeeProfileLink
+                      employeeId={String(r["id"] ?? "")}
+                      nama={String(r[c.key] ?? "—")}
+                    />
+                  ) : c.type === "ukername" ? (
                     <UkerProfileLink
                       ukerId={String(r["id"] ?? "")}
                       nama={String(r[c.key] ?? "—")}
@@ -193,6 +207,15 @@ function DetailTable({
                       photoEntity={cfg.photoEntity}
                       entityId={String(r["id"] ?? "")}
                     />
+                  ) : c.type === "link" && c.linkTo ? (
+                    <Link
+                      to={c.linkTo as "/project/$id"}
+                      params={{ [c.linkParamName ?? "id"]: String(r[c.linkParamField ?? "id"] ?? "") } as { id: string }}
+                      search={{ from: fromPath }}
+                      className="font-medium text-primary underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                    >
+                      {fmt(r[c.key])}
+                    </Link>
                   ) : (
                     fmt(r[c.key])
                   )}
