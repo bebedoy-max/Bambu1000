@@ -168,19 +168,47 @@ function Auth() {
       toast.error(check.message);
       return;
     }
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       ...p.data,
       options: {
         emailRedirectTo: `${window.location.origin}/auth`,
         data: { personal_number: pnParsed.data },
       },
     });
-    setBusy(false);
     if (error) {
-      toast.error(error.message);
+      setBusy(false);
+      const msg = error.message || "";
+      if (/rate limit|too many requests|over_email_send_rate/i.test(msg)) {
+        toast.error(
+          "Batas pengiriman email registrasi tercapai. Tunggu beberapa menit lalu coba lagi, " +
+            "atau matikan 'Confirm email' di pengaturan Authentication.",
+        );
+      } else if (/already registered|already exists|user_already/i.test(msg)) {
+        toast.error("Email ini sudah terdaftar. Silakan masuk.");
+      } else {
+        toast.error(msg);
+      }
       return;
     }
     localStorage.setItem(PENDING_PN_KEY, pnParsed.data);
+
+    // Bila konfirmasi email dimatikan, sesi langsung terbentuk:
+    // hubungkan Personal Number lalu terapkan level aksesnya.
+    if (signUpData.session) {
+      await claimPendingPersonalNumber();
+      setBusy(false);
+      void finish();
+      return;
+    }
+
+    // Tanpa sesi: login langsung agar level akses tersinkron tanpa menunggu email.
+    const { error: signInErr } = await supabase.auth.signInWithPassword(p.data);
+    setBusy(false);
+    if (!signInErr) {
+      await claimPendingPersonalNumber();
+      void finish();
+      return;
+    }
     toast.success("Registrasi berhasil. Silakan masuk dengan email & password Anda.");
   }
 

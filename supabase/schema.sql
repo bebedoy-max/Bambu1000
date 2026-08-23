@@ -1101,3 +1101,83 @@ $$;
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
 FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ============================================================
+-- FIX (registrasi): level akses otomatis + anti data duplikat
+-- ============================================================
+
+-- 1) Data unik: Personal Number, TID mesin, Kode Uker
+DELETE FROM public.employees a USING public.employees b
+ WHERE a.ctid > b.ctid AND a.personal_number = b.personal_number;
+CREATE UNIQUE INDEX IF NOT EXISTS employees_personal_number_key
+  ON public.employees (personal_number) WHERE personal_number IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS atm_machines_tid_key
+  ON public.atm_machines (tid) WHERE tid IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS crm_machines_tid_key
+  ON public.crm_machines (tid) WHERE tid IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS edc_machines_tid_key
+  ON public.edc_machines (tid) WHERE tid IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS ukers_kode_uker_key
+  ON public.ukers (kode_uker);
+
+-- 2) Level akses langsung menyesuaikan jabatan Data Pekerja saat akun dibuat
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE first_user boolean; pn text; emp_nama text;
+BEGIN
+  BEGIN
+    pn := NULLIF(NEW.raw_user_meta_data->>'personal_number', '');
+    SELECT e.nama INTO emp_nama FROM public.employees e WHERE e.personal_number = pn LIMIT 1;
+
+    IF pn IS NOT NULL AND EXISTS (
+      SELECT 1 FROM public.profiles p WHERE p.personal_number = pn AND p.id <> NEW.id
+    ) THEN
+      pn := NULL;
+    END IF;
+
+    first_user := NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'superadmin');
+
+    INSERT INTO public.profiles (id, email, nama, username, status, personal_number)
+    VALUES (NEW.id, NEW.email,
+            COALESCE(NULLIF(NEW.raw_user_meta_data->>'nama',''), emp_nama, NEW.email),
+            split_part(COALESCE(NEW.email,''), '@', 1),
+            'approved',
+            pn)
+    ON CONFLICT (id) DO UPDATE
+      SET email = EXCLUDED.email,
+          personal_number = COALESCE(public.profiles.personal_number, EXCLUDED.personal_number);
+
+    IF first_user THEN
+      INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'superadmin') ON CONFLICT DO NOTHING;
+    ELSE
+      INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'employee') ON CONFLICT DO NOTHING;
+      -- Sesuaikan dengan level akses jabatan pada Data Pekerja
+      IF pn IS NOT NULL THEN
+        PERFORM public.sync_access_level(NEW.id);
+      END IF;
+    END IF;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'handle_new_user gagal untuk %: %', NEW.id, SQLERRM;
+  END;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
+FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 3) Saat jabatan pekerja berubah, level akses akunnya ikut menyesuaikan
+CREATE OR REPLACE FUNCTION public.employees_sync_access()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE uid uuid;
+BEGIN
+  SELECT p.id INTO uid FROM public.profiles p WHERE p.personal_number = NEW.personal_number LIMIT 1;
+  IF uid IS NOT NULL THEN PERFORM public.sync_access_level(uid); END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS employees_sync_access_trg ON public.employees;
+CREATE TRIGGER employees_sync_access_trg AFTER INSERT OR UPDATE OF jabatan_id, personal_number
+ON public.employees FOR EACH ROW EXECUTE FUNCTION public.employees_sync_access();

@@ -118,6 +118,8 @@ export type Field = {
   autoFill?: { fromField: string; column: string };
   /** Placeholder khusus. */
   placeholder?: string;
+  /** Nilai wajib unik pada tabel (dicek sebelum simpan). */
+  unique?: boolean;
 };
 
 /** Input teks manual + saran otomatis dari tabel relasi. */
@@ -370,6 +372,17 @@ export function ResourceManager({
         } else if (f.type === "number") body[f.key] = Number(str);
         else body[f.key] = str;
       }
+      // Cegah data duplikat pada kolom unik (Personal Number, TID, Kode Uker, dst.)
+      for (const f of fields) {
+        if (!f.unique) continue;
+        const val = body[f.key];
+        if (val === null || val === undefined || val === "") continue;
+        let q = db.from(table).select("id", { count: "exact", head: true }).eq(f.key, val);
+        if (editing) q = q.neq("id", editing["id"] as string);
+        const { count, error: dupErr } = await q;
+        if (dupErr) throw dupErr;
+        if ((count ?? 0) > 0) throw new Error(`${f.label} "${val}" sudah terdaftar`);
+      }
       if (editing) {
         const { error } = await db.from(table).update(body).eq("id", editing["id"] as string);
         if (error) throw error;
@@ -388,7 +401,12 @@ export function ResourceManager({
       setEditing(null);
       void qc.invalidateQueries({ queryKey: [table] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      toast.error(
+        /duplicate key|already exists|unique/i.test(e.message)
+          ? "Data duplikat: nilai tersebut sudah terdaftar"
+          : e.message,
+      ),
   });
 
   const remove = useMutation({

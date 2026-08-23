@@ -34,6 +34,7 @@ function Page() {
               type: "digits",
               digitsLength: 8,
               required: true,
+              unique: true,
               placeholder: "8 digit angka",
             },
             { key: "nama", label: "Nama Pekerja", required: true },

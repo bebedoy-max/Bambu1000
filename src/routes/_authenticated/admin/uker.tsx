@@ -34,6 +34,7 @@ function Page() {
               type: "digits",
               digitsLength: 4,
               required: true,
+              unique: true,
               placeholder: "4 digit angka",
             },
             { key: "nama_uker", label: "Nama Uker", required: true },

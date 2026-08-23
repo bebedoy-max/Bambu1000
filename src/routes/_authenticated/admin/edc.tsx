@@ -28,7 +28,7 @@ function Page() {
           canWrite={r.isItAdmin}
           photoEntity="edc"
           fields={[
-            { key: "tid", label: "TID", type: "digits", required: true },
+            { key: "tid", label: "TID", type: "digits", required: true, unique: true },
             { key: "nama_merchant", label: "Nama Merchant", required: true },
             {
               key: "kategori_edc",
