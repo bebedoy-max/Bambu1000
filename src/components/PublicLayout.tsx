@@ -43,7 +43,21 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       </header>
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">{children}</main>
       <footer className="mx-auto max-w-7xl px-4 pb-10 text-xs text-muted-foreground sm:px-6">
-        &copy; {new Date().getFullYear()} BRI Branch Office Pringsewu — Aplikasi internal.
+        <p>&copy; {new Date().getFullYear()} BRI Branch Office Pringsewu — AAFathers (Dev)</p>
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+          <Link
+            to="/privacy-policy"
+            className="transition-colors hover:text-foreground hover:underline"
+          >
+            Kebijakan Privasi
+          </Link>
+          <Link
+            to="/terms-of-service"
+            className="transition-colors hover:text-foreground hover:underline"
+          >
+            Ketentuan Layanan
+          </Link>
+        </div>
       </footer>
     </div>
   );

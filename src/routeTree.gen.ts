@@ -13,8 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InformasiRouteImport } from './routes/informasi'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as AbsenTokenRouteImport } from './routes/absen.$token'
 import { Route as DetailKeyRouteImport } from './routes/detail.$key'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
@@ -62,6 +64,11 @@ const InformasiRoute = InformasiRouteImport.update({
   path: '/informasi',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfilRoute = ProfilRouteImport.update({
   id: '/profil',
   path: '/profil',
@@ -70,6 +77,11 @@ const ProfilRoute = ProfilRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
+  id: '/terms-of-service',
+  path: '/terms-of-service',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AbsenTokenRoute = AbsenTokenRouteImport.update({
@@ -223,8 +235,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/informasi': typeof InformasiRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/profil': typeof ProfilRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/detail/$key': typeof DetailKeyRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
@@ -257,8 +271,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/informasi': typeof InformasiRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/profil': typeof ProfilRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/detail/$key': typeof DetailKeyRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
@@ -293,8 +309,10 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/informasi': typeof InformasiRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/profil': typeof ProfilRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/detail/$key': typeof DetailKeyRoute
   '/_authenticated/admin/akses': typeof AuthenticatedAdminAksesRoute
@@ -329,8 +347,10 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/informasi'
+    | '/privacy-policy'
     | '/profil'
     | '/reset-password'
+    | '/terms-of-service'
     | '/absen/$token'
     | '/detail/$key'
     | '/admin/akses'
@@ -363,8 +383,10 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/informasi'
+    | '/privacy-policy'
     | '/profil'
     | '/reset-password'
+    | '/terms-of-service'
     | '/absen/$token'
     | '/detail/$key'
     | '/admin/akses'
@@ -398,8 +420,10 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/informasi'
+    | '/privacy-policy'
     | '/profil'
     | '/reset-password'
+    | '/terms-of-service'
     | '/absen/$token'
     | '/detail/$key'
     | '/_authenticated/admin/akses'
@@ -434,8 +458,10 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   InformasiRoute: typeof InformasiRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ProfilRoute: typeof ProfilRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  TermsOfServiceRoute: typeof TermsOfServiceRoute
   AbsenTokenRoute: typeof AbsenTokenRoute
   DetailKeyRoute: typeof DetailKeyRoute
   ApiPublicGoogleDriveCallbackRoute: typeof ApiPublicGoogleDriveCallbackRoute
@@ -471,6 +497,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InformasiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profil': {
       id: '/profil'
       path: '/profil'
@@ -483,6 +516,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms-of-service': {
+      id: '/terms-of-service'
+      path: '/terms-of-service'
+      fullPath: '/terms-of-service'
+      preLoaderRoute: typeof TermsOfServiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/absen/$token': {
@@ -740,8 +780,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   InformasiRoute: InformasiRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   ProfilRoute: ProfilRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  TermsOfServiceRoute: TermsOfServiceRoute,
   AbsenTokenRoute: AbsenTokenRoute,
   DetailKeyRoute: DetailKeyRoute,
   ApiPublicGoogleDriveCallbackRoute: ApiPublicGoogleDriveCallbackRoute,
