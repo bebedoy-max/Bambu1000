@@ -1048,3 +1048,56 @@ GRANT SELECT (deskripsi) ON public.ukers TO anon;
 
 -- Deskripsi profil pekerja (ditampilkan pada pop up detail pekerja)
 ALTER TABLE public.employees ADD COLUMN IF NOT EXISTS profil text;
+
+-- ============================================================
+-- FIX: "Database error saving new user" saat registrasi
+-- Trigger auth.users dibuat anti-gagal: kolom dipastikan ada dan
+-- setiap error di-log sebagai warning tanpa membatalkan signup.
+-- ============================================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS personal_number text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'pending';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS akses_level text;
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE first_user boolean; pn text; emp_nama text;
+BEGIN
+  BEGIN
+    pn := NULLIF(NEW.raw_user_meta_data->>'personal_number', '');
+    SELECT e.nama INTO emp_nama FROM public.employees e WHERE e.personal_number = pn LIMIT 1;
+
+    -- Personal Number tidak boleh dipakai dua akun
+    IF pn IS NOT NULL AND EXISTS (
+      SELECT 1 FROM public.profiles p WHERE p.personal_number = pn AND p.id <> NEW.id
+    ) THEN
+      pn := NULL;
+    END IF;
+
+    first_user := NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'superadmin');
+
+    INSERT INTO public.profiles (id, email, nama, username, status, personal_number)
+    VALUES (NEW.id, NEW.email,
+            COALESCE(NULLIF(NEW.raw_user_meta_data->>'nama',''), emp_nama, NEW.email),
+            split_part(COALESCE(NEW.email,''), '@', 1),
+            'approved',
+            pn)
+    ON CONFLICT (id) DO UPDATE
+      SET email = EXCLUDED.email,
+          personal_number = COALESCE(public.profiles.personal_number, EXCLUDED.personal_number);
+
+    IF first_user THEN
+      INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'superadmin') ON CONFLICT DO NOTHING;
+    ELSE
+      INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'employee') ON CONFLICT DO NOTHING;
+    END IF;
+  EXCEPTION WHEN OTHERS THEN
+    -- Jangan pernah menggagalkan pembuatan akun karena error di sisi aplikasi
+    RAISE WARNING 'handle_new_user gagal untuk %: %', NEW.id, SQLERRM;
+  END;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
+FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
