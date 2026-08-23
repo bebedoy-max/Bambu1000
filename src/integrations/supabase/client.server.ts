@@ -4,6 +4,7 @@
 // For user-authenticated queries (with RLS), use the auth middleware instead.
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { CUSTOM_SUPABASE_URL as FALLBACK_SUPABASE_URL } from '@/supabase-config';
 
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
@@ -30,7 +31,7 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseAdminClient() {
-  const SUPABASE_URL = process.env['CUSTOM_SUPABASE_URL'];
+  const SUPABASE_URL = process.env['CUSTOM_SUPABASE_URL'] || FALLBACK_SUPABASE_URL;
   const SERVICE_ROLE_KEY = process.env['CUSTOM_SUPABASE_SERVICE_ROLE_KEY'];
 
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {

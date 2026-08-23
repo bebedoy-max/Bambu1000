@@ -3,6 +3,7 @@ import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
+import { CUSTOM_SUPABASE_URL as FALLBACK_SUPABASE_URL, CUSTOM_SUPABASE_PUBLISHABLE_KEY as FALLBACK_SUPABASE_PUBLISHABLE_KEY } from '@/supabase-config'
 
 
 
@@ -33,8 +34,8 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
     
-    const SUPABASE_URL = process.env['CUSTOM_SUPABASE_URL'];
-    const SUPABASE_PUBLISHABLE_KEY = process.env['CUSTOM_SUPABASE_PUBLISHABLE_KEY'];
+    const SUPABASE_URL = process.env['CUSTOM_SUPABASE_URL'] || FALLBACK_SUPABASE_URL;
+    const SUPABASE_PUBLISHABLE_KEY = process.env['CUSTOM_SUPABASE_PUBLISHABLE_KEY'] || FALLBACK_SUPABASE_PUBLISHABLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       const missing = [
