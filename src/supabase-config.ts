@@ -13,7 +13,7 @@ export const CUSTOM_SUPABASE_URL =
 
 export const CUSTOM_SUPABASE_PUBLISHABLE_KEY =
   import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY_OVERRIDE'] ||
-  "sb_publishable_oOgx2-lh53ULaFus_B6w4Q_gAxC__-a";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpidmtjbXRsb3lqdWl6dW5ydGZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4Nzk4NTUsImV4cCI6MjEwMjQ1NTg1NX0.lXPFB7NC-upwKqMXm91P6bAYmiKVADEjmcpxKtg_Yd4";
 
 export type SupabaseConnection = { url: string; key: string };
 

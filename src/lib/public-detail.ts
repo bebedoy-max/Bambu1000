@@ -1,3 +1,5 @@
+import type { PhotoEntity } from "@/lib/drive-entities";
+
 /** Konfigurasi detail data yang bisa dibuka dari dashboard umum. */
 export type PublicDetailConfig = {
   /** Segment URL /detail/$key */
@@ -10,6 +12,8 @@ export type PublicDetailConfig = {
   /** Bila diisi, data digabung dari beberapa tabel dengan penanda jenis. */
   sources?: { table: string; jenis: string }[];
   orderBy?: string;
+  /** Galeri foto Google Drive untuk tiap baris data. */
+  photoEntity?: PhotoEntity;
   /** Kolom yang ditampilkan (bila ada pada data). */
   columns: { key: string; label: string; type?: "latlng" }[];
 };
@@ -17,6 +21,7 @@ export type PublicDetailConfig = {
 export const publicDetails: PublicDetailConfig[] = [
   {
     slug: "uker",
+    photoEntity: "uker",
     menuKey: "uker",
     title: "Unit Kerja",
     description: "Daftar unit kerja pada BRI Branch Office Pringsewu.",
@@ -31,6 +36,7 @@ export const publicDetails: PublicDetailConfig[] = [
   },
   {
     slug: "atm",
+    photoEntity: "atm",
     menuKey: "atm",
     title: "Mesin ATM/CRM",
     description: "Daftar mesin ATM dan CRM yang termonitor.",
@@ -49,6 +55,7 @@ export const publicDetails: PublicDetailConfig[] = [
   },
   {
     slug: "edc",
+    photoEntity: "edc",
     menuKey: "edc",
     title: "Mesin EDC",
     description: "Daftar mesin EDC merchant.",
@@ -62,6 +69,7 @@ export const publicDetails: PublicDetailConfig[] = [
   },
   {
     slug: "pegawai",
+    photoEntity: "pegawai",
     menuKey: "pegawai",
     title: "Data Pegawai",
     description: "Daftar pegawai seluruh unit kerja.",

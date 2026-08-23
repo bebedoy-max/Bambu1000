@@ -26,6 +26,7 @@ function Page() {
           title="Unit Kerja"
           description="Data kode uker, tipe kantor, alamat, titik maps, dan IP address."
           canWrite={r.isItAdmin}
+          photoEntity="uker"
           fields={[
             {
               key: "kode_uker",

@@ -26,6 +26,7 @@ function Page() {
           title="Mesin EDC"
           description="Daftar mesin EDC dan merchant terpasang."
           canWrite={r.isItAdmin}
+          photoEntity="edc"
           fields={[
             { key: "tid", label: "TID", type: "digits", required: true },
             { key: "nama_merchant", label: "Nama Merchant", required: true },

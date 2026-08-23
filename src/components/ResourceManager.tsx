@@ -3,7 +3,7 @@ import { PageEditContext } from "@/components/AdminLayout";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearch } from "@tanstack/react-router";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Images } from "lucide-react";
 import { toast } from "sonner";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
@@ -27,6 +27,8 @@ import { Badge } from "@/components/ui/badge";
 import { DatePickerField } from "@/components/DatePickerField";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { MapsLink } from "@/components/MapsLink";
+import { PhotoGallery } from "@/components/PhotoGallery";
+import type { PhotoEntity } from "@/lib/drive-entities";
 
 /** Normalisasi nilai dari DB ke format date picker. */
 function toPickerValue(raw: unknown, withTime: boolean) {
@@ -201,6 +203,8 @@ export type ResourceManagerProps = {
   canWrite?: boolean;
   /** Column set to the current user id on insert (e.g. uploaded_by, created_by). */
   ownerColumn?: string;
+  /** Bila diisi, tiap data punya galeri foto Google Drive. */
+  photoEntity?: PhotoEntity;
   extraActions?: (row: Row) => React.ReactNode;
 };
 
@@ -223,6 +227,7 @@ export function ResourceManager({
   orderBy = "created_at",
   canWrite,
   ownerColumn,
+  photoEntity,
   extraActions,
 }: ResourceManagerProps) {
   const confirmDialog = useConfirm();
@@ -232,6 +237,7 @@ export function ResourceManager({
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
+  const [photoRow, setPhotoRow] = useState<Row | null>(null);
   const [form, setForm] = useState<Row>(() => emptyForm(fields));
   const urlSearch = useSearch({ strict: false }) as { q?: string; focus?: string };
   const [q, setQ] = useState(urlSearch.q ?? "");
@@ -545,6 +551,16 @@ export function ResourceManager({
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1">
                       {extraActions?.(row)}
+                      {photoEntity ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label="Galeri foto"
+                          onClick={() => setPhotoRow(row)}
+                        >
+                          <Images className="size-4" />
+                        </Button>
+                      ) : null}
                       {canWrite ? (
                         <>
                           <Button
@@ -742,6 +758,22 @@ export function ResourceManager({
                 )}
               </div>
             ))}
+            {photoEntity ? (
+              editing ? (
+                <div className="border-t border-border/60 pt-4">
+                  <PhotoGallery
+                    entity={photoEntity}
+                    entityId={String(editing["id"] ?? "")}
+                    canEdit={!!canWrite}
+                    title="Galeri Foto"
+                  />
+                </div>
+              ) : (
+                <p className="border-t border-border/60 pt-4 text-xs text-muted-foreground">
+                  Simpan data terlebih dahulu untuk menambahkan foto.
+                </p>
+              )
+            ) : null}
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>
@@ -753,6 +785,24 @@ export function ResourceManager({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {photoEntity ? (
+        <Dialog open={!!photoRow} onOpenChange={(v) => !v && setPhotoRow(null)}>
+          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Galeri Foto — {title}</DialogTitle>
+            </DialogHeader>
+            {photoRow ? (
+              <PhotoGallery
+                entity={photoEntity}
+                entityId={String(photoRow["id"] ?? "")}
+                canEdit={!!canWrite}
+                title="Foto tersimpan di Google Drive"
+              />
+            ) : null}
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </div>
   );
 }

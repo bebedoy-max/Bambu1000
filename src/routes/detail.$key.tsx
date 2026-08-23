@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { useDetailAccess } from "@/lib/access";
 import { findPublicDetail } from "@/lib/public-detail";
 import { MapsLink } from "@/components/MapsLink";
+import { PhotoGallery } from "@/components/PhotoGallery";
+import { Images } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -119,6 +123,7 @@ function DetailTable({
   cfg: NonNullable<ReturnType<typeof findPublicDetail>>;
   rows: Record<string, unknown>[];
 }) {
+  const [photoRow, setPhotoRow] = useState<Record<string, unknown> | null>(null);
   const sample = rows[0] ?? {};
   const cols = cfg.columns.filter((c) => c.key in sample);
   const columns = cols.length
@@ -143,6 +148,9 @@ function DetailTable({
                 {c.label}
               </th>
             ))}
+            {cfg.photoEntity ? (
+              <th className="bg-secondary/40 p-3 text-left font-semibold backdrop-blur-xl">Foto</th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -153,11 +161,35 @@ function DetailTable({
                   {c.type === "latlng" ? <MapsLink value={r[c.key]} /> : fmt(r[c.key])}
                 </td>
               ))}
+              {cfg.photoEntity ? (
+                <td className="border-t border-border/40 p-3 align-top">
+                  <Button size="sm" variant="ghost" onClick={() => setPhotoRow(r)}>
+                    <Images className="size-4" /> Lihat
+                  </Button>
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>
       </table>
       <p className="p-3 text-xs text-muted-foreground">{rows.length} data ditampilkan.</p>
+
+      {cfg.photoEntity ? (
+        <Dialog open={!!photoRow} onOpenChange={(v) => !v && setPhotoRow(null)}>
+          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Galeri Foto — {cfg.title}</DialogTitle>
+            </DialogHeader>
+            {photoRow ? (
+              <PhotoGallery
+                entity={cfg.photoEntity}
+                entityId={String(photoRow["id"] ?? "")}
+                title="Foto tersimpan di Google Drive"
+              />
+            ) : null}
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </div>
   );
 }

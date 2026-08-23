@@ -207,15 +207,16 @@ function Page() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() =>
+                    onClick={() => {
                       setForm({
                         id: a.id,
                         label: a.label,
                         client_id: a.client_id,
                         client_secret: "",
                         root_folder_name: a.root_folder_name,
-                      }) || setOpen(true)
-                    }
+                      });
+                      setOpen(true);
+                    }}
                   >
                     Ubah
                   </Button>

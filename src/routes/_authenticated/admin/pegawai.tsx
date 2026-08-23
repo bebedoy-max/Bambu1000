@@ -26,6 +26,7 @@ function Page() {
           title="Data Pekerja"
           description="Data pekerja per unit kerja."
           canWrite={r.isItAdmin}
+          photoEntity="pegawai"
           fields={[
             {
               key: "personal_number",

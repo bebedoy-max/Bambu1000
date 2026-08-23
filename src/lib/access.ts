@@ -6,6 +6,7 @@ import {
   Boxes,
   Building2,
   CalendarDays,
+  Cloud,
   CreditCard,
   Gauge,
   IdCard,
@@ -96,6 +97,7 @@ export const menuItems: MenuItem[] = [
   { key: "foto", to: "/admin/foto", label: "Galeri Foto", icon: Image, defaults: ADMIN_ONLY },
   { key: "tiket", to: "/admin/tiket", label: "Tiket IT", icon: LifeBuoy, defaults: ALL },
   { key: "aset", to: "/admin/aset", label: "Inventaris Aset", icon: Boxes, defaults: ADMIN_ONLY },
+  { key: "drive", to: "/admin/drive", label: "Google Drive", icon: Cloud, defaults: ADMIN_ONLY },
   { key: "users", to: "/admin/users", label: "Daftar User", icon: UserCog, defaults: ADMIN_ONLY },
   {
     key: "akses",
