@@ -42,17 +42,43 @@ export async function syncAccessLevel(): Promise<void> {
   }
 }
 
-/** Menghubungkan akun yang baru login dengan Personal Number yang sudah diverifikasi. */
-export async function claimPendingPersonalNumber(): Promise<void> {
-  if (typeof window === "undefined") return;
+export type ClaimResult =
+  | { status: "none" }
+  | { status: "ok"; pn: string }
+  | { status: "failed"; pn: string; message: string };
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/**
+ * Menghubungkan akun yang baru login dengan Personal Number yang sudah diverifikasi.
+ * Dicoba beberapa kali karena profil pengguna baru (trigger) bisa terbentuk sesaat
+ * setelah sesi OAuth tersedia.
+ */
+export async function claimPendingPersonalNumber(): Promise<ClaimResult> {
+  if (typeof window === "undefined") return { status: "none" };
   const pn = localStorage.getItem(PENDING_PN_KEY);
   if (!pn) {
     await syncAccessLevel();
-    return;
+    return { status: "none" };
   }
-  const { error } = await db.rpc("claim_personal_number", { p_pn: pn });
-  if (!error) localStorage.removeItem(PENDING_PN_KEY);
+
+  let message = "Gagal menghubungkan Personal Number dengan akun ini.";
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const { data, error } = await db.rpc("claim_personal_number", { p_pn: pn });
+    if (!error && data === true) {
+      localStorage.removeItem(PENDING_PN_KEY);
+      await syncAccessLevel();
+      return { status: "ok", pn };
+    }
+    if (error) message = error.message;
+    else
+      message =
+        "Personal Number ini sudah terhubung dengan akun lain, atau tidak ditemukan di Data Pekerja.";
+    await sleep(500);
+  }
+
   await syncAccessLevel();
+  return { status: "failed", pn, message };
 }
 
 /**

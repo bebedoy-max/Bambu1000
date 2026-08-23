@@ -87,18 +87,34 @@ function Auth() {
     void navigate({ to: "/", replace: true });
   }
 
+  /** Registrasi Google gagal menghubungkan Personal Number: jelaskan alasannya. */
+  async function showClaimFailed(message: string) {
+    clearPostLogin();
+    setSplash(null);
+    await confirm({
+      title: "Registrasi belum berhasil",
+      description: `${message} Silakan periksa kembali Personal Number Anda lalu ulangi registrasi.`,
+      infoOnly: true,
+      confirmText: "Mengerti",
+    });
+    setTab("daftar");
+  }
+
   /** Dipanggil begitu sesi tersedia (login email maupun Google). */
   async function finish() {
     if (done.current) return;
     done.current = true;
     setSplash("Memverifikasi akun...");
-    await claimPendingPersonalNumber();
+    const claim = await claimPendingPersonalNumber();
 
     // Akun hanya boleh masuk bila Personal Number-nya ada di Data Pekerja.
     if (!(await isAccountRegistered())) {
       await rejectUnregisteredAccount();
       done.current = false;
-      await showUnregistered();
+      // Alur registrasi (ada Personal Number tertunda) tidak boleh dianggap
+      // sebagai "akun tidak terdaftar" — tampilkan penyebab sebenarnya.
+      if (claim.status === "failed") await showClaimFailed(claim.message);
+      else await showUnregistered();
       return;
     }
 
@@ -113,8 +129,12 @@ function Auth() {
     let mounted = true;
     if (typeof window !== "undefined" && sessionStorage.getItem("unregistered_account")) {
       sessionStorage.removeItem("unregistered_account");
-      void showUnregistered();
-      return;
+      // Bila ada Personal Number tertunda, ini alur registrasi: jangan tampilkan
+      // pesan "akun tidak terdaftar", biarkan proses klaim berjalan.
+      if (!localStorage.getItem(PENDING_PN_KEY)) {
+        void showUnregistered();
+        return;
+      }
     }
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session && mounted) void finish();
@@ -234,7 +254,7 @@ function Auth() {
       return;
     }
     setBusy(true);
-    const check = await checkPersonalNumber(parsed.data, { allowExisting: true });
+    const check = await checkPersonalNumber(parsed.data);
     setBusy(false);
     if (!check.ok) {
       toast.error(check.message);
