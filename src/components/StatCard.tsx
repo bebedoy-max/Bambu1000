@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 
 export type StatCardProps = {
   label: string;
@@ -11,6 +11,8 @@ export type StatCardProps = {
 };
 
 export function StatCard({ label, value, icon: Icon, hint, detailKey }: StatCardProps) {
+  const fromPath = useRouterState({ select: (st) => st.location.pathname });
+
   const body = (
     <>
       <div className="min-w-0">
@@ -37,6 +39,7 @@ export function StatCard({ label, value, icon: Icon, hint, detailKey }: StatCard
     <Link
       to="/detail/$key"
       params={{ key: detailKey }}
+      search={{ from: fromPath }}
       aria-label={`Lihat detail ${label}`}
       className={`${base} cursor-pointer transition-transform duration-200 hover:-translate-y-0.5 hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none`}
     >

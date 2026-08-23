@@ -34,8 +34,9 @@ function Page() {
     queryFn: async () => ({
       ukers: await count("ukers"),
       employees: await count("employees"),
-      atm: await count("atm_machines"),
+      atm: (await count("atm_machines")) + (await count("crm_machines")),
       edc: await count("edc_machines"),
+      projects: await count("projects"),
       events: await count("events"),
       tickets: await count("it_tickets"),
       assets: isItAdmin ? await count("assets") : 0,
@@ -52,10 +53,41 @@ function Page() {
         Statistik seluruh modul yang tersedia untuk peran Anda.
       </p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Unit Kerja" value={s?.ukers ?? "—"} icon={Building2} />
-        <StatCard label="Pegawai" value={s?.employees ?? "—"} icon={Users} />
-        <StatCard label="Mesin ATM" value={s?.atm ?? "—"} icon={Banknote} />
-        <StatCard label="Mesin EDC" value={s?.edc ?? "—"} icon={CreditCard} />
+        <StatCard
+          label="Unit Kerja"
+          value={s?.ukers ?? "—"}
+          icon={Building2}
+          hint="Uker aktif terdaftar"
+          detailKey="uker"
+        />
+        <StatCard
+          label="Mesin ATM/CRM"
+          value={s?.atm ?? "—"}
+          icon={Banknote}
+          hint="Termonitor"
+          detailKey="atm"
+        />
+        <StatCard
+          label="Mesin EDC"
+          value={s?.edc ?? "—"}
+          icon={CreditCard}
+          hint="Merchant terpasang"
+          detailKey="edc"
+        />
+        <StatCard
+          label="Pegawai"
+          value={s?.employees ?? "—"}
+          icon={Users}
+          hint="Seluruh unit kerja"
+          detailKey="pegawai"
+        />
+        <StatCard
+          label="Project IT"
+          value={s?.projects ?? "—"}
+          icon={CalendarDays}
+          hint="Project berjalan"
+          detailKey="project"
+        />
         <StatCard label="Event" value={s?.events ?? "—"} icon={CalendarDays} />
         <StatCard label="Tiket IT" value={s?.tickets ?? "—"} icon={LifeBuoy} />
         {isItAdmin ? <StatCard label="Aset IT" value={s?.assets ?? "—"} icon={Boxes} /> : null}

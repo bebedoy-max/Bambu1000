@@ -19,6 +19,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as AbsenTokenRouteImport } from './routes/absen.$token'
 import { Route as DetailKeyRouteImport } from './routes/detail.$key'
+import { Route as ProjectIdRouteImport } from './routes/project.$id'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAksesRouteImport } from './routes/_authenticated/admin/akses'
 import { Route as AuthenticatedAdminApprovalRouteImport } from './routes/_authenticated/admin/approval'
@@ -92,6 +93,11 @@ const AbsenTokenRoute = AbsenTokenRouteImport.update({
 const DetailKeyRoute = DetailKeyRouteImport.update({
   id: '/detail/$key',
   path: '/detail/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectIdRoute = ProjectIdRouteImport.update({
+  id: '/project/$id',
+  path: '/project/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/detail/$key': typeof DetailKeyRoute
+  '/project/$id': typeof ProjectIdRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/admin/aset': typeof AuthenticatedAdminAsetRoute
@@ -277,6 +284,7 @@ export interface FileRoutesByTo {
   '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/detail/$key': typeof DetailKeyRoute
+  '/project/$id': typeof ProjectIdRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/admin/aset': typeof AuthenticatedAdminAsetRoute
@@ -315,6 +323,7 @@ export interface FileRoutesById {
   '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/detail/$key': typeof DetailKeyRoute
+  '/project/$id': typeof ProjectIdRoute
   '/_authenticated/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/_authenticated/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/_authenticated/admin/aset': typeof AuthenticatedAdminAsetRoute
@@ -353,6 +362,7 @@ export interface FileRouteTypes {
     | '/terms-of-service'
     | '/absen/$token'
     | '/detail/$key'
+    | '/project/$id'
     | '/admin/akses'
     | '/admin/approval'
     | '/admin/aset'
@@ -389,6 +399,7 @@ export interface FileRouteTypes {
     | '/terms-of-service'
     | '/absen/$token'
     | '/detail/$key'
+    | '/project/$id'
     | '/admin/akses'
     | '/admin/approval'
     | '/admin/aset'
@@ -426,6 +437,7 @@ export interface FileRouteTypes {
     | '/terms-of-service'
     | '/absen/$token'
     | '/detail/$key'
+    | '/project/$id'
     | '/_authenticated/admin/akses'
     | '/_authenticated/admin/approval'
     | '/_authenticated/admin/aset'
@@ -464,6 +476,7 @@ export interface RootRouteChildren {
   TermsOfServiceRoute: typeof TermsOfServiceRoute
   AbsenTokenRoute: typeof AbsenTokenRoute
   DetailKeyRoute: typeof DetailKeyRoute
+  ProjectIdRoute: typeof ProjectIdRoute
   ApiPublicGoogleDriveCallbackRoute: typeof ApiPublicGoogleDriveCallbackRoute
 }
 
@@ -537,6 +550,13 @@ declare module '@tanstack/react-router' {
       path: '/detail/$key'
       fullPath: '/detail/$key'
       preLoaderRoute: typeof DetailKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/project/$id': {
+      id: '/project/$id'
+      path: '/project/$id'
+      fullPath: '/project/$id'
+      preLoaderRoute: typeof ProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -786,6 +806,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsOfServiceRoute: TermsOfServiceRoute,
   AbsenTokenRoute: AbsenTokenRoute,
   DetailKeyRoute: DetailKeyRoute,
+  ProjectIdRoute: ProjectIdRoute,
   ApiPublicGoogleDriveCallbackRoute: ApiPublicGoogleDriveCallbackRoute,
 }
 export const routeTree = rootRouteImport

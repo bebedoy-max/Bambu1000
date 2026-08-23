@@ -452,6 +452,29 @@ export function ResourceManager({
     }
   }, [focusId, list.data]);
 
+  /** Nama entitas (uker/atm/edc/dst) untuk label "Foto <nama>" pada popup maps. */
+  function rowLabel(row: Row): string | undefined {
+    const pick = fields.find((f) =>
+      /nama|lokasi|merchant|judul|title/i.test(f.key),
+    );
+    if (pick) {
+      const t = cellText(pick, row).trim();
+      if (t) return t;
+    }
+    const firstText = fields.find(
+      (f) =>
+        !["id", "created_at", "updated_at"].includes(f.key) &&
+        !f.key.endsWith("_id") &&
+        f.type !== "boolean" &&
+        f.type !== "latlng",
+    );
+    if (firstText) {
+      const t = cellText(firstText, row).trim();
+      if (t) return t;
+    }
+    return undefined;
+  }
+
   function renderCell(f: Field, row: Row) {
     const v = row[f.key];
     if (f.type === "boolean")
@@ -467,7 +490,15 @@ export function ResourceManager({
 
 
     if (v === null || v === undefined || v === "") return "—";
-    if (f.type === "latlng") return <MapsLink value={v} />;
+    if (f.type === "latlng")
+      return (
+        <MapsLink
+          value={v}
+          name={rowLabel(row)}
+          photoEntity={photoEntity}
+          entityId={String(row["id"] ?? "")}
+        />
+      );
     if (f.type === "datetime") return new Date(String(v)).toLocaleString("id-ID");
     return String(v);
   }

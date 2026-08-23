@@ -9,6 +9,8 @@ export type ParamDef = {
   key: string;
   /** Label satuan, mis. "Unit Kerja". */
   noun: string;
+  /** Label kolom daftar item pada tabel detail, mis. "Nama Unit Kerja". */
+  itemLabel: string;
   fetch: () => Promise<ProjectItem[]>;
 };
 
@@ -23,6 +25,7 @@ async function rows(table: string, cols: string, order: string) {
 export const paramDefs: ParamDef[] = [
   {
     key: "uker",
+    itemLabel: "Nama Unit Kerja",
     noun: "Unit Kerja",
     fetch: async () =>
       (await rows("ukers", "id, kode_uker, nama_uker", "kode_uker")).map((r) => ({
@@ -32,6 +35,7 @@ export const paramDefs: ParamDef[] = [
   },
   {
     key: "pekerja",
+    itemLabel: "Nama Pekerja",
     noun: "Pekerja",
     fetch: async () =>
       (await rows("employees", "id, nama, personal_number", "nama")).map((r) => ({
@@ -41,6 +45,7 @@ export const paramDefs: ParamDef[] = [
   },
   {
     key: "perangkat",
+    itemLabel: "Nama Perangkat",
     noun: "Perangkat",
     fetch: async () =>
       (await rows("it_devices", "id, nama_perangkat, nama_pengguna", "nama_perangkat")).map((r) => ({
@@ -50,6 +55,7 @@ export const paramDefs: ParamDef[] = [
   },
   {
     key: "atm",
+    itemLabel: "Lokasi ATM",
     noun: "ATM",
     fetch: async () =>
       (await rows("atm_machines", "id, tid, lokasi", "tid")).map((r) => ({
@@ -59,6 +65,7 @@ export const paramDefs: ParamDef[] = [
   },
   {
     key: "crm",
+    itemLabel: "Lokasi CRM",
     noun: "CRM",
     fetch: async () =>
       (await rows("crm_machines", "id, tid, lokasi", "tid")).map((r) => ({
@@ -68,6 +75,7 @@ export const paramDefs: ParamDef[] = [
   },
   {
     key: "edc_uko",
+    itemLabel: "EDC UKO",
     noun: "EDC UKO",
     fetch: async () =>
       (await rows("edc_machines", "id, tid, nama_merchant, kategori_edc", "tid"))
@@ -79,6 +87,7 @@ export const paramDefs: ParamDef[] = [
   },
   {
     key: "edc_merchant",
+    itemLabel: "Merchant EDC",
     noun: "EDC Merchant",
     fetch: async () =>
       (await rows("edc_machines", "id, tid, nama_merchant, kategori_edc", "tid"))
@@ -195,4 +204,33 @@ export async function resolveProjectItems(p: ProjectRow): Promise<ProjectItem[]>
   for (const list of [...lists, projectCustomItems(p)])
     for (const i of list) if (!map.has(i.id)) map.set(i.id, i);
   return [...map.values()];
+}
+
+/** Label kolom berdasarkan prefix id item (sumber data aslinya). */
+const prefixItemLabel: Record<string, string> = {
+  uker: "Nama Unit Kerja",
+  pekerja: "Nama Pekerja",
+  perangkat: "Nama Perangkat",
+  atm: "Lokasi ATM",
+  crm: "Lokasi CRM",
+  edc: "Merchant EDC",
+};
+
+/** Label kolom item pada tabel detail project, mengikuti parameter project. */
+export function projectItemColumnLabel(p: ProjectRow | null | undefined): string {
+  const labels = projectParamKeys(p)
+    .map((k) => findParam(k)?.itemLabel)
+    .filter(Boolean) as string[];
+
+  // Parameter custom: baca sumber datanya dari prefix id tiap item.
+  for (const it of projectCustomItems(p)) {
+    const prefix = it.id.split(":")[0] ?? "";
+    const label = prefixItemLabel[prefix];
+    labels.push(label ?? "Item Custom");
+  }
+
+  const uniq = [...new Set(labels)];
+  if (uniq.length === 0) return "Item";
+  if (uniq.length === 1) return uniq[0]!;
+  return uniq.join(" / ");
 }

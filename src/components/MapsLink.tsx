@@ -8,6 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import type { PhotoEntity } from "@/lib/drive-entities";
+import { PhotoGallery } from "@/components/PhotoGallery";
 
 export function parseLatLng(value: unknown): { lat: number; lng: number } | null {
   if (value === null || value === undefined) return null;
@@ -22,8 +24,21 @@ export function parseLatLng(value: unknown): { lat: number; lng: number } | null
   return { lat, lng };
 }
 
-/** Label titik maps yang bisa diklik: membuka pop up peta + street view. */
-export function MapsLink({ value, label }: { value: unknown; label?: string }) {
+/** Label titik maps yang bisa diklik: membuka pop up peta + foto + street view. */
+export function MapsLink({
+  value,
+  label,
+  name,
+  photoEntity,
+  entityId,
+}: {
+  value: unknown;
+  label?: string;
+  /** Nama entitas (uker/atm/crm/dst) untuk label tab foto, mis. "Foto ATM Pringsewu". */
+  name?: string | undefined;
+  photoEntity?: PhotoEntity | undefined;
+  entityId?: string | undefined;
+}) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"map" | "photo" | "street">("map");
   const pos = parseLatLng(value);
@@ -35,11 +50,10 @@ export function MapsLink({ value, label }: { value: unknown; label?: string }) {
 
   const coord = `${pos.lat},${pos.lng}`;
   const embedMap = `https://maps.google.com/maps?q=${coord}&z=17&hl=id&output=embed`;
-  const embedPhoto = `https://maps.google.com/maps?q=${coord}&z=17&hl=id&output=embed&t=k`;
   const embedStreet = `https://maps.google.com/maps?q=&layer=c&cbll=${coord}&cbp=11,0,0,0,0&hl=id&output=svembed`;
 
-  const src = mode === "map" ? embedMap : mode === "photo" ? embedPhoto : embedStreet;
-  const title = mode === "map" ? "Google Maps" : mode === "photo" ? "Foto Lokasi" : "Google Street View";
+  const src = mode === "street" ? embedStreet : embedMap;
+  const title = mode === "street" ? "Google Street View" : "Google Maps";
 
   return (
     <>
@@ -89,17 +103,31 @@ export function MapsLink({ value, label }: { value: unknown; label?: string }) {
             </Button>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-border/60">
-            <iframe
-              key={mode}
-              title={title}
-              src={src}
-              className="h-[420px] w-full"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              allowFullScreen
-            />
-          </div>
+          {mode === "photo" ? (
+            <div className="rounded-xl border border-border/60 p-3">
+              {photoEntity && entityId ? (
+                <PhotoGallery
+                  entity={photoEntity}
+                  entityId={entityId}
+                  title={name ? `Foto ${name}` : "Foto lokasi"}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">Belum ada foto untuk lokasi ini.</p>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-xl border border-border/60">
+              <iframe
+                key={mode}
+                title={title}
+                src={src}
+                className="h-[420px] w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

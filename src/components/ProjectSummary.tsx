@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { projectParamSummary, resolveProjectItems } from "@/lib/projects";
@@ -64,6 +64,7 @@ const fmt = (d: string | null) =>
 
 export function ProjectSummary({ limit }: { limit?: number }) {
   const q = useProjectSummary();
+  const fromPath = useRouterState({ select: (st) => st.location.pathname });
   const rows = (q.data ?? []).slice(0, limit ?? 100);
 
   if (q.isLoading) return <p className="text-sm text-muted-foreground">Memuat project…</p>;
@@ -75,9 +76,11 @@ export function ProjectSummary({ limit }: { limit?: number }) {
       {rows.map((p) => (
         <Link
           key={p.id}
-          to="/detail/$key"
-          params={{ key: "project" }}
+          to="/project/$id"
+          params={{ id: p.id }}
+          search={{ from: fromPath }}
           aria-label={`Lihat detail project ${p.nama}`}
+
           className="glass-card block p-5 transition-transform duration-200 hover:-translate-y-0.5 hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           <div className="flex items-start justify-between gap-3">

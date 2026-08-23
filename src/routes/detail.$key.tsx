@@ -16,6 +16,17 @@ import { useState } from "react";
 const db = supabase as unknown as SupabaseClient;
 
 export const Route = createFileRoute("/detail/$key")({
+  validateSearch: (search: Record<string, unknown>): {
+    from?: string;
+    q?: string;
+    focus?: string;
+  } => {
+    const out: { from?: string; q?: string; focus?: string } = {};
+    if (typeof search["from"] === "string") out.from = search["from"];
+    if (typeof search["q"] === "string") out.q = search["q"];
+    if (typeof search["focus"] === "string") out.focus = search["focus"];
+    return out;
+  },
   head: () => ({
     meta: [
       { title: "Detail Data — BRI BO Pringsewu" },
@@ -124,6 +135,7 @@ function DetailTable({
   rows: Record<string, unknown>[];
 }) {
   const [photoRow, setPhotoRow] = useState<Record<string, unknown> | null>(null);
+  const showPhotoCol = !!cfg.photoEntity && !cfg.hidePhotoColumn;
   const sample = rows[0] ?? {};
   const cols = cfg.columns.filter((c) => c.key in sample);
   const columns = cols.length
@@ -148,7 +160,7 @@ function DetailTable({
                 {c.label}
               </th>
             ))}
-            {cfg.photoEntity ? (
+            {showPhotoCol ? (
               <th className="bg-secondary/40 p-3 text-left font-semibold backdrop-blur-xl">Foto</th>
             ) : null}
           </tr>
@@ -158,10 +170,26 @@ function DetailTable({
             <tr key={String(r["id"] ?? idx)} className="transition-colors hover:bg-secondary/20">
               {columns.map((c) => (
                 <td key={c.key} className="border-t border-border/40 p-3 align-top">
-                  {c.type === "latlng" ? <MapsLink value={r[c.key]} /> : fmt(r[c.key])}
+                  {c.type === "latlng" ? (
+                    <MapsLink
+                      value={r[c.key]}
+                      name={(cfg.nameParts
+                        ? cfg.nameParts
+                            .map((p) => String(r[p] ?? "").trim())
+                            .filter(Boolean)
+                            .join(" ")
+                        : cfg.nameColumn
+                          ? String(r[cfg.nameColumn] ?? "")
+                          : "") || undefined}
+                      photoEntity={cfg.photoEntity}
+                      entityId={String(r["id"] ?? "")}
+                    />
+                  ) : (
+                    fmt(r[c.key])
+                  )}
                 </td>
               ))}
-              {cfg.photoEntity ? (
+              {showPhotoCol ? (
                 <td className="border-t border-border/40 p-3 align-top">
                   <Button size="sm" variant="ghost" onClick={() => setPhotoRow(r)}>
                     <Images className="size-4" /> Lihat
@@ -174,7 +202,7 @@ function DetailTable({
       </table>
       <p className="p-3 text-xs text-muted-foreground">{rows.length} data ditampilkan.</p>
 
-      {cfg.photoEntity ? (
+      {showPhotoCol ? (
         <Dialog open={!!photoRow} onOpenChange={(v) => !v && setPhotoRow(null)}>
           <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
             <DialogHeader>
@@ -182,7 +210,7 @@ function DetailTable({
             </DialogHeader>
             {photoRow ? (
               <PhotoGallery
-                entity={cfg.photoEntity}
+                entity={cfg.photoEntity!}
                 entityId={String(photoRow["id"] ?? "")}
                 title="Foto tersimpan di Google Drive"
               />
@@ -195,12 +223,15 @@ function DetailTable({
 }
 
 function BackLink() {
+  const { from } = Route.useSearch();
+  const target = from && from.startsWith("/") && !from.startsWith("//") ? from : "/";
+  const label = target.startsWith("/admin") ? "Kembali ke panel" : "Kembali ke dashboard";
   return (
     <Link
-      to="/"
+      to={target as "/"}
       className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
     >
-      <ArrowLeft className="size-4" /> Kembali ke dashboard
+      <ArrowLeft className="size-4" /> {label}
     </Link>
   );
 }
