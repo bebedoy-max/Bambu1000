@@ -28,7 +28,7 @@ import {
   rejectUnregisteredAccount,
   PENDING_PN_KEY,
 } from "@/lib/registration";
-import { clearPostLogin, markPostLogin } from "@/lib/post-login";
+import { clearPostLogin, hasPostLogin, markPostLogin } from "@/lib/post-login";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -125,8 +125,38 @@ function Auth() {
     void navigate({ to: "/admin", replace: true });
   }
 
+  /** Menerjemahkan pesan error yang dikirim balik oleh penyedia OAuth. */
+  async function showOAuthError(raw: string) {
+    clearPostLogin();
+    setSplash(null);
+    let msg = raw;
+    if (/database error saving new user/i.test(raw))
+      msg =
+        "Database menolak pembuatan akun baru (trigger pendaftaran gagal). " +
+        "Jalankan blok perbaikan terakhir pada supabase/schema.sql di SQL Editor Supabase Anda, lalu ulangi.";
+    else if (/access_denied|cancel/i.test(raw)) msg = "Proses masuk dengan Google dibatalkan.";
+    await confirm({
+      title: "Registrasi Google gagal",
+      description: msg,
+      infoOnly: true,
+      confirmText: "Mengerti",
+    });
+    setTab("daftar");
+  }
+
   useEffect(() => {
     let mounted = true;
+    if (typeof window !== "undefined") {
+      // Supabase mengembalikan error OAuth pada query atau hash URL.
+      const q = new URLSearchParams(window.location.search);
+      const h = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const err = q.get("error_description") || q.get("error") || h.get("error_description") || h.get("error");
+      if (err) {
+        window.history.replaceState({}, "", window.location.pathname);
+        void showOAuthError(decodeURIComponent(err.replace(/\+/g, " ")));
+        return;
+      }
+    }
     if (typeof window !== "undefined" && sessionStorage.getItem("unregistered_account")) {
       sessionStorage.removeItem("unregistered_account");
       // Bila ada Personal Number tertunda, ini alur registrasi: jangan tampilkan
@@ -136,14 +166,27 @@ function Auth() {
         return;
       }
     }
+
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session && mounted) void finish();
     });
     void supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
-      if (data.session) void finish();
-      else setSplash(null);
+      if (data.session) {
+        void finish();
+        return;
+      }
+      setSplash(null);
+      // Kembali dari Google tanpa sesi: beri tahu pengguna, jangan diam saja.
+      if (hasPostLogin()) {
+        clearPostLogin();
+        void showOAuthError(
+          "Sesi Google tidak terbentuk. Pastikan URL aplikasi ini terdaftar pada Redirect URLs " +
+            "di Supabase (Authentication → URL Configuration) dan provider Google aktif.",
+        );
+      }
     });
+
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
