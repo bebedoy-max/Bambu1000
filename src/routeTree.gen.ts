@@ -24,6 +24,7 @@ import { Route as AuthenticatedAdminAsetRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminAtmRouteImport } from './routes/_authenticated/admin/atm'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin/crm'
+import { Route as AuthenticatedAdminDriveRouteImport } from './routes/_authenticated/admin/drive'
 import { Route as AuthenticatedAdminEdcRouteImport } from './routes/_authenticated/admin/edc'
 import { Route as AuthenticatedAdminFotoRouteImport } from './routes/_authenticated/admin/foto'
 import { Route as AuthenticatedAdminIpRouteImport } from './routes/_authenticated/admin/ip'
@@ -40,6 +41,7 @@ import { Route as AuthenticatedAdminUkerRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminEventIndexRouteImport } from './routes/_authenticated/admin/event/index'
 import { Route as AuthenticatedAdminEventIdRouteImport } from './routes/_authenticated/admin/event/$id'
+import { Route as ApiPublicGoogleDriveCallbackRouteImport } from './routes/api/public/google-drive/callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -114,6 +116,11 @@ const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
 const AuthenticatedAdminCrmRoute = AuthenticatedAdminCrmRouteImport.update({
   id: '/admin/crm',
   path: '/admin/crm',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminDriveRoute = AuthenticatedAdminDriveRouteImport.update({
+  id: '/admin/drive',
+  path: '/admin/drive',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminEdcRoute = AuthenticatedAdminEdcRouteImport.update({
@@ -205,6 +212,12 @@ const AuthenticatedAdminEventIdRoute =
     path: '/admin/event/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicGoogleDriveCallbackRoute =
+  ApiPublicGoogleDriveCallbackRouteImport.update({
+    id: '/api/public/google-drive/callback',
+    path: '/api/public/google-drive/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -220,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
+  '/admin/drive': typeof AuthenticatedAdminDriveRoute
   '/admin/edc': typeof AuthenticatedAdminEdcRoute
   '/admin/foto': typeof AuthenticatedAdminFotoRoute
   '/admin/ip': typeof AuthenticatedAdminIpRoute
@@ -236,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
   '/admin/event/': typeof AuthenticatedAdminEventIndexRoute
 }
 export interface FileRoutesByTo {
@@ -252,6 +267,7 @@ export interface FileRoutesByTo {
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
+  '/admin/drive': typeof AuthenticatedAdminDriveRoute
   '/admin/edc': typeof AuthenticatedAdminEdcRoute
   '/admin/foto': typeof AuthenticatedAdminFotoRoute
   '/admin/ip': typeof AuthenticatedAdminIpRoute
@@ -268,6 +284,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
   '/admin/event': typeof AuthenticatedAdminEventIndexRoute
 }
 export interface FileRoutesById {
@@ -286,6 +303,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
+  '/_authenticated/admin/drive': typeof AuthenticatedAdminDriveRoute
   '/_authenticated/admin/edc': typeof AuthenticatedAdminEdcRoute
   '/_authenticated/admin/foto': typeof AuthenticatedAdminFotoRoute
   '/_authenticated/admin/ip': typeof AuthenticatedAdminIpRoute
@@ -302,6 +320,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
   '/_authenticated/admin/event/': typeof AuthenticatedAdminEventIndexRoute
 }
 export interface FileRouteTypes {
@@ -320,6 +339,7 @@ export interface FileRouteTypes {
     | '/admin/atm'
     | '/admin/audit'
     | '/admin/crm'
+    | '/admin/drive'
     | '/admin/edc'
     | '/admin/foto'
     | '/admin/ip'
@@ -336,6 +356,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/'
     | '/admin/event/$id'
+    | '/api/public/google-drive/callback'
     | '/admin/event/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -352,6 +373,7 @@ export interface FileRouteTypes {
     | '/admin/atm'
     | '/admin/audit'
     | '/admin/crm'
+    | '/admin/drive'
     | '/admin/edc'
     | '/admin/foto'
     | '/admin/ip'
@@ -368,6 +390,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin'
     | '/admin/event/$id'
+    | '/api/public/google-drive/callback'
     | '/admin/event'
   id:
     | '__root__'
@@ -385,6 +408,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/atm'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/crm'
+    | '/_authenticated/admin/drive'
     | '/_authenticated/admin/edc'
     | '/_authenticated/admin/foto'
     | '/_authenticated/admin/ip'
@@ -401,6 +425,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/event/$id'
+    | '/api/public/google-drive/callback'
     | '/_authenticated/admin/event/'
   fileRoutesById: FileRoutesById
 }
@@ -413,6 +438,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   AbsenTokenRoute: typeof AbsenTokenRoute
   DetailKeyRoute: typeof DetailKeyRoute
+  ApiPublicGoogleDriveCallbackRoute: typeof ApiPublicGoogleDriveCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -520,6 +546,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/crm'
       fullPath: '/admin/crm'
       preLoaderRoute: typeof AuthenticatedAdminCrmRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/drive': {
+      id: '/_authenticated/admin/drive'
+      path: '/admin/drive'
+      fullPath: '/admin/drive'
+      preLoaderRoute: typeof AuthenticatedAdminDriveRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/edc': {
@@ -634,6 +667,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEventIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/google-drive/callback': {
+      id: '/api/public/google-drive/callback'
+      path: '/api/public/google-drive/callback'
+      fullPath: '/api/public/google-drive/callback'
+      preLoaderRoute: typeof ApiPublicGoogleDriveCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -644,6 +684,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminAtmRoute: typeof AuthenticatedAdminAtmRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
+  AuthenticatedAdminDriveRoute: typeof AuthenticatedAdminDriveRoute
   AuthenticatedAdminEdcRoute: typeof AuthenticatedAdminEdcRoute
   AuthenticatedAdminFotoRoute: typeof AuthenticatedAdminFotoRoute
   AuthenticatedAdminIpRoute: typeof AuthenticatedAdminIpRoute
@@ -670,6 +711,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminAtmRoute: AuthenticatedAdminAtmRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
   AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
+  AuthenticatedAdminDriveRoute: AuthenticatedAdminDriveRoute,
   AuthenticatedAdminEdcRoute: AuthenticatedAdminEdcRoute,
   AuthenticatedAdminFotoRoute: AuthenticatedAdminFotoRoute,
   AuthenticatedAdminIpRoute: AuthenticatedAdminIpRoute,
@@ -702,6 +744,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   AbsenTokenRoute: AbsenTokenRoute,
   DetailKeyRoute: DetailKeyRoute,
+  ApiPublicGoogleDriveCallbackRoute: ApiPublicGoogleDriveCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

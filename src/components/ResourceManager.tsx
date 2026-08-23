@@ -26,6 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { DatePickerField } from "@/components/DatePickerField";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { MapsLink } from "@/components/MapsLink";
 
 /** Normalisasi nilai dari DB ke format date picker. */
 function toPickerValue(raw: unknown, withTime: boolean) {
@@ -460,6 +461,7 @@ export function ResourceManager({
 
 
     if (v === null || v === undefined || v === "") return "—";
+    if (f.type === "latlng") return <MapsLink value={v} />;
     if (f.type === "datetime") return new Date(String(v)).toLocaleString("id-ID");
     return String(v);
   }

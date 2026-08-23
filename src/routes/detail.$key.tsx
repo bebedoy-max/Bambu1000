@@ -7,6 +7,7 @@ import { PublicLayout } from "@/components/PublicLayout";
 import { Button } from "@/components/ui/button";
 import { useDetailAccess } from "@/lib/access";
 import { findPublicDetail } from "@/lib/public-detail";
+import { MapsLink } from "@/components/MapsLink";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -46,11 +47,18 @@ function DetailPage() {
     queryKey: ["public-detail", key],
     enabled: !!cfg && access.allowed,
     queryFn: async () => {
-      let q = db.from(cfg!.table).select("*").limit(500);
-      if (cfg!.orderBy) q = q.order(cfg!.orderBy, { ascending: true });
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as Record<string, unknown>[];
+      const sources = cfg!.sources ?? [{ table: cfg!.table, jenis: "" }];
+      const all: Record<string, unknown>[] = [];
+      for (const src of sources) {
+        const { data, error } = await db.from(src.table).select("*").limit(500);
+        if (error) throw error;
+        for (const row of (data ?? []) as Record<string, unknown>[]) {
+          all.push(src.jenis ? { ...row, jenis_mesin: src.jenis } : row);
+        }
+      }
+      const ob = cfg!.orderBy;
+      if (ob) all.sort((a, b) => String(a[ob] ?? "").localeCompare(String(b[ob] ?? "")));
+      return all;
     },
   });
 
@@ -118,7 +126,7 @@ function DetailTable({
     : Object.keys(sample)
         .filter((k) => !["id", "created_at", "updated_at"].includes(k))
         .slice(0, 5)
-        .map((k) => ({ key: k, label: k.replace(/_/g, " ") }));
+        .map((k) => ({ key: k, label: k.replace(/_/g, " "), type: undefined }));
 
   return (
     <div className="glass-card mt-6 overflow-x-auto p-1">
@@ -142,7 +150,7 @@ function DetailTable({
             <tr key={String(r["id"] ?? idx)} className="transition-colors hover:bg-secondary/20">
               {columns.map((c) => (
                 <td key={c.key} className="border-t border-border/40 p-3 align-top">
-                  {fmt(r[c.key])}
+                  {c.type === "latlng" ? <MapsLink value={r[c.key]} /> : fmt(r[c.key])}
                 </td>
               ))}
             </tr>

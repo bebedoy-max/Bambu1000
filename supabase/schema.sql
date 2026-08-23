@@ -1002,3 +1002,42 @@ $$;
 DROP TRIGGER IF EXISTS user_roles_quota ON public.user_roles;
 CREATE TRIGGER user_roles_quota BEFORE INSERT OR UPDATE ON public.user_roles
 FOR EACH ROW EXECUTE FUNCTION public.enforce_role_quota();
+
+-- ============================================================
+-- Google Drive sebagai cloud storage aplikasi
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.drive_accounts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  label text NOT NULL,
+  client_id text NOT NULL,
+  client_secret text NOT NULL,
+  root_folder_name text NOT NULL DEFAULT 'SUPER IT DATA',
+  root_folder_id text,
+  refresh_token text,
+  account_email text,
+  is_active boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT ALL ON public.drive_accounts TO service_role;
+ALTER TABLE public.drive_accounts ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS public.entity_photos (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  entity_type text NOT NULL,
+  entity_id text NOT NULL,
+  drive_file_id text NOT NULL,
+  file_name text,
+  mime_type text,
+  view_url text,
+  thumbnail_url text,
+  account_id uuid REFERENCES public.drive_accounts(id) ON DELETE SET NULL,
+  uploaded_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS entity_photos_entity_idx ON public.entity_photos (entity_type, entity_id);
+GRANT SELECT ON public.entity_photos TO anon, authenticated;
+GRANT ALL ON public.entity_photos TO service_role;
+ALTER TABLE public.entity_photos ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS entity_photos_read ON public.entity_photos;
+CREATE POLICY entity_photos_read ON public.entity_photos FOR SELECT TO anon, authenticated USING (true);

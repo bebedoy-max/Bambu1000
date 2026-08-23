@@ -7,9 +7,11 @@ export type PublicDetailConfig = {
   title: string;
   description: string;
   table: string;
+  /** Bila diisi, data digabung dari beberapa tabel dengan penanda jenis. */
+  sources?: { table: string; jenis: string }[];
   orderBy?: string;
   /** Kolom yang ditampilkan (bila ada pada data). */
-  columns: { key: string; label: string }[];
+  columns: { key: string; label: string; type?: "latlng" }[];
 };
 
 export const publicDetails: PublicDetailConfig[] = [
@@ -30,14 +32,19 @@ export const publicDetails: PublicDetailConfig[] = [
   {
     slug: "atm",
     menuKey: "atm",
-    title: "Mesin ATM",
-    description: "Daftar mesin ATM yang termonitor.",
+    title: "Mesin ATM/CRM",
+    description: "Daftar mesin ATM dan CRM yang termonitor.",
     table: "atm_machines",
+    sources: [
+      { table: "atm_machines", jenis: "ATM" },
+      { table: "crm_machines", jenis: "CRM" },
+    ],
+    orderBy: "tid",
     columns: [
       { key: "tid", label: "TID" },
+      { key: "jenis_mesin", label: "Jenis Mesin" },
       { key: "lokasi", label: "Lokasi" },
-      { key: "tipe", label: "Tipe" },
-      { key: "status", label: "Status" },
+      { key: "titik_maps", label: "Titik Maps", type: "latlng" },
     ],
   },
   {
