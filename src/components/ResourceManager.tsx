@@ -584,8 +584,11 @@ export function ResourceManager({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border/60 text-left text-xs tracking-wide text-muted-foreground uppercase">
-              {tableFields.map((f) => (
-                <th key={f.key} className="px-4 py-3 font-medium whitespace-nowrap">
+              {tableFields.map((f, i) => (
+                <th
+                  key={f.key}
+                  className={`px-4 py-3 font-medium whitespace-nowrap ${i > 1 ? "hidden md:table-cell" : ""}`}
+                >
                   {f.label}
                 </th>
               ))}
@@ -615,8 +618,11 @@ export function ResourceManager({
                   }`}
                 >
 
-                  {tableFields.map((f) => (
-                    <td key={f.key} className="px-4 py-3 whitespace-nowrap">
+                  {tableFields.map((f, i) => (
+                    <td
+                      key={f.key}
+                      className={`px-4 py-3 whitespace-nowrap ${i > 1 ? "hidden md:table-cell" : ""}`}
+                    >
                       {renderCell(f, row)}
                     </td>
                   ))}

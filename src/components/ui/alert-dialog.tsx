@@ -38,7 +38,9 @@ const AlertDialogContent = React.forwardRef<
         className,
       )}
       {...props}
+      onEscapeKeyDown={(e) => e.preventDefault()}
     />
+
   </AlertDialogPortal>
 ));
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;

@@ -240,6 +240,9 @@ export function GlobalSearch({ className = "" }: { className?: string }) {
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
+      // Dialog hasil pencarian dirender melalui portal di luar boxRef. Selama
+      // dialog masih aktif, jangan unmount hasil pencarian yang memilikinya.
+      if (document.querySelector('[role="dialog"][data-state="open"]')) return;
       if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("mousedown", onClick);

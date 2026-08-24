@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Banknote, Boxes, Building2, CalendarDays, CreditCard, LifeBuoy, Users } from "lucide-react";
+import { Banknote, Building2, CalendarDays, CreditCard, LifeBuoy, Users } from "lucide-react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -39,20 +39,13 @@ function Page() {
       projects: await count("projects"),
       events: await count("events"),
       tickets: await count("it_tickets"),
-      assets: isItAdmin ? await count("assets") : 0,
     }),
   });
 
   const s = stats.data;
   return (
     <AdminLayout>
-      <h1 className="text-2xl font-bold">
-        Ringkasan <span className="gradient-text">Data Internal</span>
-      </h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Statistik seluruh modul yang tersedia untuk peran Anda.
-      </p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Unit Kerja"
           value={s?.ukers ?? "—"}
@@ -90,7 +83,6 @@ function Page() {
         />
         <StatCard label="Event" value={s?.events ?? "—"} icon={CalendarDays} />
         <StatCard label="Tiket IT" value={s?.tickets ?? "—"} icon={LifeBuoy} />
-        {isItAdmin ? <StatCard label="Aset IT" value={s?.assets ?? "—"} icon={Boxes} /> : null}
       </div>
       <section className="mt-8">
         <h2 className="mb-4 text-lg font-semibold">Intisari Project IT</h2>

@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Cloud,
   CreditCard,
+  Database,
   Gauge,
   IdCard,
   Image,
@@ -15,6 +16,7 @@ import {
   LifeBuoy,
   ListChecks,
   ScrollText,
+  Settings,
   SlidersHorizontal,
   UserCog,
   Users,
@@ -75,7 +77,7 @@ const MGMT: AccessLevel[] = ["super_admin", "admin", "manajemen"];
 const ADMIN_ONLY: AccessLevel[] = ["super_admin", "admin"];
 
 export const menuItems: MenuItem[] = [
-  { key: "ringkasan", to: "/admin", label: "Ringkasan", icon: Gauge, defaults: ALL },
+  { key: "ringkasan", to: "/admin", label: "Dashboard", icon: Gauge, defaults: ALL },
   { key: "uker", to: "/admin/uker", label: "Unit Kerja", icon: Building2, defaults: ALL },
   { key: "pegawai", to: "/admin/pegawai", label: "Data Pekerja", icon: Users, defaults: ALL },
   { key: "jabatan", to: "/admin/jabatan", label: "Kategori Jabatan", icon: IdCard, defaults: ADMIN_ONLY },
@@ -92,11 +94,10 @@ export const menuItems: MenuItem[] = [
     icon: ListChecks,
     defaults: MGMT,
   },
+  { key: "foto", to: "/admin/foto", label: "Event", icon: Image, defaults: ADMIN_ONLY },
   { key: "tools", to: "/admin/tools", label: "Tools IT", icon: Wrench, defaults: ADMIN_ONLY },
   { key: "tutorial", to: "/admin/tutorial", label: "Tutorial", icon: BookOpen, defaults: ADMIN_ONLY },
-  { key: "foto", to: "/admin/foto", label: "Galeri Foto", icon: Image, defaults: ADMIN_ONLY },
   { key: "tiket", to: "/admin/tiket", label: "Tiket IT", icon: LifeBuoy, defaults: ALL },
-  { key: "aset", to: "/admin/aset", label: "Inventaris Aset", icon: Boxes, defaults: ADMIN_ONLY },
   { key: "drive", to: "/admin/drive", label: "Google Drive", icon: Cloud, defaults: ADMIN_ONLY },
   { key: "users", to: "/admin/users", label: "Daftar User", icon: UserCog, defaults: ADMIN_ONLY },
   {
@@ -108,6 +109,41 @@ export const menuItems: MenuItem[] = [
   },
   { key: "audit", to: "/admin/audit", label: "Audit Log", icon: ScrollText, defaults: ["super_admin"] },
 ];
+
+/** Struktur navigasi sidebar: item tunggal atau grup dengan anak menu. */
+export type MenuNode =
+  | { type: "item"; key: string }
+  | { type: "group"; key: string; label: string; icon: typeof Gauge; keys: string[] };
+
+export const menuTree: MenuNode[] = [
+  { type: "item", key: "ringkasan" },
+  {
+    type: "group",
+    key: "database",
+    label: "Database",
+    icon: Database,
+    keys: ["uker", "pegawai", "atm", "crm", "edc", "perangkat"],
+  },
+  {
+    type: "group",
+    key: "project-event",
+    label: "Project & Event",
+    icon: CalendarDays,
+    keys: ["project", "project-progress", "foto"],
+  },
+  { type: "item", key: "tools" },
+  { type: "item", key: "tutorial" },
+  { type: "item", key: "tiket" },
+  {
+    type: "group",
+    key: "setting",
+    label: "Setting",
+    icon: Settings,
+    keys: ["akses", "users", "drive", "jabatan", "jenis-perangkat"],
+  },
+  { type: "item", key: "audit" },
+];
+
 
 export type PageAccessRow = {
   page_key: string;

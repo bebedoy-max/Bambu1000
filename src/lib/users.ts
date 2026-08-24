@@ -142,17 +142,23 @@ export function usePresenceHeartbeat() {
 export function useSelfBlocked() {
   return useQuery({
     queryKey: ["self_blocked"],
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    staleTime: 0,
+    gcTime: 0,
     queryFn: async () => {
       const { data } = await supabase.auth.getUser();
       const id = data.user?.id;
       if (!id) return false;
       const { data: row } = await db
         .from("profiles")
-        .select("is_blocked")
+        .select("is_blocked,is_active")
         .eq("id", id)
         .maybeSingle();
-      return Boolean((row as { is_blocked?: boolean } | null)?.is_blocked);
+      const p = (row ?? null) as { is_blocked?: boolean; is_active?: boolean } | null;
+      return Boolean(p?.is_blocked) || p?.is_active === false;
     },
   });
 }
+

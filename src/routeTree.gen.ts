@@ -23,7 +23,6 @@ import { Route as ProjectIdRouteImport } from './routes/project.$id'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAksesRouteImport } from './routes/_authenticated/admin/akses'
 import { Route as AuthenticatedAdminApprovalRouteImport } from './routes/_authenticated/admin/approval'
-import { Route as AuthenticatedAdminAsetRouteImport } from './routes/_authenticated/admin/aset'
 import { Route as AuthenticatedAdminAtmRouteImport } from './routes/_authenticated/admin/atm'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin/crm'
@@ -116,11 +115,6 @@ const AuthenticatedAdminApprovalRoute =
     path: '/admin/approval',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAdminAsetRoute = AuthenticatedAdminAsetRouteImport.update({
-  id: '/admin/aset',
-  path: '/admin/aset',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedAdminAtmRoute = AuthenticatedAdminAtmRouteImport.update({
   id: '/admin/atm',
   path: '/admin/atm',
@@ -250,7 +244,6 @@ export interface FileRoutesByFullPath {
   '/project/$id': typeof ProjectIdRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
-  '/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -287,7 +280,6 @@ export interface FileRoutesByTo {
   '/project/$id': typeof ProjectIdRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
-  '/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -326,7 +318,6 @@ export interface FileRoutesById {
   '/project/$id': typeof ProjectIdRoute
   '/_authenticated/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/_authenticated/admin/approval': typeof AuthenticatedAdminApprovalRoute
-  '/_authenticated/admin/aset': typeof AuthenticatedAdminAsetRoute
   '/_authenticated/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -365,7 +356,6 @@ export interface FileRouteTypes {
     | '/project/$id'
     | '/admin/akses'
     | '/admin/approval'
-    | '/admin/aset'
     | '/admin/atm'
     | '/admin/audit'
     | '/admin/crm'
@@ -402,7 +392,6 @@ export interface FileRouteTypes {
     | '/project/$id'
     | '/admin/akses'
     | '/admin/approval'
-    | '/admin/aset'
     | '/admin/atm'
     | '/admin/audit'
     | '/admin/crm'
@@ -440,7 +429,6 @@ export interface FileRouteTypes {
     | '/project/$id'
     | '/_authenticated/admin/akses'
     | '/_authenticated/admin/approval'
-    | '/_authenticated/admin/aset'
     | '/_authenticated/admin/atm'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/crm'
@@ -578,13 +566,6 @@ declare module '@tanstack/react-router' {
       path: '/admin/approval'
       fullPath: '/admin/approval'
       preLoaderRoute: typeof AuthenticatedAdminApprovalRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/aset': {
-      id: '/_authenticated/admin/aset'
-      path: '/admin/aset'
-      fullPath: '/admin/aset'
-      preLoaderRoute: typeof AuthenticatedAdminAsetRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/atm': {
@@ -740,7 +721,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminAksesRoute: typeof AuthenticatedAdminAksesRoute
   AuthenticatedAdminApprovalRoute: typeof AuthenticatedAdminApprovalRoute
-  AuthenticatedAdminAsetRoute: typeof AuthenticatedAdminAsetRoute
   AuthenticatedAdminAtmRoute: typeof AuthenticatedAdminAtmRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
@@ -767,7 +747,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminAksesRoute: AuthenticatedAdminAksesRoute,
   AuthenticatedAdminApprovalRoute: AuthenticatedAdminApprovalRoute,
-  AuthenticatedAdminAsetRoute: AuthenticatedAdminAsetRoute,
   AuthenticatedAdminAtmRoute: AuthenticatedAdminAtmRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
   AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,

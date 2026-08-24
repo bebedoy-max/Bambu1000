@@ -15,6 +15,7 @@ import { PhotoGallery } from "@/components/PhotoGallery";
 import { Images } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
+import { useProjectSummary } from "@/components/ProjectSummary";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -141,7 +142,7 @@ function DetailTable({
   const showPhotoCol = !!cfg.photoEntity && !cfg.hidePhotoColumn;
   const fromPath = useRouterState({ select: (st) => st.location.pathname });
   const sample = rows[0] ?? {};
-  const cols = cfg.columns.filter((c) => c.key in sample);
+  const cols = cfg.columns.filter((c) => c.key in sample || c.type === "progress");
   const columns = cols.length
     ? cols
     : Object.keys(sample)
@@ -149,15 +150,22 @@ function DetailTable({
         .slice(0, 5)
         .map((k) => ({ key: k, label: k.replace(/_/g, " "), type: undefined }));
 
+  const mobileKeys = cfg.mobileColumns;
+  const colClass = (c: { key: string; mobileOnly?: boolean }) => {
+    if (c.mobileOnly) return "md:hidden";
+    if (mobileKeys && !mobileKeys.includes(c.key)) return "hidden md:table-cell";
+    return "";
+  };
+
   return (
     <div className="glass-card mt-6 overflow-x-auto p-1">
-      <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm">
+      <table className="w-full min-w-0 md:min-w-[640px] border-separate border-spacing-0 text-sm">
         <thead>
           <tr>
             {columns.map((c, i) => (
               <th
                 key={c.key}
-                className={`bg-secondary/40 p-3 text-left font-semibold capitalize backdrop-blur-xl ${
+                className={`bg-secondary/40 p-3 text-left font-semibold capitalize backdrop-blur-xl ${colClass(c)} ${
                   i === 0 ? "rounded-tl-xl" : ""
                 } ${i === columns.length - 1 ? "rounded-tr-xl" : ""}`}
               >
@@ -165,7 +173,13 @@ function DetailTable({
               </th>
             ))}
             {showPhotoCol ? (
-              <th className="bg-secondary/40 p-3 text-left font-semibold backdrop-blur-xl">Foto</th>
+              <th
+                className={`bg-secondary/40 p-3 text-left font-semibold backdrop-blur-xl ${
+                  mobileKeys ? "hidden md:table-cell" : ""
+                }`}
+              >
+                Foto
+              </th>
             ) : null}
           </tr>
         </thead>
@@ -173,8 +187,10 @@ function DetailTable({
           {rows.map((r, idx) => (
             <tr key={String(r["id"] ?? idx)} className="transition-colors hover:bg-secondary/20">
               {columns.map((c) => (
-                <td key={c.key} className="border-t border-border/40 p-3 align-top">
-                  {c.type === "machinename" ? (
+                <td key={c.key} className={`border-t border-border/40 p-3 align-top ${colClass(c)}`}>
+                  {c.type === "progress" ? (
+                    <ProgressCell projectId={String(r["id"] ?? "")} />
+                  ) : c.type === "machinename" ? (
                     <MachineProfileLink
                       machineId={String(r["id"] ?? "")}
                       lokasi={String(r[c.key] ?? "—")}
@@ -222,7 +238,11 @@ function DetailTable({
                 </td>
               ))}
               {showPhotoCol ? (
-                <td className="border-t border-border/40 p-3 align-top">
+                <td
+                  className={`border-t border-border/40 p-3 align-top ${
+                    mobileKeys ? "hidden md:table-cell" : ""
+                  }`}
+                >
                   <Button size="sm" variant="ghost" onClick={() => setPhotoRow(r)}>
                     <Images className="size-4" /> Lihat
                   </Button>
@@ -250,6 +270,25 @@ function DetailTable({
           </DialogContent>
         </Dialog>
       ) : null}
+    </div>
+  );
+}
+
+function ProgressCell({ projectId }: { projectId: string }) {
+  const q = useProjectSummary();
+  const row = (q.data ?? []).find((p) => p.id === projectId);
+  if (!row) return <span className="text-muted-foreground">—</span>;
+  return (
+    <div className="min-w-24">
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="tabular-nums font-semibold text-foreground">{row.pct}%</span>
+        <span className="text-muted-foreground">
+          {row.done}/{row.total}
+        </span>
+      </div>
+      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+        <div className="h-full rounded-full bg-primary" style={{ width: `${row.pct}%` }} />
+      </div>
     </div>
   );
 }
