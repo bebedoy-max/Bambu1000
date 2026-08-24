@@ -90,13 +90,21 @@ async function findOrCreateFolder(token: string, name: string, parent?: string) 
 }
 
 /** Pastikan folder root + subfolder per menu tersedia, kembalikan id subfolder. */
-export async function ensureEntityFolder(acc: DriveAccount, token: string, entity: PhotoEntity) {
+export async function ensureEntityFolder(
+  acc: DriveAccount,
+  token: string,
+  entity: PhotoEntity,
+  subfolder?: string,
+) {
   const rootId = acc.root_folder_id ?? (await findOrCreateFolder(token, acc.root_folder_name));
   if (!acc.root_folder_id) {
     const db = await admin();
     await db.from("drive_accounts").update({ root_folder_id: rootId }).eq("id", acc.id);
   }
-  return findOrCreateFolder(token, photoEntities[entity].folder, rootId);
+  const entityFolder = await findOrCreateFolder(token, photoEntities[entity].folder, rootId);
+  const sub = subfolder?.trim();
+  if (!sub) return entityFolder;
+  return findOrCreateFolder(token, sub, entityFolder);
 }
 
 /** Unggah file ke Drive dan jadikan bisa dilihat lewat tautan. */

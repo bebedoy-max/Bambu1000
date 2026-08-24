@@ -153,6 +153,7 @@ export const uploadEntityPhoto = createServerFn({ method: "POST" })
       fileName: string;
       mimeType: string;
       base64: string;
+      subfolder?: string | undefined;
     }) => {
       if (!isPhotoEntity(input.entity)) throw new Error("Jenis data tidak dikenal.");
       if (!input.mimeType.startsWith("image/")) throw new Error("File harus berupa gambar.");
@@ -166,7 +167,7 @@ export const uploadEntityPhoto = createServerFn({ method: "POST" })
     const drive = await import("@/lib/drive.server");
     const acc = await drive.getActiveAccount();
     const token = await drive.accessToken(acc);
-    const folderId = await drive.ensureEntityFolder(acc, token, data.entity as PhotoEntity);
+    const folderId = await drive.ensureEntityFolder(acc, token, data.entity as PhotoEntity, data.subfolder);
     const binary = atob(data.base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);

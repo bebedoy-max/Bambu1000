@@ -136,11 +136,10 @@ export const searchModules: SearchModule[] = [
   },
   {
     table: "photos",
-    label: "Galeri Foto",
+    label: "Event",
     route: "/admin/foto",
-    refs: [ukerRef()],
     title: (r) => s(r["judul"]),
-    subtitle: (r) => s(r["kategori"]),
+    subtitle: (r) => s(r["deskripsi"]).slice(0, 80),
     need: "it",
   },
   {

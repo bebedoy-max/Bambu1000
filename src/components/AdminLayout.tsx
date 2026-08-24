@@ -104,6 +104,8 @@ export const PageEditContext = createContext(true);
 export function AdminPage({ menuKey, children }: { menuKey: string; children: ReactNode }) {
   const { loading, canAccess, canEdit } = useAccess();
   const blocked = useSelfBlocked();
+  // Selama status blokir belum diketahui, halaman belum boleh dirender.
+  const unknown = blocked.isLoading || blocked.data === undefined;
   return (
     <AdminLayout>
       {blocked.data ? (
@@ -113,7 +115,7 @@ export function AdminPage({ menuKey, children }: { menuKey: string; children: Re
             Akun Anda diblokir oleh administrator. Hubungi admin untuk membuka blokir.
           </p>
         </div>
-      ) : loading ? null : canAccess(menuKey) ? (
+      ) : unknown || loading ? null : canAccess(menuKey) ? (
         <PageEditContext.Provider value={canEdit(menuKey)}>{children}</PageEditContext.Provider>
       ) : (
         <AccessDenied />
@@ -121,4 +123,5 @@ export function AdminPage({ menuKey, children }: { menuKey: string; children: Re
     </AdminLayout>
   );
 }
+
 

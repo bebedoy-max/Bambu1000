@@ -34,11 +34,13 @@ export function PhotoGallery({
   entityId,
   canEdit = false,
   title = "Foto",
+  subfolder,
 }: {
   entity: PhotoEntity;
   entityId: string;
   canEdit?: boolean;
   title?: string;
+  subfolder?: string;
 }) {
   const qc = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,6 +77,7 @@ export function PhotoGallery({
             fileName: file.name,
             mimeType: file.type,
             base64: await toBase64(file),
+            subfolder,
           },
         });
       }
