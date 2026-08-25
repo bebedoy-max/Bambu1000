@@ -1,4 +1,4 @@
-# SuperIT Event Uploader v1.2.2
+# SuperIT Event Uploader v1.2.3
 
 Aplikasi desktop pendamping panel SuperIT. Semua proses face recognition
 (deteksi wajah, embedding 512 dimensi, pencocokan) berjalan di sini —

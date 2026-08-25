@@ -8,15 +8,15 @@ import { useAccess } from "@/lib/access";
 /** Aplikasi bawaan yang sudah dipaketkan bersama panel. */
 const builtInApp = {
   name: "SuperIT Event Uploader",
-  version: "1.2.2",
+  version: "1.2.3",
   description:
     "Aplikasi desktop pemroses foto event: sinkron wajah master, deteksi & pencocokan wajah, rename otomatis, upload ke Google Drive panel, lalu simpan hasilnya ke panel.",
   changelog:
-    "- Perbaikan error \"'NoneType' object has no attribute 'write'\" saat memuat model face recognition di Windows (pythonw tanpa konsol)\n- Log runtime disimpan di ~/.superit-event-uploader-logs/runtime.log\n- Pesan error kini menampilkan jenis error, tidak lagi \"None\"\n- Google Drive otomatis memakai akun Drive aktif di web app — client_secret.json tidak diperlukan\n- Admin cukup login dengan akun panel (email & password)\n- Installer memilih Python 3.10–3.12 otomatis, instalasi tanpa cache pip\n- Tampilan mengikuti tema panel (Dark Blue Metallic)\n- Rename EVT-{event_id}_{personal_number}_{nama_asli}, progress bar, resume-safe",
+    "- Paket Windows dibuat ulang sebagai ZIP standar tanpa trailing data dan memakai nama versi baru agar cache file rusak tidak terpakai\n- Perbaikan error \"'NoneType' object has no attribute 'write'\" saat memuat model face recognition di Windows (pythonw tanpa konsol)\n- Log runtime disimpan di ~/.superit-event-uploader-logs/runtime.log\n- Pesan error kini menampilkan jenis error, tidak lagi \"None\"\n- Google Drive otomatis memakai akun Drive aktif di web app — client_secret.json tidak diperlukan\n- Admin cukup login dengan akun panel (email & password)\n- Installer memilih Python 3.10–3.12 otomatis, instalasi tanpa cache pip\n- Tampilan mengikuti tema panel (Dark Blue Metallic)\n- Rename EVT-{event_id}_{personal_number}_{nama_asli}, progress bar, resume-safe",
   downloads: [
     {
       label: "Windows",
-      url: "/downloads/SuperITEventUploader-1.2.2-Windows.zip",
+      url: "/downloads/SuperITEventUploader-1.2.3-Windows.zip",
       hint: "Jalankan Install-Windows.bat",
     },
     {
