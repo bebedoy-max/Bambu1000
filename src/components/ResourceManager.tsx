@@ -211,6 +211,8 @@ export type ResourceManagerProps = {
   /** Bila diisi, tiap data punya galeri foto Google Drive. */
   photoEntity?: PhotoEntity;
   extraActions?: (row: Row) => React.ReactNode;
+  /** Kolom tambahan sebelum kolom aksi, mis. status index wajah. */
+  extraColumn?: { label: string; render: (row: Row) => React.ReactNode };
 };
 
 function emptyForm(fields: Field[]): Row {
@@ -234,6 +236,7 @@ export function ResourceManager({
   ownerColumn,
   photoEntity,
   extraActions,
+  extraColumn,
 }: ResourceManagerProps) {
   const confirmDialog = useConfirm();
   const mayEdit = useContext(PageEditContext);
@@ -423,6 +426,7 @@ export function ResourceManager({
 
   const tableFields = fields.filter((f) => !f.hideInTable);
   const formFields = fields.filter((f) => !f.hideInForm);
+  const totalCols = tableFields.length + 1 + (extraColumn ? 1 : 0);
 
   /** Teks yang tampil di sel — dipakai juga sebagai bahan pencarian. */
   function cellText(f: Field, row: Row): string {
@@ -592,19 +596,22 @@ export function ResourceManager({
                   {f.label}
                 </th>
               ))}
+              {extraColumn ? (
+                <th className="px-4 py-3 font-medium whitespace-nowrap">{extraColumn.label}</th>
+              ) : null}
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {list.isLoading ? (
               <tr>
-                <td colSpan={tableFields.length + 1} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={totalCols} className="px-4 py-8 text-center text-muted-foreground">
                   Memuat data…
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={tableFields.length + 1} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={totalCols} className="px-4 py-8 text-center text-muted-foreground">
                   Belum ada data.
                 </td>
               </tr>
@@ -626,6 +633,9 @@ export function ResourceManager({
                       {renderCell(f, row)}
                     </td>
                   ))}
+                  {extraColumn ? (
+                    <td className="px-4 py-3 whitespace-nowrap">{extraColumn.render(row)}</td>
+                  ) : null}
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1">
                       {extraActions?.(row)}

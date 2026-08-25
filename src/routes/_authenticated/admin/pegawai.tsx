@@ -27,15 +27,17 @@ function Page() {
           title="Data Pekerja"
           description="Data pekerja per unit kerja."
           canWrite={r.isItAdmin}
-          photoEntity="pegawai"
-          extraActions={(row) => (
-            <WorkerFaceButton
-              workerId={String(row["id"])}
-              personalNumber={String(row["personal_number"] ?? "")}
-              nama={String(row["nama"] ?? "")}
-              canWrite={r.isItAdmin}
-            />
-          )}
+          extraColumn={{
+            label: "Status Wajah",
+            render: (row) => (
+              <WorkerFaceButton
+                workerId={String(row["id"])}
+                personalNumber={String(row["personal_number"] ?? "")}
+                nama={String(row["nama"] ?? "")}
+                canWrite={r.isItAdmin}
+              />
+            ),
+          }}
           fields={[
             {
               key: "personal_number",

@@ -104,7 +104,7 @@ export function PhotoGallery({
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-medium">{title}</p>
-        {canEdit && entityId ? (
+        {canEdit && entityId && entity !== "pegawai" ? (
           <>
             <Button
               type="button"

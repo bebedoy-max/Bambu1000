@@ -37,7 +37,7 @@ class Backend:
         res = (
             self.client.table("worker_faces")
             .select("id,worker_id,personal_number,reference_photo_url,status")
-            .eq("status", "pending")
+            .in_("status", ["pending", "failed"])
             .execute()
         )
         return res.data or []

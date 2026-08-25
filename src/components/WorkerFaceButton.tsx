@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Clock, RefreshCw, ScanFace, Upload, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Clock, ScanFace, Upload, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,8 +42,6 @@ export function WorkerFaceButton({
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement | null>(null);
-
-  const quickRef = useRef<HTMLInputElement | null>(null);
 
   const face = useQuery({
     queryKey: ["worker-face", workerId],
@@ -115,40 +113,15 @@ export function WorkerFaceButton({
   return (
     <>
       {hasPhoto ? (
-        <div className="flex items-center gap-1">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setOpen(true)}
-            title="Lihat foto master wajah"
-          >
-            {statusIcon}
-            {statusText}
-          </Button>
-          {canWrite ? (
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label="Ganti foto master wajah"
-              title="Ganti foto master wajah"
-              disabled={upload.isPending}
-              onClick={() => quickRef.current?.click()}
-            >
-              <RefreshCw className={`size-4 ${upload.isPending ? "animate-spin" : ""}`} />
-            </Button>
-          ) : null}
-          <input
-            ref={quickRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              e.target.value = "";
-              if (f) upload.mutate(f);
-            }}
-          />
-        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => setOpen(true)}
+          title="Lihat foto master wajah"
+        >
+          {statusIcon}
+          {statusText}
+        </Button>
       ) : (
         <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
           <ScanFace className="size-4" /> Foto Wajah
