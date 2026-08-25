@@ -1,4 +1,4 @@
-# SuperIT Companion App (deliverable terpisah, desktop)
+# SuperIT Event Uploader (deliverable terpisah, desktop)
 
 Web app tidak menjalankan face engine sama sekali. Semua proses AI ada di companion app.
 

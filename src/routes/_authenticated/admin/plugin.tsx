@@ -1,21 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Download, Puzzle } from "lucide-react";
+import { Download } from "lucide-react";
 import { AdminLayout, AccessDenied } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAccess } from "@/lib/access";
-import { db } from "@/lib/face";
 
-type CompanionApp = {
-  id: string;
-  name: string;
-  description: string | null;
-  version: string | null;
-  changelog: string | null;
-  download_url: string;
-  updated_at: string | null;
+/** Aplikasi bawaan yang sudah dipaketkan bersama panel. */
+const builtInApp = {
+  name: "SuperIT Event Uploader",
+  version: "1.2.1",
+  description:
+    "Aplikasi desktop pemroses foto event: sinkron wajah master, deteksi & pencocokan wajah, rename otomatis, upload ke Google Drive panel, lalu simpan hasilnya ke panel.",
+  changelog:
+    "- Google Drive kini otomatis memakai akun Drive aktif di web app — client_secret.json tidak diperlukan lagi\n- Admin cukup login dengan akun panel (email & password)\n- Panel log kini selalu terlihat sehingga tombol Hubungkan memberi umpan balik\n- Pesan error login/Drive ditampilkan jelas\n- Installer memilih Python 3.10–3.12 otomatis, instalasi tanpa cache pip\n- Tampilan mengikuti tema panel (Dark Blue Metallic)\n- Sinkronisasi foto master pekerja (pending → indexed/failed)\n- Rename EVT-{event_id}_{personal_number}_{nama_asli}, progress bar, resume-safe",
+  downloads: [
+    {
+      label: "Windows",
+      url: "/downloads/SuperITEventUploader-1.2.1-Windows.zip",
+      hint: "Jalankan Install-Windows.bat",
+    },
+    {
+      label: "macOS",
+      url: "/downloads/SuperITEventUploader-1.2.1-macOS.zip",
+      hint: "Jalankan Install-macOS.command",
+    },
+  ],
 };
+
 
 export const Route = createFileRoute("/_authenticated/admin/plugin")({
   head: () => ({
@@ -30,6 +41,8 @@ export const Route = createFileRoute("/_authenticated/admin/plugin")({
         property: "og:description",
         content: "Daftar aplikasi companion dan plugin pendukung panel SuperIT.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Page,
@@ -37,19 +50,6 @@ export const Route = createFileRoute("/_authenticated/admin/plugin")({
 
 function Page() {
   const access = useAccess();
-
-  const apps = useQuery({
-    queryKey: ["companion-apps"],
-    enabled: access.isAdminLevel,
-    queryFn: async () => {
-      const { data, error } = await db
-        .from("companion_apps")
-        .select("id,name,description,version,changelog,download_url,updated_at")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as CompanionApp[];
-    },
-  });
 
   return (
     <AdminLayout>
@@ -65,47 +65,35 @@ function Page() {
             </p>
           </div>
 
-          {apps.isLoading ? (
-            <p className="text-sm text-muted-foreground">Memuat daftar aplikasi…</p>
-          ) : (apps.data ?? []).length === 0 ? (
-            <div className="glass-card flex flex-col items-center gap-2 p-10 text-center text-muted-foreground">
-              <Puzzle className="size-6" />
-              <p className="text-sm">Belum ada aplikasi terdaftar.</p>
+          <article className="glass-card space-y-3 p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-semibold">{builtInApp.name}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{builtInApp.description}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Badge>Bawaan</Badge>
+                <Badge variant="secondary">v{builtInApp.version}</Badge>
+              </div>
             </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {(apps.data ?? []).map((app) => (
-                <article key={app.id} className="glass-card space-y-3 p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h2 className="font-semibold">{app.name}</h2>
-                      {app.description ? (
-                        <p className="mt-1 text-sm text-muted-foreground">{app.description}</p>
-                      ) : null}
-                    </div>
-                    {app.version ? <Badge variant="secondary">v{app.version}</Badge> : null}
-                  </div>
-                  {app.changelog ? (
-                    <div className="rounded-xl border border-border/60 p-3 text-xs whitespace-pre-line text-muted-foreground">
-                      {app.changelog}
-                    </div>
-                  ) : null}
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-muted-foreground">
-                      {app.updated_at
-                        ? `Diperbarui ${new Date(app.updated_at).toLocaleDateString("id-ID", { dateStyle: "medium" })}`
-                        : ""}
-                    </span>
-                    <Button asChild size="sm">
-                      <a href={app.download_url} target="_blank" rel="noreferrer">
-                        <Download className="size-4" /> Unduh
-                      </a>
-                    </Button>
-                  </div>
-                </article>
-              ))}
+            <div className="rounded-xl border border-border/60 p-3 text-xs whitespace-pre-line text-muted-foreground">
+              {builtInApp.changelog}
             </div>
-          )}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs text-muted-foreground">
+                Installer sekali klik — butuh Python 3.10–3.12 terpasang, sisanya otomatis.
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                {builtInApp.downloads.map((d) => (
+                  <Button key={d.label} asChild size="sm" variant={d.label === "Windows" ? "default" : "secondary"}>
+                    <a href={d.url} download title={d.hint}>
+                      <Download className="size-4" /> Installer {d.label}
+                    </a>
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </article>
         </div>
       )}
     </AdminLayout>

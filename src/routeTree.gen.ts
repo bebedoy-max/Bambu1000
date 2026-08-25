@@ -44,6 +44,8 @@ import { Route as AuthenticatedAdminUkerRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminEventIndexRouteImport } from './routes/_authenticated/admin/event/index'
 import { Route as AuthenticatedAdminEventIdRouteImport } from './routes/_authenticated/admin/event/$id'
+import { Route as ApiPublicCompanionDriveStatusRouteImport } from './routes/api/public/companion/drive-status'
+import { Route as ApiPublicCompanionUploadRouteImport } from './routes/api/public/companion/upload'
 import { Route as ApiPublicGoogleDriveCallbackRouteImport } from './routes/api/public/google-drive/callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -231,6 +233,18 @@ const AuthenticatedAdminEventIdRoute =
     path: '/admin/event/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicCompanionDriveStatusRoute =
+  ApiPublicCompanionDriveStatusRouteImport.update({
+    id: '/api/public/companion/drive-status',
+    path: '/api/public/companion/drive-status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicCompanionUploadRoute =
+  ApiPublicCompanionUploadRouteImport.update({
+    id: '/api/public/companion/upload',
+    path: '/api/public/companion/upload',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicGoogleDriveCallbackRoute =
   ApiPublicGoogleDriveCallbackRouteImport.update({
     id: '/api/public/google-drive/callback',
@@ -272,6 +286,8 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
+  '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
   '/admin/event/': typeof AuthenticatedAdminEventIndexRoute
 }
@@ -309,6 +325,8 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
+  '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
   '/admin/event': typeof AuthenticatedAdminEventIndexRoute
 }
@@ -348,6 +366,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
+  '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
   '/_authenticated/admin/event/': typeof AuthenticatedAdminEventIndexRoute
 }
@@ -387,6 +407,8 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/'
     | '/admin/event/$id'
+    | '/api/public/companion/drive-status'
+    | '/api/public/companion/upload'
     | '/api/public/google-drive/callback'
     | '/admin/event/'
   fileRoutesByTo: FileRoutesByTo
@@ -424,6 +446,8 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin'
     | '/admin/event/$id'
+    | '/api/public/companion/drive-status'
+    | '/api/public/companion/upload'
     | '/api/public/google-drive/callback'
     | '/admin/event'
   id:
@@ -462,6 +486,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/event/$id'
+    | '/api/public/companion/drive-status'
+    | '/api/public/companion/upload'
     | '/api/public/google-drive/callback'
     | '/_authenticated/admin/event/'
   fileRoutesById: FileRoutesById
@@ -478,6 +504,8 @@ export interface RootRouteChildren {
   AbsenTokenRoute: typeof AbsenTokenRoute
   DetailKeyRoute: typeof DetailKeyRoute
   ProjectIdRoute: typeof ProjectIdRoute
+  ApiPublicCompanionDriveStatusRoute: typeof ApiPublicCompanionDriveStatusRoute
+  ApiPublicCompanionUploadRoute: typeof ApiPublicCompanionUploadRoute
   ApiPublicGoogleDriveCallbackRoute: typeof ApiPublicGoogleDriveCallbackRoute
 }
 
@@ -728,6 +756,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEventIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/companion/drive-status': {
+      id: '/api/public/companion/drive-status'
+      path: '/api/public/companion/drive-status'
+      fullPath: '/api/public/companion/drive-status'
+      preLoaderRoute: typeof ApiPublicCompanionDriveStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/companion/upload': {
+      id: '/api/public/companion/upload'
+      path: '/api/public/companion/upload'
+      fullPath: '/api/public/companion/upload'
+      preLoaderRoute: typeof ApiPublicCompanionUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/google-drive/callback': {
       id: '/api/public/google-drive/callback'
       path: '/api/public/google-drive/callback'
@@ -808,6 +850,8 @@ const rootRouteChildren: RootRouteChildren = {
   AbsenTokenRoute: AbsenTokenRoute,
   DetailKeyRoute: DetailKeyRoute,
   ProjectIdRoute: ProjectIdRoute,
+  ApiPublicCompanionDriveStatusRoute: ApiPublicCompanionDriveStatusRoute,
+  ApiPublicCompanionUploadRoute: ApiPublicCompanionUploadRoute,
   ApiPublicGoogleDriveCallbackRoute: ApiPublicGoogleDriveCallbackRoute,
 }
 export const routeTree = rootRouteImport
