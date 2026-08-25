@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AdminLayout, AccessDenied } from "@/components/AdminLayout";
 import { ResourceManager } from "@/components/ResourceManager";
 import { useRoles } from "@/lib/roles";
+import { WorkerFaceButton } from "@/components/WorkerFaceButton";
 
 export const Route = createFileRoute("/_authenticated/admin/pegawai")({
   head: () => ({
@@ -27,6 +28,14 @@ function Page() {
           description="Data pekerja per unit kerja."
           canWrite={r.isItAdmin}
           photoEntity="pegawai"
+          extraActions={(row) => (
+            <WorkerFaceButton
+              workerId={String(row["id"])}
+              personalNumber={String(row["personal_number"] ?? "")}
+              nama={String(row["nama"] ?? "")}
+              canWrite={r.isItAdmin}
+            />
+          )}
           fields={[
             {
               key: "personal_number",

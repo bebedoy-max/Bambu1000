@@ -72,6 +72,14 @@ function Auth() {
   const [tab, setTab] = useState("masuk");
   const [googleOpen, setGoogleOpen] = useState(false);
   const [googlePn, setGooglePn] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
   const done = useRef(false);
 
   /** Info akun tidak terdaftar lalu kembali ke dashboard umum. */
@@ -243,6 +251,10 @@ function Auth() {
   }
 
   async function signUp() {
+    if (cooldown > 0) {
+      toast.error(`Tunggu ${cooldown} detik sebelum mencoba registrasi lagi.`);
+      return;
+    }
     const pnParsed = pnSchema.safeParse(pn);
     if (!pnParsed.success) {
       toast.error(pnParsed.error.issues[0]!.message);
@@ -268,20 +280,41 @@ function Auth() {
       },
     });
     if (error) {
-      setBusy(false);
       const msg = error.message || "";
-      if (/rate limit|too many requests|over_email_send_rate/i.test(msg)) {
-        toast.error(
-          "Batas pengiriman email registrasi tercapai. Tunggu beberapa menit lalu coba lagi, " +
-            "atau matikan 'Confirm email' di pengaturan Authentication.",
+      const status = (error as { status?: number }).status;
+      const isRate =
+        status === 429 || /rate limit|too many requests|over_email_send_rate/i.test(msg);
+      if (isRate) {
+        // Akun kadang sudah terbentuk walau email konfirmasi gagal dikirim:
+        // coba login langsung sebelum menyerah.
+        localStorage.setItem(PENDING_PN_KEY, pnParsed.data);
+        const { error: signInErr } = await supabase.auth.signInWithPassword(p.data);
+        if (!signInErr) {
+          await claimPendingPersonalNumber();
+          setBusy(false);
+          void finish();
+          return;
+        }
+        setBusy(false);
+        const retryAfter = Number(
+          (error as { retryAfter?: number }).retryAfter ?? 60,
         );
-      } else if (/already registered|already exists|user_already/i.test(msg)) {
+        setCooldown(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 60);
+        toast.error(
+          "Batas pengiriman email registrasi tercapai. Coba lagi setelah hitung mundur selesai, " +
+            "atau gunakan tombol Masuk dengan Google agar tidak perlu email verifikasi.",
+        );
+        return;
+      }
+      setBusy(false);
+      if (/already registered|already exists|user_already/i.test(msg)) {
         toast.error("Email ini sudah terdaftar. Silakan masuk.");
       } else {
         toast.error(msg);
       }
       return;
     }
+
     localStorage.setItem(PENDING_PN_KEY, pnParsed.data);
 
     // Bila konfirmasi email dimatikan, sesi langsung terbentuk:
@@ -445,9 +478,10 @@ function Auth() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button onClick={signUp} disabled={busy}>
-              Buat Akun
+            <Button onClick={signUp} disabled={busy || cooldown > 0}>
+              {cooldown > 0 ? `Coba lagi dalam ${cooldown}s` : "Buat Akun"}
             </Button>
+
           </TabsContent>
         </Tabs>
 

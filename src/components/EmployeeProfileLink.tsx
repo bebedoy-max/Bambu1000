@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { PhotoGallery } from "@/components/PhotoGallery";
+import { EventPhotoGrid } from "@/components/EventPhotoGrid";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -123,6 +124,16 @@ export function EmployeeProfileLink({
                 <h3 className="text-sm font-semibold">Foto {nama}</h3>
                 <div className="rounded-2xl border border-border/60 p-3">
                   <PhotoGallery entity="pegawai" entityId={employeeId} title="" />
+                </div>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">Foto Event {nama}</h3>
+                <div className="rounded-2xl border border-border/60 p-3">
+                  <EventPhotoGrid
+                    workerId={employeeId}
+                    emptyText="Belum ada foto untuk pekerja ini"
+                  />
                 </div>
               </section>
 

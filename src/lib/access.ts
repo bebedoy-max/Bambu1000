@@ -15,6 +15,7 @@ import {
   Laptop,
   LifeBuoy,
   ListChecks,
+  Puzzle,
   ScrollText,
   Settings,
   SlidersHorizontal,
@@ -99,6 +100,7 @@ export const menuItems: MenuItem[] = [
   { key: "tutorial", to: "/admin/tutorial", label: "Tutorial", icon: BookOpen, defaults: ADMIN_ONLY },
   { key: "tiket", to: "/admin/tiket", label: "Tiket IT", icon: LifeBuoy, defaults: ALL },
   { key: "drive", to: "/admin/drive", label: "Google Drive", icon: Cloud, defaults: ADMIN_ONLY },
+  { key: "plugin", to: "/admin/plugin", label: "SuperIT Plug In", icon: Puzzle, defaults: ADMIN_ONLY },
   { key: "users", to: "/admin/users", label: "Daftar User", icon: UserCog, defaults: ADMIN_ONLY },
   {
     key: "akses",
@@ -131,6 +133,7 @@ export const menuTree: MenuNode[] = [
     icon: CalendarDays,
     keys: ["project", "project-progress", "foto"],
   },
+  { type: "item", key: "plugin" },
   { type: "item", key: "tools" },
   { type: "item", key: "tutorial" },
   { type: "item", key: "tiket" },

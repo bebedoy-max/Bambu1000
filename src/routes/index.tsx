@@ -8,7 +8,7 @@ import { StatCard } from "@/components/StatCard";
 import { ProjectSummary } from "@/components/ProjectSummary";
 import { Button } from "@/components/ui/button";
 import { AuthSplash } from "@/components/AuthSplash";
-import { clearPostLogin, hasPostLogin, POST_LOGIN_TARGET } from "@/lib/post-login";
+import { clearPostLogin, POST_LOGIN_TARGET } from "@/lib/post-login";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -50,9 +50,10 @@ function Index() {
     if (isOAuth) window.location.replace(`/auth${s}${h}`);
   }, []);
 
-  // Setelah login sukses (email maupun Google), langsung buka panel sesuai akun.
+  // Pengguna yang sudah login selalu diarahkan ke panel admin; dashboard umum
+  // hanya untuk pengunjung yang belum login.
   useEffect(() => {
-    if (!hasPostLogin()) return;
+    if (typeof window === "undefined") return;
 
     let mounted = true;
     setRedirecting(true);
@@ -78,6 +79,7 @@ function Index() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const stats = useQuery({
     queryKey: ["public-stats"],

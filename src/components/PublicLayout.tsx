@@ -14,6 +14,7 @@ const nav = [
 export function PublicLayout({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
 
+
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-40 border-b border-border/60 backdrop-blur-xl">
@@ -35,16 +36,18 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                 <span className="max-sm:hidden">{item.label}</span>
               </Link>
             ))}
-            <Button asChild size="sm" className="ml-2 max-sm:size-11 max-sm:px-0">
-              <Link
-                to={session ? "/admin" : "/auth"}
-                aria-label={session ? "Panel Admin" : "Masuk"}
-                title={session ? "Panel Admin" : "Masuk"}
-              >
-                <LogIn className="size-4 max-sm:size-6" />
-                <span className="max-sm:hidden">{session ? "Panel Admin" : "Masuk"}</span>
-              </Link>
-            </Button>
+            {!session && (
+              <Button asChild size="sm" className="ml-2 max-sm:size-11 max-sm:px-0">
+                <Link
+                  to="/auth"
+                  aria-label="Masuk"
+                  title="Masuk"
+                >
+                  <LogIn className="size-4 max-sm:size-6" />
+                  <span className="max-sm:hidden">Masuk</span>
+                </Link>
+              </Button>
+            )}
           </nav>
         </div>
       </header>
