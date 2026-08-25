@@ -114,14 +114,14 @@ class Backend:
         return [r["role"] for r in (res.data or [])]
 
     def is_event_admin(self) -> bool:
-        return any(r in ("event_admin", "superadmin") for r in self.my_roles())
+        return any(r in ("it_admin", "event_admin", "superadmin") for r in self.my_roles())
 
     def require_event_admin(self) -> None:
         if not self.is_event_admin():
             raise PermissionError(
-                "Akun ini belum punya role 'event_admin' atau 'superadmin', "
+                "Akun ini belum punya role 'it_admin', 'event_admin', atau 'superadmin', "
                 "sehingga Supabase menolak perubahan data event (RLS). "
-                "Jalankan sql/grant-event-admin.sql di SQL Editor Supabase untuk akun ini."
+                "Jalankan sql/event-admin-access.sql di SQL Editor Supabase."
             )
 
     # ---------- events ----------

@@ -4,19 +4,23 @@ import { AdminLayout, AccessDenied } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAccess } from "@/lib/access";
+import {
+  WINDOWS_INSTALLER_BASE64,
+  WINDOWS_INSTALLER_NAME,
+} from "@/lib/windows-installer";
 
 /** Aplikasi bawaan yang sudah dipaketkan bersama panel. */
 const builtInApp = {
   name: "SuperIT Event Uploader",
-  version: "1.2.3",
+  version: "1.2.4",
   description:
     "Aplikasi desktop pemroses foto event: sinkron wajah master, deteksi & pencocokan wajah, rename otomatis, upload ke Google Drive panel, lalu simpan hasilnya ke panel.",
   changelog:
-    "- Paket Windows dibuat ulang sebagai ZIP standar tanpa trailing data dan memakai nama versi baru agar cache file rusak tidak terpakai\n- Perbaikan error \"'NoneType' object has no attribute 'write'\" saat memuat model face recognition di Windows (pythonw tanpa konsol)\n- Log runtime disimpan di ~/.superit-event-uploader-logs/runtime.log\n- Pesan error kini menampilkan jenis error, tidak lagi \"None\"\n- Google Drive otomatis memakai akun Drive aktif di web app — client_secret.json tidak diperlukan\n- Admin cukup login dengan akun panel (email & password)\n- Installer memilih Python 3.10–3.12 otomatis, instalasi tanpa cache pip\n- Tampilan mengikuti tema panel (Dark Blue Metallic)\n- Rename EVT-{event_id}_{personal_number}_{nama_asli}, progress bar, resume-safe",
+    "- Perbaikan akses event: role it_admin kini dapat membuat, mengubah, dan menghapus event sesuai policy RLS terbaru\n- Paket Windows dibuat ulang sebagai ZIP standar tanpa trailing data dan memakai nama versi baru agar cache file rusak tidak terpakai\n- Perbaikan error \"'NoneType' object has no attribute 'write'\" saat memuat model face recognition di Windows (pythonw tanpa konsol)\n- Log runtime disimpan di ~/.superit-event-uploader-logs/runtime.log\n- Pesan error kini menampilkan jenis error, tidak lagi \"None\"\n- Google Drive otomatis memakai akun Drive aktif di web app — client_secret.json tidak diperlukan\n- Admin cukup login dengan akun panel (email & password)\n- Installer memilih Python 3.10–3.12 otomatis, instalasi tanpa cache pip\n- Tampilan mengikuti tema panel (Dark Blue Metallic)\n- Rename EVT-{event_id}_{personal_number}_{nama_asli}, progress bar, resume-safe",
   downloads: [
     {
       label: "Windows",
-      url: "/downloads/SuperITEventUploader-1.2.3-Windows.zip",
+      url: "/downloads/SuperITEventUploader-1.2.4-Windows.zip",
       hint: "Jalankan Install-Windows.bat",
     },
     {
@@ -50,6 +54,19 @@ export const Route = createFileRoute("/_authenticated/admin/plugin")({
 
 function Page() {
   const access = useAccess();
+
+  const downloadWindowsInstaller = () => {
+    const binary = window.atob(WINDOWS_INSTALLER_BASE64);
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    const objectUrl = URL.createObjectURL(new Blob([bytes], { type: "application/zip" }));
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = WINDOWS_INSTALLER_NAME;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(objectUrl);
+  };
 
   return (
     <AdminLayout>
@@ -85,11 +102,22 @@ function Page() {
               </span>
               <div className="flex flex-wrap items-center gap-2">
                 {builtInApp.downloads.map((d) => (
-                  <Button key={d.label} asChild size="sm" variant={d.label === "Windows" ? "default" : "secondary"}>
-                    <a href={d.url} download title={d.hint}>
+                  d.label === "Windows" ? (
+                    <Button
+                      key={d.label}
+                      size="sm"
+                      title={d.hint}
+                      onClick={downloadWindowsInstaller}
+                    >
                       <Download className="size-4" /> Installer {d.label}
-                    </a>
-                  </Button>
+                    </Button>
+                  ) : (
+                    <Button key={d.label} asChild size="sm" variant="secondary">
+                      <a href={d.url} download title={d.hint}>
+                        <Download className="size-4" /> Installer {d.label}
+                      </a>
+                    </Button>
+                  )
                 ))}
               </div>
             </div>

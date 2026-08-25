@@ -433,8 +433,8 @@ class App(tk.Tk):
         text = str(err)
         if "row-level security" in text or "42501" in text:
             return (
-                "Ditolak Supabase (RLS): akun Anda bukan event_admin/superadmin. "
-                "Jalankan sql/grant-event-admin.sql di SQL Editor Supabase, lalu login ulang."
+                "Ditolak Supabase (RLS): policy event belum mengizinkan role akun ini. "
+                "Jalankan sql/event-admin-access.sql di SQL Editor Supabase, lalu login ulang."
             )
         return f"Gagal: {text}"
 

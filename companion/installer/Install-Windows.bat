@@ -4,7 +4,7 @@ title SuperIT Event Uploader - Installer (Windows)
 cd /d "%~dp0"
 
 echo ============================================
-echo   SuperIT Event Uploader 1.2.3 - Installer
+echo   SuperIT Event Uploader 1.2.4 - Installer
 echo ============================================
 echo.
 
