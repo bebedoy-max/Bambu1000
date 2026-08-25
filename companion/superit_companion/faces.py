@@ -1,12 +1,32 @@
 """Deteksi wajah + embedding 512 dimensi (insightface / buffalo_l)."""
 
+import os
+import sys
 from typing import List, Optional
 
 import numpy as np
 
 
+def _safe_streams() -> None:
+    """pythonw.exe (Windows) membuat stdout/stderr = None; insightface menulis
+    progres unduhan model ke sana dan gagal dengan NoneType.write."""
+    if sys.stdout is not None and sys.stderr is not None:
+        return
+    try:
+        log_dir = os.path.join(os.path.expanduser("~"), ".superit-event-uploader-logs")
+        os.makedirs(log_dir, exist_ok=True)
+        stream = open(os.path.join(log_dir, "runtime.log"), "a", encoding="utf-8", buffering=1)
+    except OSError:
+        stream = open(os.devnull, "w", encoding="utf-8")
+    if sys.stdout is None:
+        sys.stdout = stream
+    if sys.stderr is None:
+        sys.stderr = stream
+
+
 class FaceEngine:
     def __init__(self, det_size: int = 640):
+        _safe_streams()
         from insightface.app import FaceAnalysis
 
         self.app = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
@@ -26,10 +46,17 @@ class FaceEngine:
 
     def single_embedding(self, image: np.ndarray) -> Optional[List[float]]:
         """Tepat satu wajah, jika tidak -> None."""
+        res = self.single_face(image)
+        return res[0] if res else None
+
+    def single_face(self, image: np.ndarray):
+        """(embedding, kualitas 0..1) untuk foto berisi tepat satu wajah."""
         faces = self.app.get(image)
         if len(faces) != 1:
             return None
-        return self._normalize(faces[0].normed_embedding)
+        face = faces[0]
+        score = float(getattr(face, "det_score", 0.0) or 0.0)
+        return self._normalize(face.normed_embedding), max(0.0, min(1.0, score))
 
 
 def read_image(path_or_bytes) -> Optional["np.ndarray"]:

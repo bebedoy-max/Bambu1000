@@ -1,10 +1,10 @@
 #!/bin/bash
-# SuperIT Event Uploader 1.2.1 - Installer (macOS)
+# SuperIT Event Uploader 1.2.2 - Installer (macOS)
 set -e
 cd "$(dirname "$0")"
 
 echo "================================================="
-echo "  SuperIT Event Uploader 1.2.1 - Installer macOS"
+echo "  SuperIT Event Uploader 1.2.2 - Installer macOS"
 echo "================================================="
 
 PY=""

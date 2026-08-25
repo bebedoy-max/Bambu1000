@@ -42,10 +42,17 @@ class Backend:
         )
         return res.data or []
 
-    def set_face_indexed(self, face_id: str, embedding: List[float]) -> None:
-        self.client.table("worker_faces").update(
-            {"embedding": embedding, "status": "indexed", "note": None}
-        ).eq("id", face_id).execute()
+    def set_face_indexed(
+        self, face_id: str, embedding: List[float], quality: Optional[float] = None
+    ) -> None:
+        payload: Dict[str, Any] = {"embedding": embedding, "status": "indexed", "note": None}
+        if quality is not None:
+            payload["quality"] = float(quality)
+        try:
+            self.client.table("worker_faces").update(payload).eq("id", face_id).execute()
+        except Exception:
+            payload.pop("quality", None)
+            self.client.table("worker_faces").update(payload).eq("id", face_id).execute()
 
     def set_face_failed(self, face_id: str, note: str) -> None:
         self.client.table("worker_faces").update({"status": "failed", "note": note}).eq(
@@ -61,6 +68,32 @@ class Backend:
         )
         return res.count or 0
 
+    def face_stats(self) -> Dict[str, int]:
+        """Ringkasan jumlah pekerja & status index wajah."""
+
+        def count(table: str, column: Optional[str] = None, value: Optional[str] = None) -> int:
+            q = self.client.table(table).select("id", count="exact")
+            if column:
+                q = q.eq(column, value)
+            return q.execute().count or 0
+
+        try:
+            workers = count("employees")
+        except Exception:
+            workers = 0
+        faces = count("worker_faces")
+        indexed = count("worker_faces", "status", "indexed")
+        pending = count("worker_faces", "status", "pending")
+        failed = count("worker_faces", "status", "failed")
+        return {
+            "workers": workers,
+            "faces": faces,
+            "indexed": indexed,
+            "pending": pending,
+            "failed": failed,
+            "no_photo": max(workers - faces, 0),
+        }
+
     def match(self, embedding: List[float]) -> List[Dict[str, Any]]:
         res = self.client.rpc(
             "match_worker_faces",
@@ -71,6 +104,25 @@ class Backend:
             },
         ).execute()
         return res.data or []
+
+    # ---------- roles ----------
+    def my_roles(self) -> List[str]:
+        """Daftar role akun yang sedang login (dibaca dari tabel user_roles)."""
+        if not self.user_id:
+            return []
+        res = self.client.table("user_roles").select("role").eq("user_id", self.user_id).execute()
+        return [r["role"] for r in (res.data or [])]
+
+    def is_event_admin(self) -> bool:
+        return any(r in ("event_admin", "superadmin") for r in self.my_roles())
+
+    def require_event_admin(self) -> None:
+        if not self.is_event_admin():
+            raise PermissionError(
+                "Akun ini belum punya role 'event_admin' atau 'superadmin', "
+                "sehingga Supabase menolak perubahan data event (RLS). "
+                "Jalankan sql/grant-event-admin.sql di SQL Editor Supabase untuk akun ini."
+            )
 
     # ---------- events ----------
     def list_events(self) -> List[Dict[str, Any]]:
@@ -86,12 +138,18 @@ class Backend:
     def upsert_event(
         self, nama: str, deskripsi: str, tanggal: str, event_id: Optional[str] = None
     ) -> Dict[str, Any]:
+        self.require_event_admin()
         payload = {"nama_event": nama, "deskripsi": deskripsi or None, "tanggal_mulai": tanggal}
         if event_id:
             res = self.client.table("events").update(payload).eq("id", event_id).select("*").execute()
         else:
             res = self.client.table("events").insert(payload).execute()
         return (res.data or [{}])[0]
+
+    def delete_event(self, event_id: str) -> None:
+        """Hapus event beserta foto & absensinya (FK ON DELETE CASCADE)."""
+        self.require_event_admin()
+        self.client.table("events").delete().eq("id", event_id).execute()
 
     def set_event_folder(self, event_id: str, folder_id: str) -> None:
         self.client.table("events").update({"drive_folder_id": folder_id}).eq(

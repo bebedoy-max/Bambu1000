@@ -118,8 +118,10 @@ class App(tk.Tk):
             try:
                 fn()
             except Exception as err:  # noqa: BLE001
-                self.log(f"ERROR: {err}")
-                self.after(0, lambda: messagebox.showerror(APP_NAME, str(err)))
+                detail = str(err).strip() or repr(err)
+                message = f"{type(err).__name__}: {detail}"
+                self.log(f"ERROR: {message}")
+                self.after(0, lambda: messagebox.showerror(APP_NAME, message))
 
         return wrapper
 
@@ -232,6 +234,10 @@ class App(tk.Tk):
             self.after(0, lambda: self.lbl_drive.configure(text=text))
 
             self.reload_events()
+            try:
+                self.refresh_face_stats()
+            except Exception as err:  # noqa: BLE001
+                self.log(f"Gagal memuat statistik wajah: {err}")
             self.log("Memuat model face recognition (unduh sekali di awal)…")
             self.engine = FaceEngine()
             self.log("Model siap.")
@@ -254,18 +260,94 @@ class App(tk.Tk):
             "Ambil semua foto master berstatus 'pending', hitung embedding 512 dimensi,\n"
             "lalu tandai 'indexed' atau 'failed' di database.",
         )
-        ttk.Button(
+        self.btn_sync = ttk.Button(
             card,
             text="Mulai Sinkronisasi",
             style="Primary.TButton",
-            command=lambda: self.run_bg(self.do_sync),
-        ).grid(row=2, column=0, sticky="w")
+            command=self.start_sync,
+        )
+        self.btn_sync.grid(row=2, column=0, sticky="w")
+        self.lbl_sync = ttk.Label(card, text="", style="CardMuted.TLabel")
+        self.lbl_sync.grid(row=2, column=1, sticky="w", padx=12)
+
+        stat = self._card(
+            f,
+            "Status index wajah",
+            "Ringkasan jumlah pekerja di database dan status index wajahnya.",
+        )
+        self.lbl_stat_workers = ttk.Label(stat, text="—", style="Card.TLabel")
+        self.lbl_stat_indexed = ttk.Label(stat, text="—", style="Card.TLabel")
+        self.lbl_stat_pending = ttk.Label(stat, text="—", style="Card.TLabel")
+        rows = [
+            ("Pekerja terdaftar", self.lbl_stat_workers),
+            ("Sudah terindeks", self.lbl_stat_indexed),
+            ("Belum terindeks", self.lbl_stat_pending),
+        ]
+        for i, (label, widget) in enumerate(rows, start=2):
+            ttk.Label(stat, text=label, style="CardMuted.TLabel").grid(
+                row=i, column=0, sticky="w", pady=3
+            )
+            widget.grid(row=i, column=1, sticky="w", padx=10)
+        ttk.Button(
+            stat, text="Muat ulang", command=lambda: self.run_bg(self.refresh_face_stats)
+        ).grid(row=5, column=0, sticky="w", pady=(12, 0))
+
+    def refresh_face_stats(self) -> None:
+        if not self.backend:
+            return
+        s = self.backend.face_stats()
+        belum = s["pending"] + s["failed"] + s["no_photo"]
+
+        def apply() -> None:
+            self.lbl_stat_workers.configure(text=f"{s['workers']} pekerja")
+            self.lbl_stat_indexed.configure(text=f"{s['indexed']} wajah")
+            self.lbl_stat_pending.configure(
+                text=(
+                    f"{belum} — {s['no_photo']} tanpa foto, "
+                    f"{s['pending']} menunggu, {s['failed']} gagal"
+                )
+            )
+
+        self.after(0, apply)
+
+    # ---------- animasi loading ----------
+    def _spin_start(self, label: ttk.Label, text: str) -> None:
+        self._spin_frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+        self._spin_i = 0
+        self._spin_on = True
+
+        def tick() -> None:
+            if not getattr(self, "_spin_on", False):
+                return
+            frame = self._spin_frames[self._spin_i % len(self._spin_frames)]
+            self._spin_i += 1
+            label.configure(text=f"{frame} {text}")
+            self.after(90, tick)
+
+        tick()
+
+    def _spin_stop(self, label: ttk.Label, text: str = "") -> None:
+        self._spin_on = False
+        label.configure(text=text)
+
+    def start_sync(self) -> None:
+        if not (self.backend and self.engine):
+            messagebox.showwarning(APP_NAME, "Hubungkan dulu di tab Koneksi.")
+            return
+        self.btn_sync.configure(state="disabled", text="Menyinkronkan…")
+        self._spin_start(self.lbl_sync, "Memproses wajah master…")
+        self.run_bg(self.do_sync)
 
     def do_sync(self) -> None:
-        if not (self.backend and self.engine):
-            self.log("Hubungkan dulu di tab Koneksi.")
-            return
-        sync_master_faces(self.backend, self.engine, self.log, self.set_progress)
+        try:
+            sync_master_faces(self.backend, self.engine, self.log, self.set_progress)
+            self.refresh_face_stats()
+        finally:
+            self.after(0, self._sync_done)
+
+    def _sync_done(self) -> None:
+        self._spin_stop(self.lbl_sync, "Selesai.")
+        self.btn_sync.configure(state="normal", text="Mulai Sinkronisasi")
 
     # ---------- tab event ----------
     def _build_event(self) -> None:
@@ -281,8 +363,12 @@ class App(tk.Tk):
         ttk.Button(pick, text="Muat ulang", command=lambda: self.run_bg(self.reload_events)).grid(
             row=2, column=1, sticky="w", padx=10
         )
+        ttk.Button(
+            pick, text="Hapus Event", style="Danger.TButton", command=self.confirm_delete_event
+        ).grid(row=2, column=2, sticky="w", padx=(0, 4))
         pick.columnconfigure(0, weight=1)
         pick.columnconfigure(1, weight=0)
+        pick.columnconfigure(2, weight=0)
 
         new = self._card(f, "Event baru")
         fields = [("Judul", self.v_nama), ("Tanggal (YYYY-MM-DD)", self.v_tanggal), ("Deskripsi", self.v_desc)]
@@ -328,8 +414,60 @@ class App(tk.Tk):
         if not nama:
             self.log("Judul event wajib diisi.")
             return
-        row = self.backend.upsert_event(nama, self.v_desc.get().strip(), self.v_tanggal.get().strip())
+        try:
+            row = self.backend.upsert_event(
+                nama, self.v_desc.get().strip(), self.v_tanggal.get().strip()
+            )
+        except PermissionError as err:
+            self.log(str(err))
+            self.after(0, lambda: messagebox.showerror(APP_NAME, str(err)))
+            return
+        except Exception as err:  # noqa: BLE001
+            self.log(self._friendly_error(err))
+            return
         self.log(f"Event tersimpan: {row.get('nama_event', nama)}")
+        self.reload_events()
+
+    @staticmethod
+    def _friendly_error(err: Exception) -> str:
+        text = str(err)
+        if "row-level security" in text or "42501" in text:
+            return (
+                "Ditolak Supabase (RLS): akun Anda bukan event_admin/superadmin. "
+                "Jalankan sql/grant-event-admin.sql di SQL Editor Supabase, lalu login ulang."
+            )
+        return f"Gagal: {text}"
+
+    def confirm_delete_event(self) -> None:
+        if not self.backend:
+            messagebox.showwarning(APP_NAME, "Hubungkan dulu di tab Koneksi.")
+            return
+        event = self.selected_event()
+        if not event:
+            messagebox.showwarning(APP_NAME, "Pilih event yang mau dihapus terlebih dahulu.")
+            return
+        ok = messagebox.askyesno(
+            APP_NAME,
+            f"Hapus event \"{event.get('nama_event')}\"?\n\n"
+            "Foto event dan data absensi yang terkait ikut terhapus. "
+            "Tindakan ini tidak bisa dibatalkan.",
+        )
+        if not ok:
+            return
+        self.run_bg(lambda: self.delete_event(event))
+
+    def delete_event(self, event: Dict[str, str]) -> None:
+        try:
+            self.backend.delete_event(event["id"])
+        except PermissionError as err:
+            self.log(str(err))
+            self.after(0, lambda: messagebox.showerror(APP_NAME, str(err)))
+            return
+        except Exception as err:  # noqa: BLE001
+            self.log(self._friendly_error(err))
+            return
+        self.log(f"Event dihapus: {event.get('nama_event')}")
+        self.v_event.set("")
         self.reload_events()
 
     def pick_files(self) -> None:

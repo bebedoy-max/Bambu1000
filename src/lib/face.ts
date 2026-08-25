@@ -15,12 +15,20 @@ export type WorkerFace = {
   reference_photo_url: string | null;
   status: FaceStatus;
   note: string | null;
+  quality: number | null;
   updated_at: string | null;
 };
 
 /** Kolom aman (tanpa embedding) — embedding tidak pernah dibaca frontend. */
 export const WORKER_FACE_COLUMNS =
-  "id,worker_id,personal_number,reference_photo_url,status,note,updated_at";
+  "id,worker_id,personal_number,reference_photo_url,status,note,quality,updated_at";
+
+/** Persentase kualitas index wajah, mis. 90. */
+export function facePercent(quality: number | null | undefined) {
+  if (quality == null || Number.isNaN(quality)) return null;
+  const v = quality > 1 ? quality : quality * 100;
+  return Math.max(0, Math.min(100, Math.round(v)));
+}
 
 export const faceStatusLabel: Record<FaceStatus, string> = {
   pending: "Menunggu diproses",

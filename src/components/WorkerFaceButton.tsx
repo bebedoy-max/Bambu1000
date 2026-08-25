@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ScanFace, Upload } from "lucide-react";
+import { RefreshCw, ScanFace, Upload, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,10 +16,12 @@ import {
   FACE_BUCKET,
   WORKER_FACE_COLUMNS,
   faceStatusLabel,
+  facePercent,
   faceStatusVariant,
   type FaceStatus,
   type WorkerFace,
 } from "@/lib/face";
+
 
 /**
  * Tombol + dialog "Foto Wajah" pada menu Data Pekerja.
@@ -41,9 +43,10 @@ export function WorkerFaceButton({
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement | null>(null);
 
+  const quickRef = useRef<HTMLInputElement | null>(null);
+
   const face = useQuery({
     queryKey: ["worker-face", workerId],
-    enabled: open,
     queryFn: async () => {
       const { data, error } = await db
         .from("worker_faces")
@@ -88,12 +91,52 @@ export function WorkerFaceButton({
   });
 
   const status = (face.data?.status ?? null) as FaceStatus | null;
+  const percent = facePercent(face.data?.quality);
+  const indexed = status === "indexed";
 
   return (
     <>
-      <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
-        <ScanFace className="size-4" /> Foto Wajah
-      </Button>
+      {indexed ? (
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setOpen(true)}
+            title="Lihat foto master wajah"
+          >
+            <CheckCircle2 className="size-4 text-emerald-500" />
+            {percent != null ? `Index OK — ${percent}%` : "Index OK"}
+          </Button>
+          {canWrite ? (
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label="Ganti foto master wajah"
+              title="Ganti foto master wajah"
+              disabled={upload.isPending}
+              onClick={() => quickRef.current?.click()}
+            >
+              <RefreshCw className={`size-4 ${upload.isPending ? "animate-spin" : ""}`} />
+            </Button>
+          ) : null}
+          <input
+            ref={quickRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = "";
+              if (f) upload.mutate(f);
+            }}
+          />
+        </div>
+      ) : (
+        <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
+          <ScanFace className="size-4" /> Foto Wajah
+        </Button>
+      )}
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
@@ -124,7 +167,11 @@ export function WorkerFaceButton({
                 </div>
                 <div className="space-y-2">
                   {status ? (
-                    <Badge variant={faceStatusVariant[status]}>{faceStatusLabel[status]}</Badge>
+                    <Badge variant={faceStatusVariant[status]}>
+                      {status === "indexed" && percent != null
+                        ? `Index OK — ${percent}%`
+                        : faceStatusLabel[status]}
+                    </Badge>
                   ) : (
                     <Badge variant="secondary">Belum ada foto master</Badge>
                   )}

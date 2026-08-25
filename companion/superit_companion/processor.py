@@ -65,16 +65,17 @@ def sync_master_faces(backend: Backend, engine: FaceEngine, log: Log, progress: 
                     backend.set_face_failed(row["id"], "File foto tidak terbaca")
                     log(f"[{i}/{total}] {name}: file tidak terbaca.")
                 else:
-                    emb = engine.single_embedding(img)
-                    if emb is None:
+                    res = engine.single_face(img)
+                    if res is None:
                         backend.set_face_failed(
                             row["id"], "Wajah tidak terdeteksi atau lebih dari satu wajah"
                         )
                         log(f"[{i}/{total}] {name}: wajah tidak valid.")
                     else:
-                        backend.set_face_indexed(row["id"], emb)
+                        emb, quality = res
+                        backend.set_face_indexed(row["id"], emb, quality)
                         done += 1
-                        log(f"[{i}/{total}] {name}: terindeks.")
+                        log(f"[{i}/{total}] {name}: terindeks (kualitas {round(quality * 100)}%).")
         except Exception as err:  # noqa: BLE001
             log(f"[{i}/{total}] {name}: gagal — {err}")
         progress(i, total)
