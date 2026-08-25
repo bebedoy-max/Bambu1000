@@ -68,9 +68,12 @@ def sync_master_faces(backend: Backend, engine: FaceEngine, log: Log, progress: 
                     res = engine.single_face(img)
                     if res is None:
                         backend.set_face_failed(
-                            row["id"], "Wajah tidak terdeteksi atau lebih dari satu wajah"
+                            row["id"], "Wajah tidak terdeteksi pada foto master"
                         )
-                        log(f"[{i}/{total}] {name}: wajah tidak valid.")
+                        log(
+                            f"[{i}/{total}] {name}: wajah tidak terdeteksi "
+                            "(sudah dicoba rotasi, perbaikan kontras, upscale, dan crop scan)."
+                        )
                     else:
                         emb, quality = res
                         backend.set_face_indexed(row["id"], emb, quality)

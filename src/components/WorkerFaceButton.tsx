@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, ScanFace, Upload, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Clock, RefreshCw, ScanFace, Upload, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -92,11 +92,29 @@ export function WorkerFaceButton({
 
   const status = (face.data?.status ?? null) as FaceStatus | null;
   const percent = facePercent(face.data?.quality);
-  const indexed = status === "indexed";
+  const hasPhoto = Boolean(face.data?.reference_photo_url) && status != null;
+
+  const statusIcon =
+    status === "indexed" ? (
+      <CheckCircle2 className="size-4 text-emerald-500" />
+    ) : status === "failed" ? (
+      <AlertTriangle className="size-4 text-destructive" />
+    ) : (
+      <Clock className="size-4 text-amber-500" />
+    );
+
+  const statusText =
+    status === "indexed"
+      ? percent != null
+        ? `Index OK — ${percent}%`
+        : "Index OK"
+      : status === "failed"
+        ? "Index Gagal"
+        : "Menunggu Index";
 
   return (
     <>
-      {indexed ? (
+      {hasPhoto ? (
         <div className="flex items-center gap-1">
           <Button
             size="sm"
@@ -104,8 +122,8 @@ export function WorkerFaceButton({
             onClick={() => setOpen(true)}
             title="Lihat foto master wajah"
           >
-            <CheckCircle2 className="size-4 text-emerald-500" />
-            {percent != null ? `Index OK — ${percent}%` : "Index OK"}
+            {statusIcon}
+            {statusText}
           </Button>
           {canWrite ? (
             <Button

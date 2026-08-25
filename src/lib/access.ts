@@ -133,10 +133,10 @@ export const menuTree: MenuNode[] = [
     icon: CalendarDays,
     keys: ["project", "project-progress", "foto"],
   },
-  { type: "item", key: "plugin" },
   { type: "item", key: "tools" },
   { type: "item", key: "tutorial" },
   { type: "item", key: "tiket" },
+  { type: "item", key: "plugin" },
   {
     type: "group",
     key: "setting",

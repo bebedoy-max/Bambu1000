@@ -1,4 +1,4 @@
-# SuperIT Event Uploader v1.2.4
+# SuperIT Event Uploader v1.2.7
 
 Aplikasi desktop pendamping panel SuperIT. Semua proses face recognition
 (deteksi wajah, embedding 512 dimensi, pencocokan) berjalan di sini —
@@ -38,8 +38,8 @@ memakai akun yang sedang aktif di web app; tidak memerlukan `client_secret.json`
 ## Alur pemakaian
 
 1. **Koneksi** → isi akun admin, klik **Hubungkan** (login + muat model).
-2. **Sinkron Wajah** → semua `worker_faces` berstatus `pending` diproses:
-   tepat satu wajah → `indexed`, selain itu → `failed` + catatan.
+2. **Sinkron Wajah** → semua `worker_faces` berstatus `pending`/`failed` diproses:
+   wajah utama terdeteksi → `indexed`, tidak terdeteksi → `failed` + catatan.
 3. **Proses Foto Event**:
    - pilih event yang ada atau buat event baru,
    - pilih file/folder foto,

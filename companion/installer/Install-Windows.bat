@@ -4,7 +4,7 @@ title SuperIT Event Uploader - Installer (Windows)
 cd /d "%~dp0"
 
 echo ============================================
-echo   SuperIT Event Uploader 1.2.4 - Installer
+echo   SuperIT Event Uploader 1.2.7 - Installer
 echo ============================================
 echo.
 
@@ -44,10 +44,35 @@ echo Menggunakan: %PY%
 %PY% --version
 
 set "APPDIR=%LOCALAPPDATA%\SuperITEventUploader"
+set "SOURCEDIR=%~dp0app"
+if not exist "%SOURCEDIR%\requirements.txt" set "SOURCEDIR=%~dp0"
+
+if not exist "%SOURCEDIR%\requirements.txt" (
+  echo [X] Paket installer tidak lengkap: requirements.txt tidak ditemukan.
+  echo     Ekstrak seluruh isi ZIP ke satu folder, lalu jalankan Install-Windows.bat dari folder tersebut.
+  pause
+  exit /b 1
+)
+if not exist "%SOURCEDIR%\run.py" (
+  echo [X] Paket installer tidak lengkap: run.py tidak ditemukan.
+  pause
+  exit /b 1
+)
+
 echo [1/4] Menyalin file ke %APPDIR% ...
 if exist "%APPDIR%" rmdir /S /Q "%APPDIR%"
 mkdir "%APPDIR%"
-xcopy /E /I /Y /Q "%~dp0app\*" "%APPDIR%\" >nul
+xcopy /E /I /Y /Q "%SOURCEDIR%\*" "%APPDIR%\" >nul
+if errorlevel 1 (
+  echo [X] Gagal menyalin file aplikasi dari "%SOURCEDIR%".
+  pause
+  exit /b 1
+)
+if not exist "%APPDIR%\requirements.txt" (
+  echo [X] requirements.txt gagal disalin. Instalasi dihentikan.
+  pause
+  exit /b 1
+)
 
 echo [2/4] Membuat virtual environment ...
 if exist "%APPDIR%\.venv" rmdir /S /Q "%APPDIR%\.venv"
