@@ -119,14 +119,6 @@ export const searchModules: SearchModule[] = [
     need: "it",
   },
   {
-    table: "it_tools",
-    label: "Tools IT",
-    route: "/admin/tools",
-    title: (r) => s(r["nama_tool"]),
-    subtitle: (r) => [s(r["kategori"]), s(r["versi"])].filter(Boolean).join(" · "),
-    need: "it",
-  },
-  {
     table: "tutorials",
     label: "Tutorial",
     route: "/admin/tutorial",

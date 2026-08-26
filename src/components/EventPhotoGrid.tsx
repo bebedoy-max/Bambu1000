@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, ImageOff } from "lucide-react";
 import { db, driveFull, driveThumb, type EventPhoto } from "@/lib/face";
 import { getPublicEventPhotoPage } from "@/lib/public-events.functions";
+import { purgeMissingPhoto } from "@/lib/photo-cleanup.functions";
 
 const PAGE_SIZE = 48;
 
@@ -32,8 +33,16 @@ export function EventPhotoGrid({
   emptyText?: string;
 }) {
   const [preview, setPreview] = useState<EventPhoto | null>(null);
+  const [broken, setBroken] = useState<string[]>([]);
   const sentinel = useRef<HTMLDivElement | null>(null);
   const publicPhotoPage = useServerFn(getPublicEventPhotoPage);
+  const purge = useServerFn(purgeMissingPhoto);
+
+  /** Foto yang file Drive-nya sudah hilang: sembunyikan & bersihkan datanya. */
+  const handleBroken = (fileId: string) => {
+    setBroken((prev) => (prev.includes(fileId) ? prev : [...prev, fileId]));
+    void purge({ data: { kind: "event", driveFileId: fileId } }).catch(() => undefined);
+  };
 
   const q = useInfiniteQuery({
     queryKey: ["event-photo-grid", eventId ?? null, workerId ?? null, publicAccess],
@@ -76,7 +85,7 @@ export function EventPhotoGrid({
     return () => io.disconnect();
   }, [q.hasNextPage, q.isFetchingNextPage, q]);
 
-  const photos = (q.data?.pages ?? []).flat();
+  const photos = (q.data?.pages ?? []).flat().filter((p) => !broken.includes(p.drive_file_id));
 
   if (q.isLoading) return <p className="text-sm text-muted-foreground">Memuat foto…</p>;
   if (q.isError)
@@ -104,6 +113,7 @@ export function EventPhotoGrid({
               src={driveThumb(p.drive_file_id)}
               alt={p.file_name ?? "Foto event"}
               loading="lazy"
+              onError={() => handleBroken(p.drive_file_id)}
               className="aspect-square w-full object-cover transition-transform duration-200 group-hover:scale-105"
             />
           </button>

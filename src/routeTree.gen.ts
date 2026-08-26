@@ -18,6 +18,7 @@ import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as AbsenTokenRouteImport } from './routes/absen.$token'
+import { Route as AbsensiSlugRouteImport } from './routes/absensi.$slug'
 import { Route as DetailKeyRouteImport } from './routes/detail.$key'
 import { Route as EventIdRouteImport } from './routes/event.$id'
 import { Route as ProjectIdRouteImport } from './routes/project.$id'
@@ -38,6 +39,7 @@ import { Route as AuthenticatedAdminPerangkatRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminPluginRouteImport } from './routes/_authenticated/admin/plugin'
 import { Route as AuthenticatedAdminProjectRouteImport } from './routes/_authenticated/admin/project'
 import { Route as AuthenticatedAdminProjectProgressRouteImport } from './routes/_authenticated/admin/project-progress'
+import { Route as AuthenticatedAdminQrisRouteImport } from './routes/_authenticated/admin/qris'
 import { Route as AuthenticatedAdminTiketRouteImport } from './routes/_authenticated/admin/tiket'
 import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin/tools'
 import { Route as AuthenticatedAdminTutorialRouteImport } from './routes/_authenticated/admin/tutorial'
@@ -45,6 +47,7 @@ import { Route as AuthenticatedAdminUkerRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminEventIndexRouteImport } from './routes/_authenticated/admin/event/index'
 import { Route as AuthenticatedAdminEventIdRouteImport } from './routes/_authenticated/admin/event/$id'
+import { Route as AuthenticatedAdminToolsAbsensiRouteImport } from './routes/_authenticated/admin/tools.absensi'
 import { Route as ApiPublicCompanionDeleteEventRouteImport } from './routes/api/public/companion/delete-event'
 import { Route as ApiPublicCompanionDriveStatusRouteImport } from './routes/api/public/companion/drive-status'
 import { Route as ApiPublicCompanionFinalizeRouteImport } from './routes/api/public/companion/finalize'
@@ -52,6 +55,7 @@ import { Route as ApiPublicCompanionInstallerRouteImport } from './routes/api/pu
 import { Route as ApiPublicCompanionUploadRouteImport } from './routes/api/public/companion/upload'
 import { Route as ApiPublicCompanionUploadUrlRouteImport } from './routes/api/public/companion/upload-url'
 import { Route as ApiPublicGoogleDriveCallbackRouteImport } from './routes/api/public/google-drive/callback'
+import { Route as AuthenticatedAdminToolsAbsensiIdRouteImport } from './routes/_authenticated/admin/tools.absensi.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -95,6 +99,11 @@ const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
 const AbsenTokenRoute = AbsenTokenRouteImport.update({
   id: '/absen/$token',
   path: '/absen/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AbsensiSlugRoute = AbsensiSlugRouteImport.update({
+  id: '/absensi/$slug',
+  path: '/absensi/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DetailKeyRoute = DetailKeyRouteImport.update({
@@ -205,6 +214,11 @@ const AuthenticatedAdminProjectProgressRoute =
     path: '/admin/project-progress',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminQrisRoute = AuthenticatedAdminQrisRouteImport.update({
+  id: '/admin/qris',
+  path: '/admin/qris',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminTiketRoute = AuthenticatedAdminTiketRouteImport.update({
   id: '/admin/tiket',
   path: '/admin/tiket',
@@ -242,6 +256,12 @@ const AuthenticatedAdminEventIdRoute =
     id: '/admin/event/$id',
     path: '/admin/event/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminToolsAbsensiRoute =
+  AuthenticatedAdminToolsAbsensiRouteImport.update({
+    id: '/absensi',
+    path: '/absensi',
+    getParentRoute: () => AuthenticatedAdminToolsRoute,
   } as any)
 const ApiPublicCompanionDeleteEventRoute =
   ApiPublicCompanionDeleteEventRouteImport.update({
@@ -285,6 +305,12 @@ const ApiPublicGoogleDriveCallbackRoute =
     path: '/api/public/google-drive/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAdminToolsAbsensiIdRoute =
+  AuthenticatedAdminToolsAbsensiIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminToolsAbsensiRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -295,6 +321,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
+  '/absensi/$slug': typeof AbsensiSlugRoute
   '/detail/$key': typeof DetailKeyRoute
   '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
@@ -314,13 +341,15 @@ export interface FileRoutesByFullPath {
   '/admin/plugin': typeof AuthenticatedAdminPluginRoute
   '/admin/project': typeof AuthenticatedAdminProjectRoute
   '/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
+  '/admin/qris': typeof AuthenticatedAdminQrisRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
-  '/admin/tools': typeof AuthenticatedAdminToolsRoute
+  '/admin/tools': typeof AuthenticatedAdminToolsRouteWithChildren
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
   '/admin/uker': typeof AuthenticatedAdminUkerRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
@@ -329,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/api/public/companion/upload-url': typeof ApiPublicCompanionUploadUrlRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
   '/admin/event/': typeof AuthenticatedAdminEventIndexRoute
+  '/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -339,6 +369,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
+  '/absensi/$slug': typeof AbsensiSlugRoute
   '/detail/$key': typeof DetailKeyRoute
   '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
@@ -358,13 +389,15 @@ export interface FileRoutesByTo {
   '/admin/plugin': typeof AuthenticatedAdminPluginRoute
   '/admin/project': typeof AuthenticatedAdminProjectRoute
   '/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
+  '/admin/qris': typeof AuthenticatedAdminQrisRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
-  '/admin/tools': typeof AuthenticatedAdminToolsRoute
+  '/admin/tools': typeof AuthenticatedAdminToolsRouteWithChildren
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
   '/admin/uker': typeof AuthenticatedAdminUkerRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
@@ -373,6 +406,7 @@ export interface FileRoutesByTo {
   '/api/public/companion/upload-url': typeof ApiPublicCompanionUploadUrlRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
   '/admin/event': typeof AuthenticatedAdminEventIndexRoute
+  '/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -385,6 +419,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
+  '/absensi/$slug': typeof AbsensiSlugRoute
   '/detail/$key': typeof DetailKeyRoute
   '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
@@ -404,13 +439,15 @@ export interface FileRoutesById {
   '/_authenticated/admin/plugin': typeof AuthenticatedAdminPluginRoute
   '/_authenticated/admin/project': typeof AuthenticatedAdminProjectRoute
   '/_authenticated/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
+  '/_authenticated/admin/qris': typeof AuthenticatedAdminQrisRoute
   '/_authenticated/admin/tiket': typeof AuthenticatedAdminTiketRoute
-  '/_authenticated/admin/tools': typeof AuthenticatedAdminToolsRoute
+  '/_authenticated/admin/tools': typeof AuthenticatedAdminToolsRouteWithChildren
   '/_authenticated/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
   '/_authenticated/admin/uker': typeof AuthenticatedAdminUkerRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/_authenticated/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
@@ -419,6 +456,7 @@ export interface FileRoutesById {
   '/api/public/companion/upload-url': typeof ApiPublicCompanionUploadUrlRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
   '/_authenticated/admin/event/': typeof AuthenticatedAdminEventIndexRoute
+  '/_authenticated/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -431,6 +469,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms-of-service'
     | '/absen/$token'
+    | '/absensi/$slug'
     | '/detail/$key'
     | '/event/$id'
     | '/project/$id'
@@ -450,6 +489,7 @@ export interface FileRouteTypes {
     | '/admin/plugin'
     | '/admin/project'
     | '/admin/project-progress'
+    | '/admin/qris'
     | '/admin/tiket'
     | '/admin/tools'
     | '/admin/tutorial'
@@ -457,6 +497,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/'
     | '/admin/event/$id'
+    | '/admin/tools/absensi'
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
@@ -465,6 +506,7 @@ export interface FileRouteTypes {
     | '/api/public/companion/upload-url'
     | '/api/public/google-drive/callback'
     | '/admin/event/'
+    | '/admin/tools/absensi/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -475,6 +517,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms-of-service'
     | '/absen/$token'
+    | '/absensi/$slug'
     | '/detail/$key'
     | '/event/$id'
     | '/project/$id'
@@ -494,6 +537,7 @@ export interface FileRouteTypes {
     | '/admin/plugin'
     | '/admin/project'
     | '/admin/project-progress'
+    | '/admin/qris'
     | '/admin/tiket'
     | '/admin/tools'
     | '/admin/tutorial'
@@ -501,6 +545,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin'
     | '/admin/event/$id'
+    | '/admin/tools/absensi'
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
@@ -509,6 +554,7 @@ export interface FileRouteTypes {
     | '/api/public/companion/upload-url'
     | '/api/public/google-drive/callback'
     | '/admin/event'
+    | '/admin/tools/absensi/$id'
   id:
     | '__root__'
     | '/'
@@ -520,6 +566,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms-of-service'
     | '/absen/$token'
+    | '/absensi/$slug'
     | '/detail/$key'
     | '/event/$id'
     | '/project/$id'
@@ -539,6 +586,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/plugin'
     | '/_authenticated/admin/project'
     | '/_authenticated/admin/project-progress'
+    | '/_authenticated/admin/qris'
     | '/_authenticated/admin/tiket'
     | '/_authenticated/admin/tools'
     | '/_authenticated/admin/tutorial'
@@ -546,6 +594,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/event/$id'
+    | '/_authenticated/admin/tools/absensi'
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
@@ -554,6 +603,7 @@ export interface FileRouteTypes {
     | '/api/public/companion/upload-url'
     | '/api/public/google-drive/callback'
     | '/_authenticated/admin/event/'
+    | '/_authenticated/admin/tools/absensi/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -566,6 +616,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermsOfServiceRoute: typeof TermsOfServiceRoute
   AbsenTokenRoute: typeof AbsenTokenRoute
+  AbsensiSlugRoute: typeof AbsensiSlugRoute
   DetailKeyRoute: typeof DetailKeyRoute
   EventIdRoute: typeof EventIdRoute
   ProjectIdRoute: typeof ProjectIdRoute
@@ -641,6 +692,13 @@ declare module '@tanstack/react-router' {
       path: '/absen/$token'
       fullPath: '/absen/$token'
       preLoaderRoute: typeof AbsenTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/absensi/$slug': {
+      id: '/absensi/$slug'
+      path: '/absensi/$slug'
+      fullPath: '/absensi/$slug'
+      preLoaderRoute: typeof AbsensiSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/detail/$key': {
@@ -783,6 +841,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminProjectProgressRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/qris': {
+      id: '/_authenticated/admin/qris'
+      path: '/admin/qris'
+      fullPath: '/admin/qris'
+      preLoaderRoute: typeof AuthenticatedAdminQrisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/tiket': {
       id: '/_authenticated/admin/tiket'
       path: '/admin/tiket'
@@ -831,6 +896,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/event/$id'
       preLoaderRoute: typeof AuthenticatedAdminEventIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/tools/absensi': {
+      id: '/_authenticated/admin/tools/absensi'
+      path: '/absensi'
+      fullPath: '/admin/tools/absensi'
+      preLoaderRoute: typeof AuthenticatedAdminToolsAbsensiRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsRoute
     }
     '/api/public/companion/delete-event': {
       id: '/api/public/companion/delete-event'
@@ -881,8 +953,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGoogleDriveCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/tools/absensi/$id': {
+      id: '/_authenticated/admin/tools/absensi/$id'
+      path: '/$id'
+      fullPath: '/admin/tools/absensi/$id'
+      preLoaderRoute: typeof AuthenticatedAdminToolsAbsensiIdRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsAbsensiRoute
+    }
   }
 }
+
+interface AuthenticatedAdminToolsAbsensiRouteChildren {
+  AuthenticatedAdminToolsAbsensiIdRoute: typeof AuthenticatedAdminToolsAbsensiIdRoute
+}
+
+const AuthenticatedAdminToolsAbsensiRouteChildren: AuthenticatedAdminToolsAbsensiRouteChildren =
+  {
+    AuthenticatedAdminToolsAbsensiIdRoute:
+      AuthenticatedAdminToolsAbsensiIdRoute,
+  }
+
+const AuthenticatedAdminToolsAbsensiRouteWithChildren =
+  AuthenticatedAdminToolsAbsensiRoute._addFileChildren(
+    AuthenticatedAdminToolsAbsensiRouteChildren,
+  )
+
+interface AuthenticatedAdminToolsRouteChildren {
+  AuthenticatedAdminToolsAbsensiRoute: typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+}
+
+const AuthenticatedAdminToolsRouteChildren: AuthenticatedAdminToolsRouteChildren =
+  {
+    AuthenticatedAdminToolsAbsensiRoute:
+      AuthenticatedAdminToolsAbsensiRouteWithChildren,
+  }
+
+const AuthenticatedAdminToolsRouteWithChildren =
+  AuthenticatedAdminToolsRoute._addFileChildren(
+    AuthenticatedAdminToolsRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminAksesRoute: typeof AuthenticatedAdminAksesRoute
@@ -901,8 +1010,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminPluginRoute: typeof AuthenticatedAdminPluginRoute
   AuthenticatedAdminProjectRoute: typeof AuthenticatedAdminProjectRoute
   AuthenticatedAdminProjectProgressRoute: typeof AuthenticatedAdminProjectProgressRoute
+  AuthenticatedAdminQrisRoute: typeof AuthenticatedAdminQrisRoute
   AuthenticatedAdminTiketRoute: typeof AuthenticatedAdminTiketRoute
-  AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRoute
+  AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRouteWithChildren
   AuthenticatedAdminTutorialRoute: typeof AuthenticatedAdminTutorialRoute
   AuthenticatedAdminUkerRoute: typeof AuthenticatedAdminUkerRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -929,8 +1039,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminProjectRoute: AuthenticatedAdminProjectRoute,
   AuthenticatedAdminProjectProgressRoute:
     AuthenticatedAdminProjectProgressRoute,
+  AuthenticatedAdminQrisRoute: AuthenticatedAdminQrisRoute,
   AuthenticatedAdminTiketRoute: AuthenticatedAdminTiketRoute,
-  AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRoute,
+  AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRouteWithChildren,
   AuthenticatedAdminTutorialRoute: AuthenticatedAdminTutorialRoute,
   AuthenticatedAdminUkerRoute: AuthenticatedAdminUkerRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
@@ -952,6 +1063,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
   AbsenTokenRoute: AbsenTokenRoute,
+  AbsensiSlugRoute: AbsensiSlugRoute,
   DetailKeyRoute: DetailKeyRoute,
   EventIdRoute: EventIdRoute,
   ProjectIdRoute: ProjectIdRoute,
