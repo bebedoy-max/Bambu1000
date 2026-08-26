@@ -32,6 +32,7 @@ import {
   removeAbsensiAdmin,
   saveAbsensiEvent,
 } from "@/lib/absensi.functions";
+import { DatePickerField } from "@/components/DatePickerField";
 
 export const Route = createFileRoute("/_authenticated/admin/tools/absensi/$id")({
   head: () => ({
@@ -201,10 +202,9 @@ function Page() {
               </div>
               <div>
                 <Label>Tanggal Acara</Label>
-                <Input
-                  type="date"
+                <DatePickerField
                   value={settings.eventDate}
-                  onChange={(e) => update("eventDate", e.target.value)}
+                  onChange={(v) => update("eventDate", v)}
                 />
               </div>
               <div>
@@ -278,6 +278,30 @@ function Page() {
                   className="w-full"
                   value={settings.logoRightSize}
                   onChange={(e) => update("logoRightSize", Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <Label>Posisi vertikal logo kiri: {settings.logoLeftTop}px</Label>
+                <input
+                  type="range"
+                  min={0}
+                  max={240}
+                  step={2}
+                  className="w-full"
+                  value={settings.logoLeftTop}
+                  onChange={(e) => update("logoLeftTop", Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <Label>Posisi vertikal logo kanan: {settings.logoRightTop}px</Label>
+                <input
+                  type="range"
+                  min={0}
+                  max={240}
+                  step={2}
+                  className="w-full"
+                  value={settings.logoRightTop}
+                  onChange={(e) => update("logoRightTop", Number(e.target.value))}
                 />
               </div>
             </div>

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/face";
 import { EventPhotoGrid } from "@/components/EventPhotoGrid";
+import { DatePickerField } from "@/components/DatePickerField";
 
 type EventRow = {
   id: string;
@@ -99,12 +100,11 @@ export function EventGalleryBrowser() {
               className="w-56 pl-9"
             />
           </div>
-          <Input
-            type="date"
+          <DatePickerField
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={setDate}
             className="w-44"
-            aria-label="Filter tanggal event"
+            placeholder="Filter tanggal"
           />
         </div>
       </div>

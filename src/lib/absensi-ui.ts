@@ -19,6 +19,8 @@ export type AbsensiSettings = {
   logoRight: string | null;
   logoLeftSize: number;
   logoRightSize: number;
+  logoLeftTop: number;
+  logoRightTop: number;
   background: string | null;
   cardBackground: string | null;
   themeColor: string;

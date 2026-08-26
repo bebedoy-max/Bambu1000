@@ -255,7 +255,7 @@ function AbsensiPage() {
         {settings.logoLeft && (
           <img
             className="corner-logo corner-logo-left"
-            style={{ width: settings.logoLeftSize || 136, height: settings.logoLeftSize || 136 }}
+            style={{ width: settings.logoLeftSize || 136, height: settings.logoLeftSize || 136, top: settings.logoLeftTop ?? 14 }}
             src={settings.logoLeft}
             alt="Logo kiri"
           />
@@ -263,20 +263,19 @@ function AbsensiPage() {
         {settings.logoRight && (
           <img
             className="corner-logo corner-logo-right"
-            style={{ width: settings.logoRightSize || 136, height: settings.logoRightSize || 136 }}
+            style={{ width: settings.logoRightSize || 136, height: settings.logoRightSize || 136, top: settings.logoRightTop ?? 14 }}
             src={settings.logoRight}
             alt="Logo kanan"
           />
         )}
         <div className="card-wrap">
           <div className="header-block">
-            <div className="logo-circle">
-              {settings.logo ? (
-                <img src={settings.logo} alt="Logo acara" />
-              ) : (
-                (settings.officeName || "B").charAt(0)
-              )}
-            </div>
+            {settings.logo ? (
+              <img className="logo-free" src={settings.logo} alt="Logo acara" />
+            ) : (
+              <div className="logo-circle">{(settings.officeName || "B").charAt(0)}</div>
+            )}
+
             <h1 className="event-title">{settings.eventName}</h1>
             <p className="event-sub">
               {settings.officeName} &middot; {formatDateID(settings.eventDate)}

@@ -31,6 +31,8 @@ export function toSettings(row: AbsensiEventRow): AbsensiSettings {
     logoRight: row["logo_right"] ?? null,
     logoLeftSize: Number(row["logo_left_size"] ?? 136),
     logoRightSize: Number(row["logo_right_size"] ?? 136),
+    logoLeftTop: Number(row["logo_left_top"] ?? 14),
+    logoRightTop: Number(row["logo_right_top"] ?? 14),
     background: row["background"] ?? null,
     cardBackground: row["card_background"] ?? null,
     themeColor: String(row["theme_color"] ?? "gold"),
@@ -121,6 +123,8 @@ export async function saveEvent(payload: SavePayload, userId: string) {
     logo_right: payload.logoRight,
     logo_left_size: payload.logoLeftSize,
     logo_right_size: payload.logoRightSize,
+    logo_left_top: payload.logoLeftTop,
+    logo_right_top: payload.logoRightTop,
     background: payload.background,
     card_background: payload.cardBackground,
     theme_color: payload.themeColor,
@@ -129,16 +133,37 @@ export async function saveEvent(payload: SavePayload, userId: string) {
     is_open: payload.isOpen,
     updated_at: new Date().toISOString(),
   };
+  /** Kolom opsional (belum tentu ada di database lama) — dilepas bila ditolak. */
+  const optional = ["logo_left_top", "logo_right_top"];
+  const missingColumn = (msg?: string) =>
+    !!msg && optional.some((c) => msg.includes(c)) && /column|schema cache/i.test(msg);
+  const stripped = () => {
+    const r = { ...row };
+    for (const c of optional) delete r[c];
+    return r;
+  };
+
   if (payload.id) {
-    const { error } = await db.from("absensi_events").update(row).eq("id", payload.id);
+    let { error } = await db.from("absensi_events").update(row).eq("id", payload.id);
+    if (error && missingColumn(error.message)) {
+      ({ error } = await db.from("absensi_events").update(stripped()).eq("id", payload.id));
+    }
     if (error) throw new Error(error.message);
     return payload.id;
   }
   row["created_by"] = userId;
-  const { data, error } = await db.from("absensi_events").insert(row).select("id").maybeSingle();
+  let { data, error } = await db.from("absensi_events").insert(row).select("id").maybeSingle();
+  if (error && missingColumn(error.message)) {
+    ({ data, error } = await db
+      .from("absensi_events")
+      .insert({ ...stripped(), created_by: userId })
+      .select("id")
+      .maybeSingle());
+  }
   if (error) throw new Error(error.message);
   return String(data?.id);
 }
+
 
 export async function deleteEvent(id: string) {
   const db = await admin();
