@@ -4,10 +4,6 @@ import { AdminLayout, AccessDenied } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAccess } from "@/lib/access";
-import {
-  WINDOWS_INSTALLER_BASE64,
-  WINDOWS_INSTALLER_NAME,
-} from "@/lib/windows-installer";
 
 /** Aplikasi bawaan yang sudah dipaketkan bersama panel. */
 const builtInApp = {
@@ -21,7 +17,7 @@ const builtInApp = {
   downloads: [
     {
       label: "Windows",
-      url: "/downloads/SuperITEventUploader-1.2.14-Windows.zip",
+      url: "/api/public/companion/installer",
       hint: "Jalankan Install-Windows.bat, atau Build-EXE-Windows.bat untuk membuat .exe standalone",
     },
     {
@@ -56,18 +52,6 @@ export const Route = createFileRoute("/_authenticated/admin/plugin")({
 function Page() {
   const access = useAccess();
 
-  const downloadWindowsInstaller = () => {
-    const binary = window.atob(WINDOWS_INSTALLER_BASE64);
-    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-    const objectUrl = URL.createObjectURL(new Blob([bytes], { type: "application/zip" }));
-    const anchor = document.createElement("a");
-    anchor.href = objectUrl;
-    anchor.download = WINDOWS_INSTALLER_NAME;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(objectUrl);
-  };
 
   return (
     <AdminLayout>
@@ -103,22 +87,16 @@ function Page() {
               </span>
               <div className="flex flex-wrap items-center gap-2">
                 {builtInApp.downloads.map((d) => (
-                  d.label === "Windows" ? (
-                    <Button
-                      key={d.label}
-                      size="sm"
-                      title={d.hint}
-                      onClick={downloadWindowsInstaller}
-                    >
+                  <Button
+                    key={d.label}
+                    asChild
+                    size="sm"
+                    variant={d.label === "Windows" ? "default" : "secondary"}
+                  >
+                    <a href={d.url} download title={d.hint}>
                       <Download className="size-4" /> Installer {d.label}
-                    </Button>
-                  ) : (
-                    <Button key={d.label} asChild size="sm" variant="secondary">
-                      <a href={d.url} download title={d.hint}>
-                        <Download className="size-4" /> Installer {d.label}
-                      </a>
-                    </Button>
-                  )
+                    </a>
+                  </Button>
                 ))}
               </div>
             </div>

@@ -48,6 +48,7 @@ import { Route as AuthenticatedAdminEventIdRouteImport } from './routes/_authent
 import { Route as ApiPublicCompanionDeleteEventRouteImport } from './routes/api/public/companion/delete-event'
 import { Route as ApiPublicCompanionDriveStatusRouteImport } from './routes/api/public/companion/drive-status'
 import { Route as ApiPublicCompanionFinalizeRouteImport } from './routes/api/public/companion/finalize'
+import { Route as ApiPublicCompanionInstallerRouteImport } from './routes/api/public/companion/installer'
 import { Route as ApiPublicCompanionUploadRouteImport } from './routes/api/public/companion/upload'
 import { Route as ApiPublicCompanionUploadUrlRouteImport } from './routes/api/public/companion/upload-url'
 import { Route as ApiPublicGoogleDriveCallbackRouteImport } from './routes/api/public/google-drive/callback'
@@ -260,6 +261,12 @@ const ApiPublicCompanionFinalizeRoute =
     path: '/api/public/companion/finalize',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCompanionInstallerRoute =
+  ApiPublicCompanionInstallerRouteImport.update({
+    id: '/api/public/companion/installer',
+    path: '/api/public/companion/installer',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCompanionUploadRoute =
   ApiPublicCompanionUploadRouteImport.update({
     id: '/api/public/companion/upload',
@@ -317,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
+  '/api/public/companion/installer': typeof ApiPublicCompanionInstallerRoute
   '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
   '/api/public/companion/upload-url': typeof ApiPublicCompanionUploadUrlRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
@@ -360,6 +368,7 @@ export interface FileRoutesByTo {
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
+  '/api/public/companion/installer': typeof ApiPublicCompanionInstallerRoute
   '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
   '/api/public/companion/upload-url': typeof ApiPublicCompanionUploadUrlRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
@@ -405,6 +414,7 @@ export interface FileRoutesById {
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
+  '/api/public/companion/installer': typeof ApiPublicCompanionInstallerRoute
   '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
   '/api/public/companion/upload-url': typeof ApiPublicCompanionUploadUrlRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
@@ -450,6 +460,7 @@ export interface FileRouteTypes {
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
+    | '/api/public/companion/installer'
     | '/api/public/companion/upload'
     | '/api/public/companion/upload-url'
     | '/api/public/google-drive/callback'
@@ -493,6 +504,7 @@ export interface FileRouteTypes {
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
+    | '/api/public/companion/installer'
     | '/api/public/companion/upload'
     | '/api/public/companion/upload-url'
     | '/api/public/google-drive/callback'
@@ -537,6 +549,7 @@ export interface FileRouteTypes {
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
+    | '/api/public/companion/installer'
     | '/api/public/companion/upload'
     | '/api/public/companion/upload-url'
     | '/api/public/google-drive/callback'
@@ -559,6 +572,7 @@ export interface RootRouteChildren {
   ApiPublicCompanionDeleteEventRoute: typeof ApiPublicCompanionDeleteEventRoute
   ApiPublicCompanionDriveStatusRoute: typeof ApiPublicCompanionDriveStatusRoute
   ApiPublicCompanionFinalizeRoute: typeof ApiPublicCompanionFinalizeRoute
+  ApiPublicCompanionInstallerRoute: typeof ApiPublicCompanionInstallerRoute
   ApiPublicCompanionUploadRoute: typeof ApiPublicCompanionUploadRoute
   ApiPublicCompanionUploadUrlRoute: typeof ApiPublicCompanionUploadUrlRoute
   ApiPublicGoogleDriveCallbackRoute: typeof ApiPublicGoogleDriveCallbackRoute
@@ -839,6 +853,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCompanionFinalizeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/companion/installer': {
+      id: '/api/public/companion/installer'
+      path: '/api/public/companion/installer'
+      fullPath: '/api/public/companion/installer'
+      preLoaderRoute: typeof ApiPublicCompanionInstallerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/companion/upload': {
       id: '/api/public/companion/upload'
       path: '/api/public/companion/upload'
@@ -937,6 +958,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCompanionDeleteEventRoute: ApiPublicCompanionDeleteEventRoute,
   ApiPublicCompanionDriveStatusRoute: ApiPublicCompanionDriveStatusRoute,
   ApiPublicCompanionFinalizeRoute: ApiPublicCompanionFinalizeRoute,
+  ApiPublicCompanionInstallerRoute: ApiPublicCompanionInstallerRoute,
   ApiPublicCompanionUploadRoute: ApiPublicCompanionUploadRoute,
   ApiPublicCompanionUploadUrlRoute: ApiPublicCompanionUploadUrlRoute,
   ApiPublicGoogleDriveCallbackRoute: ApiPublicGoogleDriveCallbackRoute,
