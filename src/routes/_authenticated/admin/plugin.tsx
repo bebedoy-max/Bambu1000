@@ -12,20 +12,21 @@ import {
 /** Aplikasi bawaan yang sudah dipaketkan bersama panel. */
 const builtInApp = {
   name: "SuperIT Event Uploader",
-  version: "1.2.8",
+  version: "1.2.12",
   description:
     "Aplikasi desktop pemroses foto event: sinkron wajah master, deteksi & pencocokan wajah, rename otomatis, upload ke Google Drive panel, lalu simpan hasilnya ke panel.",
   changelog:
-    "- Unggah foto event kini dikirim langsung ke Google Drive (resumable upload), sehingga foto besar dari HP tidak lagi gagal dengan error 413 Request Entity Too Large\n- Deteksi wajah master dibuat lebih toleran untuk foto kecil/kompresi berat: EXIF rotation dibaca, kontras diperbaiki, threshold deteksi diturunkan, dicoba rotasi, upscale, dan crop scan untuk wajah yang jauh\n- Perbaikan installer Windows: struktur folder aplikasi kini konsisten dan divalidasi sebelum instalasi\n- Sinkron wajah master: foto dengan lebih dari satu wajah kini memakai wajah utama\n- Perbaikan akses event: role it_admin kini dapat membuat, mengubah, dan menghapus event sesuai policy RLS terbaru\n- Paket Windows dibuat ulang sebagai ZIP standar tanpa trailing data dan memakai nama versi baru agar cache file rusak tidak terpakai\n- Perbaikan error \"'NoneType' object has no attribute 'write'\" saat memuat model face recognition di Windows (pythonw tanpa konsol)\n- Log runtime disimpan di ~/.superit-event-uploader-logs/runtime.log\n- Pesan error kini menampilkan jenis error, tidak lagi \"None\"\n- Google Drive otomatis memakai akun Drive aktif di web app — client_secret.json tidak diperlukan\n- Admin cukup login dengan akun panel (email & password)\n- Installer memilih Python 3.10–3.12 otomatis, instalasi tanpa cache pip\n- Tampilan mengikuti tema panel (Dark Blue Metallic)\n- Rename EVT-{event_id}_{personal_number}_{nama_asli}, progress bar, resume-safe",
+    "- Perbaikan wheel InsightFace standalone: modul mask/mesh 3D opsional tidak lagi dimuat saat FaceAnalysis dijalankan, sehingga EXE tidak gagal karena mesh_core_cython\n- Instalasi Windows menyertakan wheel InsightFace siap pakai dan mengunci dependensi kompatibel; pip tidak mengompilasi stringzilla/InsightFace dan tidak memerlukan Visual Studio Build Tools\n- Build EXE otomatis memilih Python 3.11/3.12 64-bit dan berhenti dengan pesan BUILD GAGAL bila EXE belum terbentuk\n- Paket menyertakan Build-EXE-Windows.bat + SuperITEventUploader.spec: jalankan sekali di satu PC Windows untuk menghasilkan SuperITEventUploader.exe standalone yang tinggal dicopy ke PC lain tanpa perlu Python\n- Unggah foto event dikirim langsung ke Google Drive (resumable upload), sehingga foto besar dari HP tidak gagal dengan error 413 Request Entity Too Large\n- Deteksi wajah master lebih toleran untuk foto kecil/kompresi berat: EXIF rotation dibaca, kontras diperbaiki, threshold deteksi diturunkan, dicoba rotasi, upscale, dan crop scan untuk wajah yang jauh\n- Perbaikan akses event: role it_admin dapat membuat, mengubah, dan menghapus event sesuai policy RLS terbaru\n- Google Drive otomatis memakai akun Drive aktif di web app — client_secret.json tidak diperlukan",
+
   downloads: [
     {
       label: "Windows",
-      url: "/downloads/SuperITEventUploader-1.2.8-Windows.zip",
-      hint: "Jalankan Install-Windows.bat",
+      url: "/downloads/SuperITEventUploader-1.2.12-Windows.zip",
+      hint: "Jalankan Install-Windows.bat, atau Build-EXE-Windows.bat untuk membuat .exe standalone",
     },
     {
       label: "macOS",
-      url: "/downloads/SuperITEventUploader-1.2.8-macOS.zip",
+      url: "/downloads/SuperITEventUploader-1.2.12-macOS.zip",
       hint: "Jalankan Install-macOS.command",
     },
   ],
@@ -35,12 +36,12 @@ const builtInApp = {
 export const Route = createFileRoute("/_authenticated/admin/plugin")({
   head: () => ({
     meta: [
-      { title: "SuperIT Plug In — Panel BRI BO Pringsewu" },
+      { title: "Apps Ext — Panel BRI BO Pringsewu" },
       {
         name: "description",
         content: "Unduh aplikasi companion dan plugin pendukung panel SuperIT.",
       },
-      { property: "og:title", content: "SuperIT Plug In — Panel BRI BO Pringsewu" },
+      { property: "og:title", content: "Apps Ext — Panel BRI BO Pringsewu" },
       {
         property: "og:description",
         content: "Daftar aplikasi companion dan plugin pendukung panel SuperIT.",
@@ -75,7 +76,7 @@ function Page() {
       ) : (
         <div className="space-y-5">
           <div>
-            <h1 className="text-2xl font-bold">SuperIT Plug In</h1>
+            <h1 className="text-2xl font-bold">Apps Ext</h1>
             <p className="text-sm text-muted-foreground">
               Aplikasi tambahan pendukung panel: companion app pemroses foto event dan plugin
               lainnya.

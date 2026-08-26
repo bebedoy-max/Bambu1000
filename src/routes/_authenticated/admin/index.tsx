@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { AdminLayout } from "@/components/AdminLayout";
 import { StatCard } from "@/components/StatCard";
 import { ProjectSummary } from "@/components/ProjectSummary";
+import { EventSummary } from "@/components/EventSummary";
 import { useRoles } from "@/lib/roles";
 
 const db = supabase as unknown as SupabaseClient;
@@ -81,12 +82,27 @@ function Page() {
           hint="Project berjalan"
           detailKey="project"
         />
-        <StatCard label="Event" value={s?.events ?? "—"} icon={CalendarDays} />
+        <StatCard
+          label="Event"
+          value={s?.events ?? "—"}
+          icon={CalendarDays}
+          hint="Acara & kegiatan"
+          detailKey="event"
+        />
         <StatCard label="Tiket IT" value={s?.tickets ?? "—"} icon={LifeBuoy} />
       </div>
       <section className="mt-8">
-        <h2 className="mb-4 text-lg font-semibold">Intisari Project IT</h2>
+        <h2 className="event-title-glow mb-4 text-lg">Project IT</h2>
         <ProjectSummary />
+      </section>
+
+      <section className="mt-10 border-t border-border/60 pt-8">
+        <h2 className="event-title-glow mb-1 text-lg">The Event's BRI BO Pringsewu</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Galery foto acara dan kegiatan BRI Branch Office Pringsewu.
+        </p>
+
+        <EventSummary linkToAdmin />
       </section>
     </AdminLayout>
   );

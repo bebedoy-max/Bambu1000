@@ -19,6 +19,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as AbsenTokenRouteImport } from './routes/absen.$token'
 import { Route as DetailKeyRouteImport } from './routes/detail.$key'
+import { Route as EventIdRouteImport } from './routes/event.$id'
 import { Route as ProjectIdRouteImport } from './routes/project.$id'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAksesRouteImport } from './routes/_authenticated/admin/akses'
@@ -44,6 +45,7 @@ import { Route as AuthenticatedAdminUkerRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminEventIndexRouteImport } from './routes/_authenticated/admin/event/index'
 import { Route as AuthenticatedAdminEventIdRouteImport } from './routes/_authenticated/admin/event/$id'
+import { Route as ApiPublicCompanionDeleteEventRouteImport } from './routes/api/public/companion/delete-event'
 import { Route as ApiPublicCompanionDriveStatusRouteImport } from './routes/api/public/companion/drive-status'
 import { Route as ApiPublicCompanionFinalizeRouteImport } from './routes/api/public/companion/finalize'
 import { Route as ApiPublicCompanionUploadRouteImport } from './routes/api/public/companion/upload'
@@ -97,6 +99,11 @@ const AbsenTokenRoute = AbsenTokenRouteImport.update({
 const DetailKeyRoute = DetailKeyRouteImport.update({
   id: '/detail/$key',
   path: '/detail/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventIdRoute = EventIdRouteImport.update({
+  id: '/event/$id',
+  path: '/event/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectIdRoute = ProjectIdRouteImport.update({
@@ -235,6 +242,12 @@ const AuthenticatedAdminEventIdRoute =
     path: '/admin/event/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicCompanionDeleteEventRoute =
+  ApiPublicCompanionDeleteEventRouteImport.update({
+    id: '/api/public/companion/delete-event',
+    path: '/api/public/companion/delete-event',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCompanionDriveStatusRoute =
   ApiPublicCompanionDriveStatusRouteImport.update({
     id: '/api/public/companion/drive-status',
@@ -276,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/detail/$key': typeof DetailKeyRoute
+  '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
@@ -300,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
   '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
@@ -317,6 +332,7 @@ export interface FileRoutesByTo {
   '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/detail/$key': typeof DetailKeyRoute
+  '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
@@ -341,6 +357,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
   '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
@@ -360,6 +377,7 @@ export interface FileRoutesById {
   '/terms-of-service': typeof TermsOfServiceRoute
   '/absen/$token': typeof AbsenTokenRoute
   '/detail/$key': typeof DetailKeyRoute
+  '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
   '/_authenticated/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/_authenticated/admin/approval': typeof AuthenticatedAdminApprovalRoute
@@ -384,6 +402,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
   '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
@@ -403,6 +422,7 @@ export interface FileRouteTypes {
     | '/terms-of-service'
     | '/absen/$token'
     | '/detail/$key'
+    | '/event/$id'
     | '/project/$id'
     | '/admin/akses'
     | '/admin/approval'
@@ -427,6 +447,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/'
     | '/admin/event/$id'
+    | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
     | '/api/public/companion/upload'
@@ -444,6 +465,7 @@ export interface FileRouteTypes {
     | '/terms-of-service'
     | '/absen/$token'
     | '/detail/$key'
+    | '/event/$id'
     | '/project/$id'
     | '/admin/akses'
     | '/admin/approval'
@@ -468,6 +490,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin'
     | '/admin/event/$id'
+    | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
     | '/api/public/companion/upload'
@@ -486,6 +509,7 @@ export interface FileRouteTypes {
     | '/terms-of-service'
     | '/absen/$token'
     | '/detail/$key'
+    | '/event/$id'
     | '/project/$id'
     | '/_authenticated/admin/akses'
     | '/_authenticated/admin/approval'
@@ -510,6 +534,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/event/$id'
+    | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
     | '/api/public/companion/upload'
@@ -529,7 +554,9 @@ export interface RootRouteChildren {
   TermsOfServiceRoute: typeof TermsOfServiceRoute
   AbsenTokenRoute: typeof AbsenTokenRoute
   DetailKeyRoute: typeof DetailKeyRoute
+  EventIdRoute: typeof EventIdRoute
   ProjectIdRoute: typeof ProjectIdRoute
+  ApiPublicCompanionDeleteEventRoute: typeof ApiPublicCompanionDeleteEventRoute
   ApiPublicCompanionDriveStatusRoute: typeof ApiPublicCompanionDriveStatusRoute
   ApiPublicCompanionFinalizeRoute: typeof ApiPublicCompanionFinalizeRoute
   ApiPublicCompanionUploadRoute: typeof ApiPublicCompanionUploadRoute
@@ -607,6 +634,13 @@ declare module '@tanstack/react-router' {
       path: '/detail/$key'
       fullPath: '/detail/$key'
       preLoaderRoute: typeof DetailKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/event/$id': {
+      id: '/event/$id'
+      path: '/event/$id'
+      fullPath: '/event/$id'
+      preLoaderRoute: typeof EventIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/project/$id': {
@@ -784,6 +818,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEventIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/companion/delete-event': {
+      id: '/api/public/companion/delete-event'
+      path: '/api/public/companion/delete-event'
+      fullPath: '/api/public/companion/delete-event'
+      preLoaderRoute: typeof ApiPublicCompanionDeleteEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/companion/drive-status': {
       id: '/api/public/companion/drive-status'
       path: '/api/public/companion/drive-status'
@@ -891,7 +932,9 @@ const rootRouteChildren: RootRouteChildren = {
   TermsOfServiceRoute: TermsOfServiceRoute,
   AbsenTokenRoute: AbsenTokenRoute,
   DetailKeyRoute: DetailKeyRoute,
+  EventIdRoute: EventIdRoute,
   ProjectIdRoute: ProjectIdRoute,
+  ApiPublicCompanionDeleteEventRoute: ApiPublicCompanionDeleteEventRoute,
   ApiPublicCompanionDriveStatusRoute: ApiPublicCompanionDriveStatusRoute,
   ApiPublicCompanionFinalizeRoute: ApiPublicCompanionFinalizeRoute,
   ApiPublicCompanionUploadRoute: ApiPublicCompanionUploadRoute,

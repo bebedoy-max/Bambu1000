@@ -449,14 +449,41 @@ class App(tk.Tk):
         ok = messagebox.askyesno(
             APP_NAME,
             f"Hapus event \"{event.get('nama_event')}\"?\n\n"
-            "Foto event dan data absensi yang terkait ikut terhapus. "
-            "Tindakan ini tidak bisa dibatalkan.",
+            "Semua data event, foto di web app, serta folder & foto event di Google Drive "
+            "akan ikut terhapus. Tindakan ini tidak bisa dibatalkan.",
+
         )
         if not ok:
             return
         self.run_bg(lambda: self.delete_event(event))
 
     def delete_event(self, event: Dict[str, str]) -> None:
+        try:
+            file_ids = self.backend.event_photo_file_ids(event["id"])
+        except Exception:  # noqa: BLE001
+            file_ids = []
+        try:
+            if self.drive is None:
+                self.drive = Drive(self.cfg.panel_url, lambda: self.backend.token())
+            if self.drive:
+
+                self.log("Menghapus folder & foto event di Google Drive…")
+                info = self.drive.delete_event_folder(str(event.get("nama_event") or ""), file_ids)
+                self.log(
+                    f"Drive dibersihkan (file: {info.get('deletedFiles', 0)}, "
+                    f"folder: {'ya' if info.get('folderDeleted') else 'tidak'})."
+                )
+        except Exception as err:  # noqa: BLE001
+            self.log(f"Gagal hapus di Google Drive: {err}")
+            self.after(
+                0,
+                lambda: messagebox.showerror(
+                    APP_NAME,
+                    f"Folder event di Google Drive gagal dihapus:\n{err}\n\n"
+                    "Data event tidak dihapus agar tidak ada foto tertinggal.",
+                ),
+            )
+            return
         try:
             self.backend.delete_event(event["id"])
         except PermissionError as err:
@@ -469,6 +496,7 @@ class App(tk.Tk):
         self.log(f"Event dihapus: {event.get('nama_event')}")
         self.v_event.set("")
         self.reload_events()
+
 
     def pick_files(self) -> None:
         paths = filedialog.askopenfilenames(

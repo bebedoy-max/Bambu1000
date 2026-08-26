@@ -146,10 +146,22 @@ class Backend:
             res = self.client.table("events").insert(payload).execute()
         return (res.data or [{}])[0]
 
+    def event_photo_file_ids(self, event_id: str) -> List[str]:
+        """Semua drive_file_id foto milik satu event (untuk dihapus di Drive)."""
+        res = (
+            self.client.table("event_photos")
+            .select("drive_file_id")
+            .eq("event_id", event_id)
+            .limit(5000)
+            .execute()
+        )
+        return [r["drive_file_id"] for r in (res.data or []) if r.get("drive_file_id")]
+
     def delete_event(self, event_id: str) -> None:
         """Hapus event beserta foto & absensinya (FK ON DELETE CASCADE)."""
         self.require_event_admin()
         self.client.table("events").delete().eq("id", event_id).execute()
+
 
     def set_event_folder(self, event_id: str, folder_id: str) -> None:
         self.client.table("events").update({"drive_folder_id": folder_id}).eq(

@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { PublicLayout } from "@/components/PublicLayout";
 import { StatCard } from "@/components/StatCard";
 import { ProjectSummary } from "@/components/ProjectSummary";
+import { EventSummary } from "@/components/EventSummary";
 import { Button } from "@/components/ui/button";
 import { AuthSplash } from "@/components/AuthSplash";
 import { clearPostLogin, POST_LOGIN_TARGET } from "@/lib/post-login";
@@ -89,6 +90,7 @@ function Index() {
       edc: await count("edc_machines"),
       employees: await count("employees"),
       projects: await count("projects"),
+      events: await count("events"),
     }),
   });
 
@@ -99,7 +101,9 @@ function Index() {
     { label: "Mesin EDC", value: stats.data?.edc ?? "—", icon: CreditCard, hint: "Merchant terpasang", detailKey: "edc" },
     { label: "Pegawai", value: stats.data?.employees ?? "—", icon: Users, hint: "Seluruh unit kerja", detailKey: "pegawai" },
     { label: "Project IT", value: stats.data?.projects ?? "—", icon: CalendarDays, hint: "Project berjalan", detailKey: "project" },
+    { label: "Event", value: stats.data?.events ?? "—", icon: CalendarDays, hint: "Acara & kegiatan", detailKey: "event" },
   ];
+
 
   if (redirecting) return <AuthSplash label="Menyiapkan panel Anda..." />;
 
@@ -133,9 +137,18 @@ function Index() {
       </div>
 
       <section className="mt-8">
-        <h2 className="mb-4 text-lg font-semibold">Project IT Berjalan</h2>
+        <h2 className="event-title-glow mb-4 text-lg">Project IT</h2>
         <ProjectSummary limit={4} />
       </section>
+
+      <section className="mt-10 border-t border-border/60 pt-8">
+        <h2 className="event-title-glow mb-1 text-lg">The Event's BRI BO Pringsewu</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Galery foto acara dan kegiatan BRI Branch Office Pringsewu.
+        </p>
+        <EventSummary limit={6} />
+      </section>
+
     </PublicLayout>
   );
 }

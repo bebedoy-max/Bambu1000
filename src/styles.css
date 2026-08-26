@@ -196,6 +196,17 @@
 
 
 
+@utility event-title-glow {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: oklch(0.97 0.02 250);
+  text-shadow:
+    0 0 6px oklch(0.58 0.13 248 / 80%),
+    0 0 18px oklch(0.58 0.13 248 / 55%),
+    0 0 36px oklch(0.72 0.09 226 / 40%);
+}
+
 @utility gradient-text {
   background-image: var(--gradient-brand);
   background-clip: text;

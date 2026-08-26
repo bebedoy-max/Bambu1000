@@ -1,3 +1,3 @@
 """SuperIT Event Uploader — pemroses foto event berbasis face recognition."""
 
-__version__ = "1.2.8"
+__version__ = "1.2.13"

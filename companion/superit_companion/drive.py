@@ -101,7 +101,25 @@ class Drive:
             break
         raise RuntimeError(f"Gagal unggah {os.path.basename(local_path)}: {last}")
 
+    # ---------- hapus ----------
+    def delete_event_folder(self, folder_name: str, file_ids: list | None = None) -> dict:
+        """Hapus folder event beserta seluruh fotonya di Google Drive."""
+        res = requests.post(
+            f"{self.base}/api/public/companion/delete-event",
+            json={"subfolder": folder_name, "fileIds": file_ids or []},
+            headers=self._headers(),
+            timeout=300,
+        )
+        if res.status_code == 404:
+            raise RuntimeError(
+                "Web app belum mendukung hapus folder Drive. Perbarui web app terlebih dahulu."
+            )
+        if not res.ok:
+            raise RuntimeError(f"Gagal hapus folder Drive: [{res.status_code}] {res.text[:300]}")
+        return res.json()
+
     def _finalize(self, file_id: str) -> None:
+
         try:
             requests.post(
                 f"{self.base}/api/public/companion/finalize",

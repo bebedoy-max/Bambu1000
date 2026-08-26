@@ -130,7 +130,23 @@ export const publicDetails: PublicDetailConfig[] = [
       { key: "__progress", label: "Pencapaian", type: "progress", mobileOnly: true },
     ],
   },
+  {
+    slug: "event",
+    menuKey: "foto",
+    title: "Event & Kegiatan",
+    description: "Daftar acara dan kegiatan BRI Branch Office Pringsewu.",
+    table: "events",
+    orderBy: "nama_event",
+    nameColumn: "nama_event",
+    mobileColumns: ["nama_event", "tanggal_mulai"],
+    columns: [
+      { key: "nama_event", label: "Nama Event", type: "link", linkTo: "/event/$id", linkParamField: "id", linkParamName: "id" },
+      { key: "deskripsi", label: "Deskripsi" },
+      { key: "tanggal_mulai", label: "Tanggal" },
+    ],
+  },
 ];
+
 
 export function findPublicDetail(slug: string) {
   return publicDetails.find((d) => d.slug === slug);

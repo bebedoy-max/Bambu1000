@@ -113,7 +113,7 @@ export function EventGalleryBrowser() {
         <Info className="mt-0.5 size-4 shrink-0" />
         <p>
           Unggah dan pemrosesan foto event kini dilakukan lewat aplikasi companion SuperIT (lihat
-          menu <strong>SuperIT Plug In</strong>). Halaman ini hanya menampilkan hasilnya.
+          menu <strong>Apps Ext</strong>). Halaman ini hanya menampilkan hasilnya.
         </p>
       </div>
 

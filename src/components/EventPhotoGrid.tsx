@@ -1,11 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, ImageOff } from "lucide-react";
 import { db, driveFull, driveThumb, type EventPhoto } from "@/lib/face";
+import { getPublicEventPhotoPage } from "@/lib/public-events.functions";
 
 const PAGE_SIZE = 48;
+
+/** Buang prefix teknis "EVT-<uuid>-<angka>_" dari nama file agar judul rapi. */
+function cleanFileName(name?: string | null) {
+  if (!name) return "Foto event";
+  const cleaned = name.replace(/^EVT-[0-9a-fA-F-]{36}[-\d]*_/, "").replace(/^[-\d]+_/, "");
+  return cleaned || name;
+}
 
 /**
  * Grid galeri foto event (thumbnail Drive + infinite scroll).
@@ -14,19 +23,32 @@ const PAGE_SIZE = 48;
 export function EventPhotoGrid({
   eventId,
   workerId,
+  publicAccess = false,
   emptyText = "Belum ada foto.",
 }: {
   eventId?: string;
   workerId?: string;
+  publicAccess?: boolean;
   emptyText?: string;
 }) {
   const [preview, setPreview] = useState<EventPhoto | null>(null);
   const sentinel = useRef<HTMLDivElement | null>(null);
+  const publicPhotoPage = useServerFn(getPublicEventPhotoPage);
 
   const q = useInfiniteQuery({
-    queryKey: ["event-photo-grid", eventId ?? null, workerId ?? null],
+    queryKey: ["event-photo-grid", eventId ?? null, workerId ?? null, publicAccess],
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
+      if (publicAccess) {
+        const payload: { offset: number; limit: number; eventId?: string } = {
+          offset: pageParam as number,
+          limit: PAGE_SIZE,
+        };
+        if (eventId) payload.eventId = eventId;
+        return (await publicPhotoPage({
+          data: payload,
+        })) as EventPhoto[];
+      }
       let query = db
         .from("event_photos")
         .select("id,event_id,drive_file_id,drive_view_link,file_name,matched_worker_ids,processed_at")
@@ -96,8 +118,8 @@ export function EventPhotoGrid({
       <Dialog open={!!preview} onOpenChange={(v) => !v && setPreview(null)}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="truncate text-base">
-              {preview?.file_name ?? "Foto event"}
+            <DialogTitle className="truncate text-base" title={preview?.file_name ?? undefined}>
+              {cleanFileName(preview?.file_name)}
             </DialogTitle>
           </DialogHeader>
           {preview ? (

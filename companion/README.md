@@ -1,4 +1,4 @@
-# SuperIT Event Uploader v1.2.8
+# SuperIT Event Uploader v1.2.12
 
 Aplikasi desktop pendamping panel SuperIT. Semua proses face recognition
 (deteksi wajah, embedding 512 dimensi, pencocokan) berjalan di sini —
@@ -10,7 +10,7 @@ sehingga user cukup login memakai akun admin panel.
 
 ## Prasyarat
 
-1. Python 3.10–3.12 (Windows/macOS/Linux).
+1. Python 3.11–3.12 64-bit (Python 3.11 direkomendasikan di Windows).
 2. SQL `sql/face-recognition.sql` sudah dijalankan di Supabase.
 3. Akun admin panel (`it_admin` / `superadmin`).
 4. Akun Google Drive aktif sudah dipilih pada menu Google Drive di web app.

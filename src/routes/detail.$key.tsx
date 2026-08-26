@@ -225,7 +225,7 @@ function DetailTable({
                     />
                   ) : c.type === "link" && c.linkTo ? (
                     <Link
-                      to={c.linkTo as "/project/$id"}
+                      to={c.linkTo as "/project/$id" | "/event/$id"}
                       params={{ [c.linkParamName ?? "id"]: String(r[c.linkParamField ?? "id"] ?? "") } as { id: string }}
                       search={{ from: fromPath }}
                       className="font-medium text-primary underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
