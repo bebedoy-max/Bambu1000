@@ -102,7 +102,7 @@ function Page() {
           Galery foto acara dan kegiatan BRI Branch Office Pringsewu.
         </p>
 
-        <EventSummary linkToAdmin />
+        <EventSummary />
       </section>
     </AdminLayout>
   );

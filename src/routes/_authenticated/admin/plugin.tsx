@@ -12,21 +12,21 @@ import {
 /** Aplikasi bawaan yang sudah dipaketkan bersama panel. */
 const builtInApp = {
   name: "SuperIT Event Uploader",
-  version: "1.2.12",
+  version: "1.2.14",
   description:
     "Aplikasi desktop pemroses foto event: sinkron wajah master, deteksi & pencocokan wajah, rename otomatis, upload ke Google Drive panel, lalu simpan hasilnya ke panel.",
   changelog:
-    "- Perbaikan wheel InsightFace standalone: modul mask/mesh 3D opsional tidak lagi dimuat saat FaceAnalysis dijalankan, sehingga EXE tidak gagal karena mesh_core_cython\n- Instalasi Windows menyertakan wheel InsightFace siap pakai dan mengunci dependensi kompatibel; pip tidak mengompilasi stringzilla/InsightFace dan tidak memerlukan Visual Studio Build Tools\n- Build EXE otomatis memilih Python 3.11/3.12 64-bit dan berhenti dengan pesan BUILD GAGAL bila EXE belum terbentuk\n- Paket menyertakan Build-EXE-Windows.bat + SuperITEventUploader.spec: jalankan sekali di satu PC Windows untuk menghasilkan SuperITEventUploader.exe standalone yang tinggal dicopy ke PC lain tanpa perlu Python\n- Unggah foto event dikirim langsung ke Google Drive (resumable upload), sehingga foto besar dari HP tidak gagal dengan error 413 Request Entity Too Large\n- Deteksi wajah master lebih toleran untuk foto kecil/kompresi berat: EXIF rotation dibaca, kontras diperbaiki, threshold deteksi diturunkan, dicoba rotasi, upscale, dan crop scan untuk wajah yang jauh\n- Perbaikan akses event: role it_admin dapat membuat, mengubah, dan menghapus event sesuai policy RLS terbaru\n- Google Drive otomatis memakai akun Drive aktif di web app — client_secret.json tidak diperlukan",
+    "- Perbaikan unggah foto event gagal 401 Unauthorized di tengah proses: token sesi admin kini diperbarui otomatis sebelum kedaluwarsa dan permintaan yang ditolak diulang dengan token baru\n- Perbaikan wheel InsightFace standalone: modul mask/mesh 3D opsional tidak lagi dimuat saat FaceAnalysis dijalankan, sehingga EXE tidak gagal karena mesh_core_cython\n- Instalasi Windows menyertakan wheel InsightFace siap pakai dan mengunci dependensi kompatibel; pip tidak mengompilasi stringzilla/InsightFace dan tidak memerlukan Visual Studio Build Tools\n- Build EXE otomatis memilih Python 3.11/3.12 64-bit dan berhenti dengan pesan BUILD GAGAL bila EXE belum terbentuk\n- Paket menyertakan Build-EXE-Windows.bat + SuperITEventUploader.spec: jalankan sekali di satu PC Windows untuk menghasilkan SuperITEventUploader.exe standalone yang tinggal dicopy ke PC lain tanpa perlu Python\n- Unggah foto event dikirim langsung ke Google Drive (resumable upload), sehingga foto besar dari HP tidak gagal dengan error 413 Request Entity Too Large\n- Deteksi wajah master lebih toleran untuk foto kecil/kompresi berat: EXIF rotation dibaca, kontras diperbaiki, threshold deteksi diturunkan, dicoba rotasi, upscale, dan crop scan untuk wajah yang jauh\n- Perbaikan akses event: role it_admin dapat membuat, mengubah, dan menghapus event sesuai policy RLS terbaru\n- Google Drive otomatis memakai akun Drive aktif di web app — client_secret.json tidak diperlukan",
 
   downloads: [
     {
       label: "Windows",
-      url: "/downloads/SuperITEventUploader-1.2.12-Windows.zip",
+      url: "/downloads/SuperITEventUploader-1.2.14-Windows.zip",
       hint: "Jalankan Install-Windows.bat, atau Build-EXE-Windows.bat untuk membuat .exe standalone",
     },
     {
       label: "macOS",
-      url: "/downloads/SuperITEventUploader-1.2.12-macOS.zip",
+      url: "/downloads/SuperITEventUploader-1.2.14-macOS.zip",
       hint: "Jalankan Install-macOS.command",
     },
   ],

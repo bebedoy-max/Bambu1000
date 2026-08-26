@@ -38,8 +38,12 @@ class Drive:
         """Nama subfolder event; folder sebenarnya dibuat oleh web app."""
         return event_name
 
-    def _headers(self) -> Dict[str, str]:
-        return {"Authorization": f"Bearer {self._token()}"}
+    def _headers(self, force_refresh: bool = False) -> Dict[str, str]:
+        try:
+            token = self._token(force_refresh)  # type: ignore[call-arg]
+        except TypeError:
+            token = self._token()
+        return {"Authorization": f"Bearer {token}"}
 
     # ---------- upload ----------
     def upload(self, folder_name: str, local_path: str, file_name: str) -> dict:
@@ -54,18 +58,22 @@ class Drive:
     def _upload_resumable(self, folder_name: str, local_path: str, file_name: str, mime: str) -> dict:
         size = os.path.getsize(local_path)
         last = ""
-        for attempt in range(3):
+        for attempt in range(4):
             init = requests.post(
                 f"{self.base}/api/public/companion/upload-url",
                 json={"subfolder": folder_name, "fileName": file_name, "mimeType": mime},
-                headers=self._headers(),
+                headers=self._headers(force_refresh=attempt > 0),
                 timeout=120,
             )
             if init.status_code == 404:
                 raise _NoResumable()
             if not init.ok:
                 last = f"[{init.status_code}] {init.text[:300]}"
-                if init.status_code in (429, 500, 502, 503) and attempt < 2:
+                if init.status_code == 401 and attempt < 3:
+                    # Sesi login kedaluwarsa di tengah proses: ambil token baru lalu ulangi.
+                    time.sleep(1)
+                    continue
+                if init.status_code in (429, 500, 502, 503) and attempt < 3:
                     time.sleep(2 * (attempt + 1))
                     continue
                 raise RuntimeError(f"Gagal menyiapkan unggahan {file_name}: {last}")
@@ -95,7 +103,7 @@ class Drive:
                     "webViewLink": link,
                 }
             last = f"[{put.status_code}] {put.text[:300]}"
-            if put.status_code in (429, 500, 502, 503) and attempt < 2:
+            if put.status_code in (429, 500, 502, 503) and attempt < 3:
                 time.sleep(2 * (attempt + 1))
                 continue
             break

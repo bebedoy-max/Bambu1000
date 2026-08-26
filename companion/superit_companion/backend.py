@@ -23,14 +23,42 @@ class Backend:
         self.access_token = res.session.access_token if res.session else None
         return res.user.id
 
-    def token(self) -> str:
-        """Access token terbaru (auto-refresh oleh supabase-py)."""
-        session = self.client.auth.get_session()
+    def token(self, force_refresh: bool = False) -> str:
+        """Access token terbaru; diperbarui otomatis sebelum kedaluwarsa."""
+        import time as _time
+
+        if force_refresh:
+            try:
+                res = self.client.auth.refresh_session()
+                if res and res.session and res.session.access_token:
+                    self.access_token = res.session.access_token
+                    return self.access_token
+            except Exception:
+                pass
+
+        session = None
+        try:
+            session = self.client.auth.get_session()
+        except Exception:
+            session = None
+
+        if session and getattr(session, "expires_at", None):
+            # Refresh proaktif kalau sisa umur token < 5 menit.
+            if float(session.expires_at) - _time.time() < 300:
+                try:
+                    res = self.client.auth.refresh_session()
+                    if res and res.session and res.session.access_token:
+                        self.access_token = res.session.access_token
+                        return self.access_token
+                except Exception:
+                    pass
+
         if session and session.access_token:
             self.access_token = session.access_token
         if not self.access_token:
             raise RuntimeError("Sesi admin belum aktif. Klik Hubungkan lagi.")
         return self.access_token
+
 
     # ---------- worker faces ----------
     def pending_faces(self) -> List[Dict[str, Any]]:

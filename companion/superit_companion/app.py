@@ -219,7 +219,7 @@ class App(tk.Tk):
             self.backend.sign_in(self.cfg.admin_email, self.cfg.admin_password)
             self.log("Login admin berhasil.")
 
-            self.drive = Drive(self.cfg.panel_url, lambda: self.backend.token())
+            self.drive = Drive(self.cfg.panel_url, lambda force=False: self.backend.token(force))
             try:
                 st = self.drive.status()
                 if st.get("connected"):
@@ -464,7 +464,7 @@ class App(tk.Tk):
             file_ids = []
         try:
             if self.drive is None:
-                self.drive = Drive(self.cfg.panel_url, lambda: self.backend.token())
+                self.drive = Drive(self.cfg.panel_url, lambda force=False: self.backend.token(force))
             if self.drive:
 
                 self.log("Menghapus folder & foto event di Google Drive…")
@@ -535,7 +535,7 @@ class App(tk.Tk):
             self.log("Belum ada foto dipilih.")
             return
         if self.drive is None:
-            self.drive = Drive(self.cfg.panel_url, lambda: self.backend.token())
+            self.drive = Drive(self.cfg.panel_url, lambda force=False: self.backend.token(force))
         self._stop = False
         process_event_photos(
             self.backend,

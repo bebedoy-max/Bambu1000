@@ -116,7 +116,7 @@ function RotatingThumb({ ids, alt, delay }: { ids: string[]; alt: string; delay:
  * Kluster kartu event berjalan: tiap kartu memuat grid thumbnail foto event
  * yang terus berganti secara acak.
  */
-export function EventSummary({ limit, linkToAdmin }: { limit?: number; linkToAdmin?: boolean }) {
+export function EventSummary({ limit }: { limit?: number }) {
   const q = useQuery({ queryKey: ["events-thumb-summary"], queryFn: loadEventSummary });
   const rows = useMemo(() => (q.data ?? []).slice(0, limit ?? 100), [q.data, limit]);
   const fromPath = useRouterState({ select: (st) => st.location.pathname });
@@ -142,13 +142,18 @@ export function EventSummary({ limit, linkToAdmin }: { limit?: number; linkToAdm
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {rows.map((e) => {
+        const slots = Math.min(4, Math.max(1, e.photos.length || 1));
         const card = (
           <>
-            <div className="grid grid-cols-2 gap-1 overflow-hidden rounded-xl border border-border/60">
-              {[0, 1, 2, 3].map((slot) => (
+            <div
+              className={`grid gap-1 overflow-hidden rounded-xl border border-border/60 ${
+                slots > 1 ? "grid-cols-2" : "grid-cols-1"
+              }`}
+            >
+              {Array.from({ length: slots }, (_, slot) => (
                 <RotatingThumb
                   key={slot}
-                  ids={e.photos.filter((_, i) => e.photos.length < 4 || i % 4 === slot)}
+                  ids={e.photos.filter((_, i) => i % slots === slot)}
                   alt={`Foto event ${e.nama_event}`}
                   delay={slot * 700}
                 />
@@ -174,26 +179,15 @@ export function EventSummary({ limit, linkToAdmin }: { limit?: number; linkToAdm
             key={e.id}
             className="glass-card p-4 transition-transform duration-200 hover:-translate-y-0.5 hover:border-primary/50"
           >
-            {linkToAdmin ? (
-              <Link
-                to="/admin/event/$id"
-                params={{ id: e.id }}
-                aria-label={`Lihat galeri event ${e.nama_event}`}
-                className={base}
-              >
-                {card}
-              </Link>
-            ) : (
-              <Link
-                to="/event/$id"
-                params={{ id: e.id }}
-                search={{ from: fromPath }}
-                aria-label={`Lihat foto event ${e.nama_event}`}
-                className={base}
-              >
-                {card}
-              </Link>
-            )}
+            <Link
+              to="/event/$id"
+              params={{ id: e.id }}
+              search={{ from: fromPath }}
+              aria-label={`Lihat foto event ${e.nama_event}`}
+              className={base}
+            >
+              {card}
+            </Link>
             <EventCardActions
               eventId={e.id}
               eventName={e.nama_event}
@@ -202,6 +196,7 @@ export function EventSummary({ limit, linkToAdmin }: { limit?: number; linkToAdm
           </div>
         );
       })}
+
     </div>
   );
 }
