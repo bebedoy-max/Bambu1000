@@ -3,20 +3,29 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   Copy,
+<<<<<<< HEAD
   Crop,
   Download,
   ImagePlus,
+=======
+  Download,
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
   Lock,
   Pause,
   Play,
   Plus,
   RotateCcw,
   Trash2,
+<<<<<<< HEAD
   Trophy,
   Unlock,
   UserRound,
   Vote,
 
+=======
+  Unlock,
+  Vote,
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminPage } from "@/components/AdminLayout";
@@ -40,9 +49,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useConfirm } from "@/components/ConfirmDialog";
+<<<<<<< HEAD
 import { PhotoCropDialog } from "@/components/PhotoCropDialog";
 import { DatePickerField } from "@/components/DatePickerField";
 import { compressImage, formatDateID, pickImage } from "@/lib/absensi-ui";
+=======
+import { DatePickerField } from "@/components/DatePickerField";
+import { formatDateID } from "@/lib/absensi-ui";
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
 import {
   printVoteReport,
   rankNominees,
@@ -58,17 +72,26 @@ type VoteEmployee = {
   personalNumber: string | null;
   jabatan: string | null;
   uker: string | null;
+<<<<<<< HEAD
   foto?: string | null;
 };
 
 
+=======
+};
+
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
 import {
   addVoteAdmin,
   deleteVoteNominee,
   getVoteAdminEvent,
+<<<<<<< HEAD
   fetchVoteImage,
   listVoteEmployees,
   listVoteWorkerPhotos,
+=======
+  listVoteEmployees,
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
   removeVoteAdmin,
   resetVoteBallots,
   saveVoteEvent,
@@ -101,7 +124,10 @@ const emptyNominee = {
   jabatan: "",
   uker: "",
   personalNumber: "",
+<<<<<<< HEAD
   foto: "" as string,
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
 };
 
 function Page() {
@@ -113,8 +139,11 @@ function Page() {
   const [nomOpen, setNomOpen] = useState(false);
   const [nom, setNom] = useState(emptyNominee);
   const [adminEmail, setAdminEmail] = useState("");
+<<<<<<< HEAD
   const [pickerOpen, setPickerOpen] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
 
   const q = useQuery({
     queryKey: ["vote-event", id],
@@ -125,6 +154,7 @@ function Page() {
     queryFn: () => listVoteEmployees(),
     staleTime: 300_000,
   });
+<<<<<<< HEAD
   /** Foto master wajah pekerja yang cocok dengan nominasi yang sedang diedit. */
   const employeePhoto = useMemo(() => {
     const list = (employees.data ?? []) as VoteEmployee[];
@@ -173,6 +203,8 @@ function Page() {
       toast.error("Foto gagal dimuat.");
     }
   };
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
 
   const event = (draft ?? q.data?.event ?? null) as VoteSettings | null;
   const saved = q.data?.event as VoteSettings | undefined;
@@ -265,7 +297,10 @@ function Page() {
           jabatan: nom.jabatan || null,
           uker: nom.uker || null,
           personalNumber: nom.personalNumber || null,
+<<<<<<< HEAD
           foto: nom.foto || null,
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
           sortOrder: nominees.filter((n) => n.category === nom.category).length,
         },
       });
@@ -302,12 +337,15 @@ function Page() {
     toast.success("Link voting disalin");
   }
 
+<<<<<<< HEAD
   function copyShowcaseLink() {
     if (!event) return;
     void navigator.clipboard.writeText(`${window.location.origin}/vote-show/${event.slug}`);
     toast.success("Link dashboard pemenang disalin");
   }
 
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
   function setCategory(index: number, p: Partial<VoteCategory>) {
     if (!event) return;
     const cats = event.categories.map((c, i) => (i === index ? { ...c, ...p } : c));
@@ -341,12 +379,15 @@ function Page() {
             <Button size="sm" variant="secondary" onClick={copyLink}>
               <Copy className="size-4" /> Salin link
             </Button>
+<<<<<<< HEAD
             <Button size="sm" onClick={() => window.open(`/vote-show/${event.slug}`, "_blank")}>
               <Trophy className="size-4" /> Dashboard Pemenang
             </Button>
             <Button size="sm" variant="ghost" onClick={copyShowcaseLink}>
               <Copy className="size-4" /> Salin link dashboard
             </Button>
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
           </div>
         </div>
 
@@ -387,6 +428,7 @@ function Page() {
                 <Input value={event.eyebrow} onChange={(e) => patch({ eyebrow: e.target.value })} />
               </div>
               <div>
+<<<<<<< HEAD
                 <Label>Label Dashboard Pemenang</Label>
                 <Input
                   value={event.showcaseNote}
@@ -394,6 +436,8 @@ function Page() {
                 />
               </div>
               <div>
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
                 <Label>Tanggal</Label>
                 <DatePickerField
                   value={event.eventDate}
@@ -511,6 +555,7 @@ function Page() {
                     <div className="divide-y divide-border/60">
                       {list.map((n) => (
                         <div key={n.id} className="flex items-center justify-between gap-3 py-2">
+<<<<<<< HEAD
                           <div className="flex items-center gap-3 text-sm">
                             {n.foto ? (
                               <img
@@ -520,12 +565,18 @@ function Page() {
                               />
                             ) : null}
                             <div>
+=======
+                          <div className="text-sm">
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
                             <p className="font-medium">{n.nama}</p>
                             <p className="text-xs text-muted-foreground">
                               {[n.jabatan, n.uker, n.personalNumber].filter(Boolean).join(" · ") ||
                                 "-"}
                             </p>
+<<<<<<< HEAD
                             </div>
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
                           </div>
                           <div className="flex gap-1">
                             <Button
@@ -538,7 +589,10 @@ function Page() {
                                   nama: n.nama,
                                   jabatan: n.jabatan ?? "",
                                   uker: n.uker ?? "",
+<<<<<<< HEAD
                                   foto: n.foto ?? "",
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
                                   personalNumber: n.personalNumber ?? "",
                                 });
                                 setNomOpen(true);
@@ -726,7 +780,10 @@ function Page() {
                     jabatan: emp.jabatan ?? "",
                     uker: emp.uker ?? "",
                     personalNumber: emp.personalNumber ?? "",
+<<<<<<< HEAD
                     foto: n.foto || (emp.foto ?? ""),
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
                   }));
                 }}
               >
@@ -743,6 +800,7 @@ function Page() {
               </Select>
             </div>
             <div>
+<<<<<<< HEAD
               <Label>Foto Nominasi</Label>
               <div className="flex flex-wrap items-center gap-3">
                 {nom.foto ? (
@@ -807,6 +865,8 @@ function Page() {
             </div>
 
             <div>
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
               <Label>Nama</Label>
               <Input value={nom.nama} onChange={(e) => setNom((n) => ({ ...n, nama: e.target.value }))} />
             </div>
@@ -835,6 +895,7 @@ function Page() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+<<<<<<< HEAD
 
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
         <DialogContent className="max-w-2xl">
@@ -885,6 +946,8 @@ function Page() {
         onDone={(url) => setNom((n) => ({ ...n, foto: url }))}
       />
 
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
     </AdminPage>
   );
 }

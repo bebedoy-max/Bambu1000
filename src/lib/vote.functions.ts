@@ -179,6 +179,7 @@ export const listVoteEmployees = createServerFn({ method: "GET" })
       .from("employees")
       .select("id,nama,personal_number,jabatan:job_titles(nama_jabatan),uker:ukers(nama_uker)")
       .order("nama", { ascending: true });
+<<<<<<< HEAD
     // Foto master wajah pekerja (bila sudah diunggah) supaya bisa dipakai jadi foto nominasi.
     const { data: faces } = await db
       .from("worker_faces")
@@ -229,4 +230,13 @@ export const fetchVoteImage = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { imageAsDataUrl } = await import("@/lib/vote.server");
     return { dataUrl: await imageAsDataUrl(data.url) };
+=======
+    return (data ?? []).map((r: Record<string, any>) => ({
+      id: String(r["id"]),
+      nama: String(r["nama"] ?? ""),
+      personalNumber: (r["personal_number"] as string | null) ?? null,
+      jabatan: (r["jabatan"]?.["nama_jabatan"] as string | null) ?? null,
+      uker: (r["uker"]?.["nama_uker"] as string | null) ?? null,
+    }));
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
   });

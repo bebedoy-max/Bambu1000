@@ -22,7 +22,10 @@ import { Route as AbsensiSlugRouteImport } from './routes/absensi.$slug'
 import { Route as DetailKeyRouteImport } from './routes/detail.$key'
 import { Route as EventIdRouteImport } from './routes/event.$id'
 import { Route as ProjectIdRouteImport } from './routes/project.$id'
+<<<<<<< HEAD
 import { Route as VoteShowSlugRouteImport } from './routes/vote-show.$slug'
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
 import { Route as VoteSlugRouteImport } from './routes/vote.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAksesRouteImport } from './routes/_authenticated/admin/akses'
@@ -128,11 +131,14 @@ const ProjectIdRoute = ProjectIdRouteImport.update({
   path: '/project/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+<<<<<<< HEAD
 const VoteShowSlugRoute = VoteShowSlugRouteImport.update({
   id: '/vote-show/$slug',
   path: '/vote-show/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
 const VoteSlugRoute = VoteSlugRouteImport.update({
   id: '/vote/$slug',
   path: '/vote/$slug',
@@ -372,7 +378,10 @@ export interface FileRoutesByFullPath {
   '/detail/$key': typeof DetailKeyRoute
   '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
+<<<<<<< HEAD
   '/vote-show/$slug': typeof VoteShowSlugRoute
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
   '/vote/$slug': typeof VoteSlugRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
@@ -427,7 +436,10 @@ export interface FileRoutesByTo {
   '/detail/$key': typeof DetailKeyRoute
   '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
+<<<<<<< HEAD
   '/vote-show/$slug': typeof VoteShowSlugRoute
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
   '/vote/$slug': typeof VoteSlugRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
@@ -481,7 +493,10 @@ export interface FileRoutesById {
   '/detail/$key': typeof DetailKeyRoute
   '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
+<<<<<<< HEAD
   '/vote-show/$slug': typeof VoteShowSlugRoute
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
   '/vote/$slug': typeof VoteSlugRoute
   '/_authenticated/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/_authenticated/admin/approval': typeof AuthenticatedAdminApprovalRoute
@@ -538,7 +553,10 @@ export interface FileRouteTypes {
     | '/detail/$key'
     | '/event/$id'
     | '/project/$id'
+<<<<<<< HEAD
     | '/vote-show/$slug'
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
     | '/vote/$slug'
     | '/admin/akses'
     | '/admin/approval'
@@ -593,7 +611,10 @@ export interface FileRouteTypes {
     | '/detail/$key'
     | '/event/$id'
     | '/project/$id'
+<<<<<<< HEAD
     | '/vote-show/$slug'
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
     | '/vote/$slug'
     | '/admin/akses'
     | '/admin/approval'
@@ -646,7 +667,10 @@ export interface FileRouteTypes {
     | '/detail/$key'
     | '/event/$id'
     | '/project/$id'
+<<<<<<< HEAD
     | '/vote-show/$slug'
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
     | '/vote/$slug'
     | '/_authenticated/admin/akses'
     | '/_authenticated/admin/approval'
@@ -703,7 +727,10 @@ export interface RootRouteChildren {
   DetailKeyRoute: typeof DetailKeyRoute
   EventIdRoute: typeof EventIdRoute
   ProjectIdRoute: typeof ProjectIdRoute
+<<<<<<< HEAD
   VoteShowSlugRoute: typeof VoteShowSlugRoute
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
   VoteSlugRoute: typeof VoteSlugRoute
   ApiPublicCompanionDeleteEventRoute: typeof ApiPublicCompanionDeleteEventRoute
   ApiPublicCompanionDriveStatusRoute: typeof ApiPublicCompanionDriveStatusRoute
@@ -807,6 +834,7 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+<<<<<<< HEAD
     '/vote-show/$slug': {
       id: '/vote-show/$slug'
       path: '/vote-show/$slug'
@@ -814,6 +842,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VoteShowSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
     '/vote/$slug': {
       id: '/vote/$slug'
       path: '/vote/$slug'
@@ -1226,7 +1256,10 @@ const rootRouteChildren: RootRouteChildren = {
   DetailKeyRoute: DetailKeyRoute,
   EventIdRoute: EventIdRoute,
   ProjectIdRoute: ProjectIdRoute,
+<<<<<<< HEAD
   VoteShowSlugRoute: VoteShowSlugRoute,
+=======
+>>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
   VoteSlugRoute: VoteSlugRoute,
   ApiPublicCompanionDeleteEventRoute: ApiPublicCompanionDeleteEventRoute,
   ApiPublicCompanionDriveStatusRoute: ApiPublicCompanionDriveStatusRoute,
