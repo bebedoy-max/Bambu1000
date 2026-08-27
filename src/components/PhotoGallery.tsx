@@ -9,6 +9,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { driveImageUrl, type PhotoEntity } from "@/lib/drive-entities";
 import { uploadEntityPhoto, deleteEntityPhoto } from "@/lib/drive.functions";
+import { purgeMissingPhoto } from "@/lib/photo-cleanup.functions";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -47,6 +48,14 @@ export function PhotoGallery({
   const [preview, setPreview] = useState<string | null>(null);
   const upload = useServerFn(uploadEntityPhoto);
   const remove = useServerFn(deleteEntityPhoto);
+  const purge = useServerFn(purgeMissingPhoto);
+  const [broken, setBroken] = useState<string[]>([]);
+
+  /** File Drive hilang → sembunyikan dan bersihkan datanya otomatis. */
+  const handleBroken = (fileId: string) => {
+    setBroken((prev) => (prev.includes(fileId) ? prev : [...prev, fileId]));
+    void purge({ data: { kind: "entity", driveFileId: fileId } }).catch(() => undefined);
+  };
 
   const photos = useQuery<PhotoRow[]>({
     queryKey: ["entity_photos", entity, entityId],
@@ -98,13 +107,13 @@ export function PhotoGallery({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const items = photos.data ?? [];
+  const items = (photos.data ?? []).filter((p) => !broken.includes(p.drive_file_id));
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-medium">{title}</p>
-        {canEdit && entityId ? (
+        {canEdit && entityId && entity !== "pegawai" ? (
           <>
             <Button
               type="button"
@@ -144,6 +153,7 @@ export function PhotoGallery({
                 src={driveImageUrl(p.drive_file_id, 600)}
                 alt={p.file_name ?? "Foto"}
                 loading="lazy"
+                onError={() => handleBroken(p.drive_file_id)}
                 className="h-28 w-full cursor-zoom-in object-cover"
                 onClick={() => setPreview(p.drive_file_id)}
               />

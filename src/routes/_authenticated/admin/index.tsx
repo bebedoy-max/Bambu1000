@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Banknote, Boxes, Building2, CalendarDays, CreditCard, LifeBuoy, Users } from "lucide-react";
+import { Banknote, Building2, CalendarDays, CreditCard, LifeBuoy, Users } from "lucide-react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { AdminLayout } from "@/components/AdminLayout";
 import { StatCard } from "@/components/StatCard";
 import { ProjectSummary } from "@/components/ProjectSummary";
+import { EventSummary } from "@/components/EventSummary";
 import { useRoles } from "@/lib/roles";
 
 const db = supabase as unknown as SupabaseClient;
@@ -39,20 +40,13 @@ function Page() {
       projects: await count("projects"),
       events: await count("events"),
       tickets: await count("it_tickets"),
-      assets: isItAdmin ? await count("assets") : 0,
     }),
   });
 
   const s = stats.data;
   return (
     <AdminLayout>
-      <h1 className="text-2xl font-bold">
-        Ringkasan <span className="gradient-text">Data Internal</span>
-      </h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Statistik seluruh modul yang tersedia untuk peran Anda.
-      </p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Unit Kerja"
           value={s?.ukers ?? "—"}
@@ -88,13 +82,27 @@ function Page() {
           hint="Project berjalan"
           detailKey="project"
         />
-        <StatCard label="Event" value={s?.events ?? "—"} icon={CalendarDays} />
+        <StatCard
+          label="Event"
+          value={s?.events ?? "—"}
+          icon={CalendarDays}
+          hint="Acara & kegiatan"
+          detailKey="event"
+        />
         <StatCard label="Tiket IT" value={s?.tickets ?? "—"} icon={LifeBuoy} />
-        {isItAdmin ? <StatCard label="Aset IT" value={s?.assets ?? "—"} icon={Boxes} /> : null}
       </div>
       <section className="mt-8">
-        <h2 className="mb-4 text-lg font-semibold">Intisari Project IT</h2>
+        <h2 className="event-title-glow mb-4 text-lg">Project IT</h2>
         <ProjectSummary />
+      </section>
+
+      <section className="mt-10 border-t border-border/60 pt-8">
+        <h2 className="event-title-glow mb-1 text-lg">The Event's BRI BO Pringsewu</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Galery foto acara dan kegiatan BRI Branch Office Pringsewu.
+        </p>
+
+        <EventSummary />
       </section>
     </AdminLayout>
   );

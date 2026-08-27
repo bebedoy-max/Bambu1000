@@ -31,7 +31,10 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseAdminClient() {
-  const SUPABASE_URL = process.env['CUSTOM_SUPABASE_URL'] || FALLBACK_SUPABASE_URL;
+  const SUPABASE_URL =
+    process.env['CUSTOM_SUPABASE_URL'] ||
+    process.env['APP_SUPABASE_URL'] ||
+    FALLBACK_SUPABASE_URL;
   const SERVICE_ROLE_KEY = process.env['CUSTOM_SUPABASE_SERVICE_ROLE_KEY'] || process.env['APP_SUPABASE_SERVICE_ROLE_KEY'];
 
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {

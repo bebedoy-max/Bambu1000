@@ -119,14 +119,6 @@ export const searchModules: SearchModule[] = [
     need: "it",
   },
   {
-    table: "it_tools",
-    label: "Tools IT",
-    route: "/admin/tools",
-    title: (r) => s(r["nama_tool"]),
-    subtitle: (r) => [s(r["kategori"]), s(r["versi"])].filter(Boolean).join(" · "),
-    need: "it",
-  },
-  {
     table: "tutorials",
     label: "Tutorial",
     route: "/admin/tutorial",
@@ -159,15 +151,7 @@ export const searchModules: SearchModule[] = [
     need: "event",
   },
   {
-    table: "assets",
-    label: "Inventaris Aset",
-    route: "/admin/aset",
-    refs: [ukerRef()],
-    title: (r) => s(r["nama_aset"]),
-    subtitle: (r) => [s(r["serial_number"]), s(r["status"])].filter(Boolean).join(" · "),
-    need: "it",
-  },
-  {
+
     table: "audit_logs",
     label: "Audit Log",
     route: "/admin/audit",

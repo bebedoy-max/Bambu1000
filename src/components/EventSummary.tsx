@@ -1,0 +1,202 @@
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { CalendarDays, ImageOff } from "lucide-react";
+import { db, driveThumb } from "@/lib/face";
+import { getPublicEventPhotos } from "@/lib/public-events.functions";
+import { getEventLikes } from "@/lib/event-likes.functions";
+import { EventCardActions } from "@/components/EventCardActions";
+
+
+type EventRow = {
+  id: string;
+  nama_event: string;
+  deskripsi: string | null;
+  tanggal_mulai: string | null;
+};
+
+export type EventSummaryRow = EventRow & { photos: string[] };
+
+const fmt = (d: string | null) =>
+  d ? new Date(d).toLocaleDateString("id-ID", { dateStyle: "medium" }) : "—";
+
+async function loadEventSummary(): Promise<EventSummaryRow[]> {
+  const { data, error } = await db
+    .from("events")
+    .select("id,nama_event,deskripsi,tanggal_mulai")
+    .order("tanggal_mulai", { ascending: false, nullsFirst: false });
+  if (error) throw error;
+  const events = (data ?? []) as EventRow[];
+  if (!events.length) return [];
+
+  const { data: photos } = await db
+    .from("event_photos")
+    .select("event_id,drive_file_id,processed_at")
+    .in(
+      "event_id",
+      events.map((e) => e.id),
+    )
+    .order("processed_at", { ascending: false })
+    .limit(600);
+
+  // Pengunjung publik tidak punya akses baca tabel foto event, jadi ambil
+  // lewat server function (hanya id file Drive) sebagai fallback.
+  let list = (photos ?? []) as { event_id: string; drive_file_id: string }[];
+  if (!list.length) {
+    try {
+      list = await getPublicEventPhotos();
+    } catch {
+      list = [];
+    }
+  }
+
+  const map: Record<string, string[]> = {};
+  for (const p of list) {
+    (map[p.event_id] ??= []).push(p.drive_file_id);
+  }
+  return events.map((e) => ({ ...e, photos: map[e.id] ?? [] }));
+}
+
+/** Thumbnail yang berganti-ganti secara acak dari koleksi foto event dengan crossfade. */
+function RotatingThumb({ ids, alt, delay }: { ids: string[]; alt: string; delay: number }) {
+  const [current, setCurrent] = useState(0);
+  const [next, setNext] = useState(0);
+  const [transitioning, setTransitioning] = useState(false);
+
+  useEffect(() => {
+    if (ids.length < 2) return;
+    const t = setInterval(() => {
+      const n = ids.length;
+      const newIdx = (current + 1 + Math.floor(Math.random() * (n - 1))) % n;
+      setNext(newIdx);
+      setTransitioning(true);
+      const commit = setTimeout(() => {
+        setCurrent(newIdx);
+        setTransitioning(false);
+      }, 3000);
+      return () => clearTimeout(commit);
+    }, 8000 + delay);
+    return () => clearInterval(t);
+  }, [ids, delay, current]);
+
+  if (!ids.length)
+    return (
+      <div className="grid aspect-square w-full place-items-center bg-secondary/60 text-muted-foreground">
+        <ImageOff className="size-4" />
+      </div>
+    );
+
+  const currentId = ids[current] ?? ids[0];
+  const nextId = ids[next] ?? currentId;
+  if (!currentId) return null;
+  const nextSrc = nextId ? driveThumb(nextId) : driveThumb(currentId);
+
+  return (
+    <div className="relative aspect-square w-full overflow-hidden">
+      <img
+        src={driveThumb(currentId)}
+        alt={alt}
+        loading="lazy"
+        className="absolute inset-0 aspect-square w-full object-cover transition-opacity duration-[3000ms] ease-in-out"
+        style={{ opacity: transitioning ? 0 : 1 }}
+      />
+      <img
+        src={nextSrc}
+        alt={alt}
+        loading="lazy"
+        className="absolute inset-0 aspect-square w-full object-cover transition-opacity duration-[3000ms] ease-in-out"
+        style={{ opacity: transitioning ? 1 : 0 }}
+      />
+    </div>
+  );
+
+}
+
+/**
+ * Kluster kartu event berjalan: tiap kartu memuat grid thumbnail foto event
+ * yang terus berganti secara acak.
+ */
+export function EventSummary({ limit }: { limit?: number }) {
+  const q = useQuery({ queryKey: ["events-thumb-summary"], queryFn: loadEventSummary });
+  const rows = useMemo(() => (q.data ?? []).slice(0, limit ?? 100), [q.data, limit]);
+  const fromPath = useRouterState({ select: (st) => st.location.pathname });
+  const likesQuery = useQuery({
+    queryKey: ["event-likes"],
+    queryFn: async () => {
+      try {
+        return await getEventLikes();
+      } catch {
+        return [];
+      }
+    },
+  });
+  const likeMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const row of likesQuery.data ?? []) map[row.event_id] = row.likes;
+    return map;
+  }, [likesQuery.data]);
+
+  if (q.isLoading) return <p className="text-sm text-muted-foreground">Memuat event…</p>;
+  if (!rows.length) return <p className="text-sm text-muted-foreground">Belum ada event berjalan.</p>;
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {rows.map((e) => {
+        const slots = Math.min(4, Math.max(1, e.photos.length || 1));
+        const card = (
+          <>
+            <div
+              className={`grid gap-1 overflow-hidden rounded-xl border border-border/60 ${
+                slots > 1 ? "grid-cols-2" : "grid-cols-1"
+              }`}
+            >
+              {Array.from({ length: slots }, (_, slot) => (
+                <RotatingThumb
+                  key={slot}
+                  ids={e.photos.filter((_, i) => i % slots === slot)}
+                  alt={`Foto event ${e.nama_event}`}
+                  delay={slot * 700}
+                />
+              ))}
+            </div>
+            <div className="mt-3">
+              <h3 className="font-semibold">{e.nama_event}</h3>
+              <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CalendarDays className="size-3.5" /> {fmt(e.tanggal_mulai)} · {e.photos.length} foto
+              </p>
+              {e.deskripsi ? (
+                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{e.deskripsi}</p>
+              ) : null}
+            </div>
+          </>
+        );
+
+        const base =
+          "block rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
+
+        return (
+          <div
+            key={e.id}
+            className="glass-card p-4 transition-transform duration-200 hover:-translate-y-0.5 hover:border-primary/50"
+          >
+            <Link
+              to="/event/$id"
+              params={{ id: e.id }}
+              search={{ from: fromPath }}
+              aria-label={`Lihat foto event ${e.nama_event}`}
+              className={base}
+            >
+              {card}
+            </Link>
+            <EventCardActions
+              eventId={e.id}
+              eventName={e.nama_event}
+              likes={likeMap[e.id] ?? 0}
+            />
+          </div>
+        );
+      })}
+
+    </div>
+  );
+}

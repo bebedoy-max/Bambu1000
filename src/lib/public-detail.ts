@@ -20,11 +20,15 @@ export type PublicDetailConfig = {
   photoEntity?: PhotoEntity;
   /** Sembunyikan kolom "Foto" pada tabel detail (foto tetap ada di Titik Maps). */
   hidePhotoColumn?: boolean;
+  /** Kunci kolom yang tetap tampil pada layar mobile (sisanya disembunyikan). */
+  mobileColumns?: string[];
   /** Kolom yang ditampilkan (bila ada pada data). */
   columns: {
     key: string;
     label: string;
-    type?: "latlng" | "ukername" | "link" | "empname" | "machinename";
+    type?: "latlng" | "ukername" | "link" | "empname" | "machinename" | "progress";
+    /** Kolom hanya tampil pada layar mobile. */
+    mobileOnly?: boolean;
     /** Saat type === "link", nilai kolom menjadi tautan ke route ini. */
     linkTo?: string;
     /** Field baris yang dipakai sebagai nilai param (default: "id"). */
@@ -45,6 +49,7 @@ export const publicDetails: PublicDetailConfig[] = [
     table: "ukers",
     orderBy: "kode_uker",
     nameColumn: "nama_uker",
+    mobileColumns: ["kode_uker", "nama_uker"],
     columns: [
       { key: "kode_uker", label: "Kode Uker" },
       { key: "nama_uker", label: "Nama Uker", type: "ukername" },
@@ -67,6 +72,7 @@ export const publicDetails: PublicDetailConfig[] = [
     orderBy: "tid",
     nameColumn: "lokasi",
     nameParts: ["jenis_mesin", "lokasi"],
+    mobileColumns: ["tid", "lokasi"],
     columns: [
       { key: "tid", label: "TID" },
       { key: "jenis_mesin", label: "Jenis Mesin" },
@@ -82,6 +88,7 @@ export const publicDetails: PublicDetailConfig[] = [
     description: "Daftar mesin EDC merchant.",
     table: "edc_machines",
     nameColumn: "nama_merchant",
+    mobileColumns: ["tid", "nama_merchant"],
     columns: [
       { key: "tid", label: "TID" },
       { key: "mid", label: "MID" },
@@ -98,6 +105,7 @@ export const publicDetails: PublicDetailConfig[] = [
     table: "employees",
     orderBy: "nama",
     nameColumn: "nama",
+    mobileColumns: ["personal_number", "nama"],
     columns: [
       { key: "personal_number", label: "PN" },
       { key: "nama", label: "Nama", type: "empname" },
@@ -113,14 +121,32 @@ export const publicDetails: PublicDetailConfig[] = [
     table: "projects",
     orderBy: "deadline",
     nameColumn: "nama_project",
+    mobileColumns: ["nama_project", "__progress"],
     columns: [
       { key: "nama_project", label: "Nama Project", type: "link", linkTo: "/project/$id", linkParamField: "id", linkParamName: "id" },
       { key: "deskripsi", label: "Deskripsi" },
       { key: "tanggal_mulai", label: "Mulai" },
       { key: "deadline", label: "Deadline" },
+      { key: "__progress", label: "Pencapaian", type: "progress", mobileOnly: true },
+    ],
+  },
+  {
+    slug: "event",
+    menuKey: "foto",
+    title: "Event & Kegiatan",
+    description: "Daftar acara dan kegiatan BRI Branch Office Pringsewu.",
+    table: "events",
+    orderBy: "nama_event",
+    nameColumn: "nama_event",
+    mobileColumns: ["nama_event", "tanggal_mulai"],
+    columns: [
+      { key: "nama_event", label: "Nama Event", type: "link", linkTo: "/event/$id", linkParamField: "id", linkParamName: "id" },
+      { key: "deskripsi", label: "Deskripsi" },
+      { key: "tanggal_mulai", label: "Tanggal" },
     ],
   },
 ];
+
 
 export function findPublicDetail(slug: string) {
   return publicDetails.find((d) => d.slug === slug);

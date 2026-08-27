@@ -51,7 +51,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.is_event_admin()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role IN ('event_admin','superadmin'));
+  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role IN ('it_admin','event_admin','superadmin'));
 $$;
 
 DROP POLICY IF EXISTS "profiles self read" ON public.profiles;

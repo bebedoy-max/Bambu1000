@@ -196,6 +196,17 @@
 
 
 
+@utility event-title-glow {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: oklch(0.97 0.02 250);
+  text-shadow:
+    0 0 6px oklch(0.58 0.13 248 / 80%),
+    0 0 18px oklch(0.58 0.13 248 / 55%),
+    0 0 36px oklch(0.72 0.09 226 / 40%);
+}
+
 @utility gradient-text {
   background-image: var(--gradient-brand);
   background-clip: text;
@@ -272,3 +283,153 @@
     );
   }
 }
+
+/* ================= SuperIT Apps — Absensi Event (form publik) ================= */
+.absensi-root .page {
+  color: var(--app-text, #f2f3f7);
+  min-height: 100vh;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  position: relative;
+}
+.absensi-root .page-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--overlay-1, rgba(11,18,32,0.88)), var(--overlay-2, rgba(11,18,32,0.96)));
+}
+.absensi-root .card-wrap { position: relative; z-index: 1; width: 100%; max-width: 420px; }
+.absensi-root .header-block { text-align: center; margin-bottom: 20px; }
+.absensi-root .logo-circle {
+  width: 128px; height: 128px; border-radius: 50%;
+  background: var(--navy-field);
+  border: 1px solid var(--navy-border);
+  margin: 0 auto 14px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  font-size: 44px; font-weight: 600; color: var(--gold);
+}
+.absensi-root .logo-circle img { width: 100%; height: 100%; object-fit: cover; }
+.absensi-root .logo-free {
+  display: block;
+  margin: 0 auto 14px;
+  max-width: 220px;
+  max-height: 160px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.absensi-root .event-title {
+  font-size: 30px; font-weight: 700; color: var(--app-text, #fff); margin: 0; letter-spacing: 1px; line-height: 1.15;
+}
+.absensi-root .event-sub {
+  font-size: 15px; letter-spacing: 0.6px; color: var(--text-dim); margin: 8px 0 0;
+}
+.absensi-root .form-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--navy-card);
+  border: 1px solid var(--navy-border);
+  border-radius: 18px;
+  padding: 24px 22px;
+}
+.absensi-root .form-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--card-bg);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.15;
+  filter: blur(4px);
+  pointer-events: none;
+  border-radius: inherit;
+}
+.absensi-root .form-card > * { position: relative; z-index: 1; }
+.absensi-root .field-group { margin-bottom: 16px; }
+.absensi-root .field-label {
+  display: block; font-size: 12px; font-weight: 500;
+  color: var(--text-dim); margin-bottom: 6px; letter-spacing: 0.2px;
+}
+.absensi-root .field-input,
+.absensi-root .field-select {
+  width: 100%;
+  background: var(--navy-field);
+  border: 1px solid var(--navy-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.absensi-root .field-input::placeholder { color: #5b6478; }
+.absensi-root .field-input:focus,
+.absensi-root .field-select:focus { border-color: var(--gold); }
+.absensi-root .field-select option { background: var(--navy-field); color: #fff; }
+.absensi-root .selfie-box {
+  border: 1.5px dashed var(--gold-dark);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  color: var(--gold);
+  font-size: 13px;
+  background: rgba(239,159,39,0.06);
+}
+.absensi-root .selfie-box img,
+.absensi-root .selfie-box video { width: 100%; border-radius: 10px; margin-bottom: 10px; display: block; }
+.absensi-root .selfie-box video { min-height: 220px; background: #000; object-fit: cover; }
+.absensi-root .selfie-actions { display: flex; flex-direction: column; gap: 10px; }
+.absensi-root .selfie-actions .btn-outline,
+.absensi-root .selfie-actions .btn-gold { margin: 0; }
+.absensi-root .btn-gold {
+  width: 100%;
+  background: var(--gold);
+  color: #2b1a03;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 4px;
+  cursor: pointer;
+}
+.absensi-root .btn-gold:hover { background: #f5ac3d; }
+.absensi-root .btn-gold:disabled { opacity: 0.5; cursor: not-allowed; }
+.absensi-root .btn-outline {
+  width: 100%;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--navy-border);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.absensi-root .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.absensi-root .error-text { color: #f0999a; font-size: 12px; margin-top: 6px; }
+.absensi-root .success-wrap { text-align: center; padding: 20px 4px; }
+.absensi-root .success-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(239,159,39,0.12);
+  color: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px; font-size: 30px;
+}
+.absensi-root .success-title { font-size: 18px; font-weight: 600; color: #fff; margin: 0 0 6px; }
+.absensi-root .success-sub { font-size: 13px; color: var(--text-dim); margin: 0; }
+.absensi-root .corner-logo {
+  position: absolute;
+  top: 14px;
+  z-index: 2;
+  object-fit: contain;
+}
+.absensi-root .corner-logo-left { left: 14px; }
+.absensi-root .corner-logo-right { right: 14px; }

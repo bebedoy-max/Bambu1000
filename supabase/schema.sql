@@ -51,7 +51,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.is_event_admin()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role IN ('event_admin','superadmin'));
+  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role IN ('it_admin','event_admin','superadmin'));
 $$;
 
 DROP POLICY IF EXISTS "profiles self read" ON public.profiles;
@@ -190,6 +190,33 @@ CREATE POLICY "edc read" ON public.edc_machines FOR SELECT TO anon, authenticate
 CREATE POLICY "edc admin write" ON public.edc_machines FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
 DROP TRIGGER IF EXISTS edc_updated ON public.edc_machines;
 CREATE TRIGGER edc_updated BEFORE UPDATE ON public.edc_machines FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- QRIS MERCHANTS
+CREATE TABLE IF NOT EXISTS public.qris_merchants (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id text NOT NULL UNIQUE,
+  nama_merchant text NOT NULL,
+  alamat text,
+  tipe text,
+  bri_merchant text NOT NULL DEFAULT 'Ya',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+GRANT SELECT ON public.qris_merchants TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.qris_merchants TO authenticated;
+GRANT ALL ON public.qris_merchants TO service_role;
+
+ALTER TABLE public.qris_merchants ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "qris read" ON public.qris_merchants;
+DROP POLICY IF EXISTS "qris admin write" ON public.qris_merchants;
+CREATE POLICY "qris read" ON public.qris_merchants FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "qris admin write" ON public.qris_merchants FOR ALL TO authenticated
+  USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
+
+DROP TRIGGER IF EXISTS qris_updated ON public.qris_merchants;
+CREATE TRIGGER qris_updated BEFORE UPDATE ON public.qris_merchants
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- EVENTS
 CREATE TABLE IF NOT EXISTS public.events (
