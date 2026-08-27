@@ -380,3 +380,25 @@ export async function removeEventAdmin(eventId: string, id: string) {
   const { error } = await db.from("absensi_event_admins").delete().eq("id", id).eq("event_id", eventId);
   if (error) throw new Error(error.message);
 }
+
+/** Cari pekerja untuk saran nama pada form absensi publik (maks 5). */
+export async function searchEmployeesByName(term: string) {
+  const q = term.trim();
+  if (q.length < 2) return [];
+  try {
+    const db = await admin();
+    const { data } = await db
+      .from("employees")
+      .select("nama,personal_number,uker:ukers(nama_uker)")
+      .ilike("nama", `%${q}%`)
+      .order("nama", { ascending: true })
+      .limit(5);
+    return (data ?? []).map((r: Record<string, any>) => ({
+      nama: String(r["nama"] ?? ""),
+      personalNumber: r["personal_number"] ? String(r["personal_number"]) : "",
+      unitKerja: String(r["uker"]?.["nama_uker"] ?? ""),
+    }));
+  } catch {
+    return [];
+  }
+}

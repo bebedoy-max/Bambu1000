@@ -6,7 +6,11 @@ import {
   themeVars,
   type AbsensiSettings,
 } from "@/lib/absensi-ui";
-import { getAbsensiEvent, submitAbsensi } from "@/lib/absensi.functions";
+import {
+  getAbsensiEvent,
+  searchAbsensiEmployees,
+  submitAbsensi,
+} from "@/lib/absensi.functions";
 
 export const Route = createFileRoute("/absensi/$slug")({
   head: () => ({
@@ -49,6 +53,37 @@ function AbsensiPage() {
   const [submitted, setSubmitted] = useState(false);
   const [cameraOn, setCameraOn] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+  const [suggestions, setSuggestions] = useState<
+    { nama: string; personalNumber: string; unitKerja: string }[]
+  >([]);
+  const [showSuggest, setShowSuggest] = useState(false);
+  const namaPickedRef = useRef(false);
+
+  useEffect(() => {
+    const term = form.nama.trim();
+    if (namaPickedRef.current) {
+      namaPickedRef.current = false;
+      return;
+    }
+    if (term.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    let alive = true;
+    const t = setTimeout(() => {
+      searchAbsensiEmployees({ data: { term } })
+        .then((rows) => {
+          if (!alive) return;
+          setSuggestions(rows as typeof suggestions);
+          setShowSuggest(true);
+        })
+        .catch(() => {});
+    }, 220);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [form.nama]);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -304,15 +339,78 @@ function AbsensiPage() {
             ) : (
               <form onSubmit={handleSubmit}>
                 {fields.nama && (
-                  <div className="field-group">
+                  <div className="field-group" style={{ position: "relative" }}>
                     <label className="field-label">Nama</label>
                     <input
                       className="field-input"
                       placeholder="Nama lengkap"
                       value={form.nama}
+                      autoComplete="off"
                       onChange={(e) => update("nama", e.target.value)}
+                      onFocus={() => suggestions.length > 0 && setShowSuggest(true)}
+                      onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
                       style={{ textTransform: "uppercase" }}
                     />
+                    {showSuggest && suggestions.length > 0 && (
+                      <ul
+                        style={{
+                          position: "absolute",
+                          zIndex: 30,
+                          left: 0,
+                          right: 0,
+                          margin: "4px 0 0",
+                          padding: 4,
+                          listStyle: "none",
+                          background: "var(--navy-card)",
+                          border: "1px solid var(--navy-border)",
+                          borderRadius: 10,
+                          boxShadow: "0 12px 28px rgba(0,0,0,.35)",
+                          maxHeight: 260,
+                          overflowY: "auto",
+                        }}
+                      >
+                        {suggestions.map((s, i) => (
+                          <li key={`${s.personalNumber}-${i}`}>
+                            <button
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                namaPickedRef.current = true;
+                                setForm((f) => ({
+                                  ...f,
+                                  nama: s.nama.toUpperCase(),
+                                  personalNumber: s.personalNumber || f.personalNumber,
+                                  unitKerja:
+                                    s.unitKerja && (settings?.unitKerjaList ?? []).includes(s.unitKerja)
+                                      ? s.unitKerja
+                                      : f.unitKerja,
+                                }));
+                                setErrors((er) => ({ ...er, nama: null, personalNumber: null }));
+                                setShowSuggest(false);
+                                setSuggestions([]);
+                              }}
+                              style={{
+                                display: "block",
+                                width: "100%",
+                                textAlign: "left",
+                                padding: "8px 10px",
+                                borderRadius: 8,
+                                background: "transparent",
+                                border: "none",
+                                color: "var(--app-text)",
+                                cursor: "pointer",
+                                fontSize: 14,
+                              }}
+                            >
+                              <span style={{ fontWeight: 600 }}>{s.nama}</span>
+                              <span style={{ display: "block", fontSize: 12, color: "var(--text-dim)" }}>
+                                {[s.personalNumber, s.unitKerja].filter(Boolean).join(" · ")}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     {errors.nama && <p className="error-text">{errors.nama}</p>}
                   </div>
                 )}

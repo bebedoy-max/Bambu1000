@@ -51,6 +51,7 @@ import { Route as AuthenticatedAdminEventIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminEventIdRouteImport } from './routes/_authenticated/admin/event/$id'
 import { Route as AuthenticatedAdminToolsIndexRouteImport } from './routes/_authenticated/admin/tools.index'
 import { Route as AuthenticatedAdminToolsAbsensiRouteImport } from './routes/_authenticated/admin/tools.absensi'
+import { Route as AuthenticatedAdminToolsUndianRouteImport } from './routes/_authenticated/admin/tools.undian'
 import { Route as AuthenticatedAdminToolsVoteRouteImport } from './routes/_authenticated/admin/tools.vote'
 import { Route as ApiPublicCompanionDeleteEventRouteImport } from './routes/api/public/companion/delete-event'
 import { Route as ApiPublicCompanionDriveStatusRouteImport } from './routes/api/public/companion/drive-status'
@@ -61,6 +62,8 @@ import { Route as ApiPublicCompanionUploadUrlRouteImport } from './routes/api/pu
 import { Route as ApiPublicGoogleDriveCallbackRouteImport } from './routes/api/public/google-drive/callback'
 import { Route as AuthenticatedAdminToolsAbsensiIndexRouteImport } from './routes/_authenticated/admin/tools.absensi.index'
 import { Route as AuthenticatedAdminToolsAbsensiIdRouteImport } from './routes/_authenticated/admin/tools.absensi.$id'
+import { Route as AuthenticatedAdminToolsUndianIndexRouteImport } from './routes/_authenticated/admin/tools.undian.index'
+import { Route as AuthenticatedAdminToolsUndianIdRouteImport } from './routes/_authenticated/admin/tools.undian.$id'
 import { Route as AuthenticatedAdminToolsVoteIndexRouteImport } from './routes/_authenticated/admin/tools.vote.index'
 import { Route as AuthenticatedAdminToolsVoteIdRouteImport } from './routes/_authenticated/admin/tools.vote.$id'
 
@@ -286,6 +289,12 @@ const AuthenticatedAdminToolsAbsensiRoute =
     path: '/absensi',
     getParentRoute: () => AuthenticatedAdminToolsRoute,
   } as any)
+const AuthenticatedAdminToolsUndianRoute =
+  AuthenticatedAdminToolsUndianRouteImport.update({
+    id: '/undian',
+    path: '/undian',
+    getParentRoute: () => AuthenticatedAdminToolsRoute,
+  } as any)
 const AuthenticatedAdminToolsVoteRoute =
   AuthenticatedAdminToolsVoteRouteImport.update({
     id: '/vote',
@@ -346,6 +355,18 @@ const AuthenticatedAdminToolsAbsensiIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminToolsAbsensiRoute,
   } as any)
+const AuthenticatedAdminToolsUndianIndexRoute =
+  AuthenticatedAdminToolsUndianIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminToolsUndianRoute,
+  } as any)
+const AuthenticatedAdminToolsUndianIdRoute =
+  AuthenticatedAdminToolsUndianIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminToolsUndianRoute,
+  } as any)
 const AuthenticatedAdminToolsVoteIndexRoute =
   AuthenticatedAdminToolsVoteIndexRouteImport.update({
     id: '/',
@@ -399,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+  '/admin/tools/undian': typeof AuthenticatedAdminToolsUndianRouteWithChildren
   '/admin/tools/vote': typeof AuthenticatedAdminToolsVoteRouteWithChildren
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
@@ -410,8 +432,10 @@ export interface FileRoutesByFullPath {
   '/admin/event/': typeof AuthenticatedAdminEventIndexRoute
   '/admin/tools/': typeof AuthenticatedAdminToolsIndexRoute
   '/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
+  '/admin/tools/undian/$id': typeof AuthenticatedAdminToolsUndianIdRoute
   '/admin/tools/vote/$id': typeof AuthenticatedAdminToolsVoteIdRoute
   '/admin/tools/absensi/': typeof AuthenticatedAdminToolsAbsensiIndexRoute
+  '/admin/tools/undian/': typeof AuthenticatedAdminToolsUndianIndexRoute
   '/admin/tools/vote/': typeof AuthenticatedAdminToolsVoteIndexRoute
 }
 export interface FileRoutesByTo {
@@ -462,8 +486,10 @@ export interface FileRoutesByTo {
   '/admin/event': typeof AuthenticatedAdminEventIndexRoute
   '/admin/tools': typeof AuthenticatedAdminToolsIndexRoute
   '/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
+  '/admin/tools/undian/$id': typeof AuthenticatedAdminToolsUndianIdRoute
   '/admin/tools/vote/$id': typeof AuthenticatedAdminToolsVoteIdRoute
   '/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiIndexRoute
+  '/admin/tools/undian': typeof AuthenticatedAdminToolsUndianIndexRoute
   '/admin/tools/vote': typeof AuthenticatedAdminToolsVoteIndexRoute
 }
 export interface FileRoutesById {
@@ -508,6 +534,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/_authenticated/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+  '/_authenticated/admin/tools/undian': typeof AuthenticatedAdminToolsUndianRouteWithChildren
   '/_authenticated/admin/tools/vote': typeof AuthenticatedAdminToolsVoteRouteWithChildren
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
@@ -519,8 +546,10 @@ export interface FileRoutesById {
   '/_authenticated/admin/event/': typeof AuthenticatedAdminEventIndexRoute
   '/_authenticated/admin/tools/': typeof AuthenticatedAdminToolsIndexRoute
   '/_authenticated/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
+  '/_authenticated/admin/tools/undian/$id': typeof AuthenticatedAdminToolsUndianIdRoute
   '/_authenticated/admin/tools/vote/$id': typeof AuthenticatedAdminToolsVoteIdRoute
   '/_authenticated/admin/tools/absensi/': typeof AuthenticatedAdminToolsAbsensiIndexRoute
+  '/_authenticated/admin/tools/undian/': typeof AuthenticatedAdminToolsUndianIndexRoute
   '/_authenticated/admin/tools/vote/': typeof AuthenticatedAdminToolsVoteIndexRoute
 }
 export interface FileRouteTypes {
@@ -565,6 +594,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/event/$id'
     | '/admin/tools/absensi'
+    | '/admin/tools/undian'
     | '/admin/tools/vote'
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
@@ -576,8 +606,10 @@ export interface FileRouteTypes {
     | '/admin/event/'
     | '/admin/tools/'
     | '/admin/tools/absensi/$id'
+    | '/admin/tools/undian/$id'
     | '/admin/tools/vote/$id'
     | '/admin/tools/absensi/'
+    | '/admin/tools/undian/'
     | '/admin/tools/vote/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -628,8 +660,10 @@ export interface FileRouteTypes {
     | '/admin/event'
     | '/admin/tools'
     | '/admin/tools/absensi/$id'
+    | '/admin/tools/undian/$id'
     | '/admin/tools/vote/$id'
     | '/admin/tools/absensi'
+    | '/admin/tools/undian'
     | '/admin/tools/vote'
   id:
     | '__root__'
@@ -673,6 +707,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/admin/event/$id'
     | '/_authenticated/admin/tools/absensi'
+    | '/_authenticated/admin/tools/undian'
     | '/_authenticated/admin/tools/vote'
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
@@ -684,8 +719,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/event/'
     | '/_authenticated/admin/tools/'
     | '/_authenticated/admin/tools/absensi/$id'
+    | '/_authenticated/admin/tools/undian/$id'
     | '/_authenticated/admin/tools/vote/$id'
     | '/_authenticated/admin/tools/absensi/'
+    | '/_authenticated/admin/tools/undian/'
     | '/_authenticated/admin/tools/vote/'
   fileRoutesById: FileRoutesById
 }
@@ -1010,6 +1047,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsAbsensiRouteImport
       parentRoute: typeof AuthenticatedAdminToolsRoute
     }
+    '/_authenticated/admin/tools/undian': {
+      id: '/_authenticated/admin/tools/undian'
+      path: '/undian'
+      fullPath: '/admin/tools/undian'
+      preLoaderRoute: typeof AuthenticatedAdminToolsUndianRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsRoute
+    }
     '/_authenticated/admin/tools/vote': {
       id: '/_authenticated/admin/tools/vote'
       path: '/vote'
@@ -1080,6 +1124,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsAbsensiIdRouteImport
       parentRoute: typeof AuthenticatedAdminToolsAbsensiRoute
     }
+    '/_authenticated/admin/tools/undian/': {
+      id: '/_authenticated/admin/tools/undian/'
+      path: '/'
+      fullPath: '/admin/tools/undian/'
+      preLoaderRoute: typeof AuthenticatedAdminToolsUndianIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsUndianRoute
+    }
+    '/_authenticated/admin/tools/undian/$id': {
+      id: '/_authenticated/admin/tools/undian/$id'
+      path: '/$id'
+      fullPath: '/admin/tools/undian/$id'
+      preLoaderRoute: typeof AuthenticatedAdminToolsUndianIdRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsUndianRoute
+    }
     '/_authenticated/admin/tools/vote/': {
       id: '/_authenticated/admin/tools/vote/'
       path: '/'
@@ -1115,6 +1173,23 @@ const AuthenticatedAdminToolsAbsensiRouteWithChildren =
     AuthenticatedAdminToolsAbsensiRouteChildren,
   )
 
+interface AuthenticatedAdminToolsUndianRouteChildren {
+  AuthenticatedAdminToolsUndianIdRoute: typeof AuthenticatedAdminToolsUndianIdRoute
+  AuthenticatedAdminToolsUndianIndexRoute: typeof AuthenticatedAdminToolsUndianIndexRoute
+}
+
+const AuthenticatedAdminToolsUndianRouteChildren: AuthenticatedAdminToolsUndianRouteChildren =
+  {
+    AuthenticatedAdminToolsUndianIdRoute: AuthenticatedAdminToolsUndianIdRoute,
+    AuthenticatedAdminToolsUndianIndexRoute:
+      AuthenticatedAdminToolsUndianIndexRoute,
+  }
+
+const AuthenticatedAdminToolsUndianRouteWithChildren =
+  AuthenticatedAdminToolsUndianRoute._addFileChildren(
+    AuthenticatedAdminToolsUndianRouteChildren,
+  )
+
 interface AuthenticatedAdminToolsVoteRouteChildren {
   AuthenticatedAdminToolsVoteIdRoute: typeof AuthenticatedAdminToolsVoteIdRoute
   AuthenticatedAdminToolsVoteIndexRoute: typeof AuthenticatedAdminToolsVoteIndexRoute
@@ -1134,6 +1209,7 @@ const AuthenticatedAdminToolsVoteRouteWithChildren =
 
 interface AuthenticatedAdminToolsRouteChildren {
   AuthenticatedAdminToolsAbsensiRoute: typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+  AuthenticatedAdminToolsUndianRoute: typeof AuthenticatedAdminToolsUndianRouteWithChildren
   AuthenticatedAdminToolsVoteRoute: typeof AuthenticatedAdminToolsVoteRouteWithChildren
   AuthenticatedAdminToolsIndexRoute: typeof AuthenticatedAdminToolsIndexRoute
 }
@@ -1142,6 +1218,8 @@ const AuthenticatedAdminToolsRouteChildren: AuthenticatedAdminToolsRouteChildren
   {
     AuthenticatedAdminToolsAbsensiRoute:
       AuthenticatedAdminToolsAbsensiRouteWithChildren,
+    AuthenticatedAdminToolsUndianRoute:
+      AuthenticatedAdminToolsUndianRouteWithChildren,
     AuthenticatedAdminToolsVoteRoute:
       AuthenticatedAdminToolsVoteRouteWithChildren,
     AuthenticatedAdminToolsIndexRoute: AuthenticatedAdminToolsIndexRoute,

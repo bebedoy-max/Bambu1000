@@ -42,7 +42,15 @@ const apps = [
     icon: Vote,
     ready: true,
   },
-  { key: "undian", label: "Undian", description: "Undian doorprize event.", icon: Gift, ready: false },
+  {
+    key: "undian",
+    to: "/admin/tools/undian",
+    label: "Undian",
+    description:
+      "Undian doorprize acara: atur kategori, hadiah, dan peserta (bisa impor dari Data Pekerja), lalu kocok pemenangnya di panggung.",
+    icon: Gift,
+    ready: true,
+  },
   {
     key: "nomination",
     label: "Nomination",

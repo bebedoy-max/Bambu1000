@@ -130,3 +130,11 @@ export const saveAbsensiDisplayDefaults = createServerFn({ method: "POST" })
     await saveDisplayDefaults(data as unknown as Record<string, unknown>);
     return { ok: true };
   });
+
+/** Publik: saran nama pekerja untuk form absensi. */
+export const searchAbsensiEmployees = createServerFn({ method: "POST" })
+  .inputValidator((data: { term: string }) => data)
+  .handler(async ({ data }) => {
+    const { searchEmployeesByName } = await import("@/lib/absensi.server");
+    return searchEmployeesByName(data.term);
+  });
