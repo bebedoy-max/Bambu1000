@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, LayoutGrid, RotateCcw, Sparkles } from "lucide-react";
-import bgPpt from "@/assets/bg-ppt.png";
-import brilianWay from "@/assets/brilian-way.png";
-import logoBri from "@/assets/logo-bri.png";
+import bgPptAsset from "@/assets/bg-ppt.png.asset.json";
+import brilianWayAsset from "@/assets/brilian-way.png.asset.json";
+import logoBriAsset from "@/assets/logo-bri.png.asset.json";
+
 import { normalizeBoard, type NominasiBoard, type NominasiNominee } from "@/lib/nominasi-ui";
 import { getNominasiEvent } from "@/lib/nominasi.functions";
 
@@ -125,11 +126,11 @@ function Page() {
     return <div className="p-8 text-sm text-muted-foreground">Memuat papan...</div>;
   }
 
-  const leftLogo = board.logo ?? brilianWay;
-  const rightLogo = board.logo2 ?? logoBri;
+  const leftLogo = board.logo ?? brilianWayAsset.url;
+  const rightLogo = board.logo2 ?? logoBriAsset.url;
 
   return (
-    <div className="nominasi-board" style={{ backgroundImage: `url(${bgPpt})` }}>
+    <div className="nominasi-board" style={{ backgroundImage: `url(${bgPptAsset.url})` }}>
       <div className="nom-toolbar">
         <Link to="/admin/tools/nominasi/$id" params={{ id }} className="nom-btn nom-btn-ghost">
           <ArrowLeft className="size-4" /> Panel
