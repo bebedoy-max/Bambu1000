@@ -50,7 +50,10 @@ import { Route as AuthenticatedAdminEventIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminEventIdRouteImport } from './routes/_authenticated/admin/event/$id'
 import { Route as AuthenticatedAdminToolsIndexRouteImport } from './routes/_authenticated/admin/tools.index'
 import { Route as AuthenticatedAdminToolsAbsensiRouteImport } from './routes/_authenticated/admin/tools.absensi'
+<<<<<<< HEAD
 import { Route as AuthenticatedAdminToolsVoteRouteImport } from './routes/_authenticated/admin/tools.vote'
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
 import { Route as ApiPublicCompanionDeleteEventRouteImport } from './routes/api/public/companion/delete-event'
 import { Route as ApiPublicCompanionDriveStatusRouteImport } from './routes/api/public/companion/drive-status'
 import { Route as ApiPublicCompanionFinalizeRouteImport } from './routes/api/public/companion/finalize'
@@ -60,8 +63,11 @@ import { Route as ApiPublicCompanionUploadUrlRouteImport } from './routes/api/pu
 import { Route as ApiPublicGoogleDriveCallbackRouteImport } from './routes/api/public/google-drive/callback'
 import { Route as AuthenticatedAdminToolsAbsensiIndexRouteImport } from './routes/_authenticated/admin/tools.absensi.index'
 import { Route as AuthenticatedAdminToolsAbsensiIdRouteImport } from './routes/_authenticated/admin/tools.absensi.$id'
+<<<<<<< HEAD
 import { Route as AuthenticatedAdminToolsVoteIndexRouteImport } from './routes/_authenticated/admin/tools.vote.index'
 import { Route as AuthenticatedAdminToolsVoteIdRouteImport } from './routes/_authenticated/admin/tools.vote.$id'
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -280,12 +286,15 @@ const AuthenticatedAdminToolsAbsensiRoute =
     path: '/absensi',
     getParentRoute: () => AuthenticatedAdminToolsRoute,
   } as any)
+<<<<<<< HEAD
 const AuthenticatedAdminToolsVoteRoute =
   AuthenticatedAdminToolsVoteRouteImport.update({
     id: '/vote',
     path: '/vote',
     getParentRoute: () => AuthenticatedAdminToolsRoute,
   } as any)
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
 const ApiPublicCompanionDeleteEventRoute =
   ApiPublicCompanionDeleteEventRouteImport.update({
     id: '/api/public/companion/delete-event',
@@ -340,6 +349,7 @@ const AuthenticatedAdminToolsAbsensiIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminToolsAbsensiRoute,
   } as any)
+<<<<<<< HEAD
 const AuthenticatedAdminToolsVoteIndexRoute =
   AuthenticatedAdminToolsVoteIndexRouteImport.update({
     id: '/',
@@ -352,6 +362,8 @@ const AuthenticatedAdminToolsVoteIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminToolsVoteRoute,
   } as any)
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -392,7 +404,10 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+<<<<<<< HEAD
   '/admin/tools/vote': typeof AuthenticatedAdminToolsVoteRouteWithChildren
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
@@ -403,9 +418,13 @@ export interface FileRoutesByFullPath {
   '/admin/event/': typeof AuthenticatedAdminEventIndexRoute
   '/admin/tools/': typeof AuthenticatedAdminToolsIndexRoute
   '/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
+<<<<<<< HEAD
   '/admin/tools/vote/$id': typeof AuthenticatedAdminToolsVoteIdRoute
   '/admin/tools/absensi/': typeof AuthenticatedAdminToolsAbsensiIndexRoute
   '/admin/tools/vote/': typeof AuthenticatedAdminToolsVoteIndexRoute
+=======
+  '/admin/tools/absensi/': typeof AuthenticatedAdminToolsAbsensiIndexRoute
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -454,9 +473,13 @@ export interface FileRoutesByTo {
   '/admin/event': typeof AuthenticatedAdminEventIndexRoute
   '/admin/tools': typeof AuthenticatedAdminToolsIndexRoute
   '/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
+<<<<<<< HEAD
   '/admin/tools/vote/$id': typeof AuthenticatedAdminToolsVoteIdRoute
   '/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiIndexRoute
   '/admin/tools/vote': typeof AuthenticatedAdminToolsVoteIndexRoute
+=======
+  '/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiIndexRoute
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -499,7 +522,10 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/_authenticated/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+<<<<<<< HEAD
   '/_authenticated/admin/tools/vote': typeof AuthenticatedAdminToolsVoteRouteWithChildren
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
@@ -510,9 +536,13 @@ export interface FileRoutesById {
   '/_authenticated/admin/event/': typeof AuthenticatedAdminEventIndexRoute
   '/_authenticated/admin/tools/': typeof AuthenticatedAdminToolsIndexRoute
   '/_authenticated/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
+<<<<<<< HEAD
   '/_authenticated/admin/tools/vote/$id': typeof AuthenticatedAdminToolsVoteIdRoute
   '/_authenticated/admin/tools/absensi/': typeof AuthenticatedAdminToolsAbsensiIndexRoute
   '/_authenticated/admin/tools/vote/': typeof AuthenticatedAdminToolsVoteIndexRoute
+=======
+  '/_authenticated/admin/tools/absensi/': typeof AuthenticatedAdminToolsAbsensiIndexRoute
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -555,7 +585,10 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/event/$id'
     | '/admin/tools/absensi'
+<<<<<<< HEAD
     | '/admin/tools/vote'
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
@@ -566,9 +599,13 @@ export interface FileRouteTypes {
     | '/admin/event/'
     | '/admin/tools/'
     | '/admin/tools/absensi/$id'
+<<<<<<< HEAD
     | '/admin/tools/vote/$id'
     | '/admin/tools/absensi/'
     | '/admin/tools/vote/'
+=======
+    | '/admin/tools/absensi/'
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -617,9 +654,13 @@ export interface FileRouteTypes {
     | '/admin/event'
     | '/admin/tools'
     | '/admin/tools/absensi/$id'
+<<<<<<< HEAD
     | '/admin/tools/vote/$id'
     | '/admin/tools/absensi'
     | '/admin/tools/vote'
+=======
+    | '/admin/tools/absensi'
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
   id:
     | '__root__'
     | '/'
@@ -661,7 +702,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/admin/event/$id'
     | '/_authenticated/admin/tools/absensi'
+<<<<<<< HEAD
     | '/_authenticated/admin/tools/vote'
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
@@ -672,9 +716,13 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/event/'
     | '/_authenticated/admin/tools/'
     | '/_authenticated/admin/tools/absensi/$id'
+<<<<<<< HEAD
     | '/_authenticated/admin/tools/vote/$id'
     | '/_authenticated/admin/tools/absensi/'
     | '/_authenticated/admin/tools/vote/'
+=======
+    | '/_authenticated/admin/tools/absensi/'
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -691,7 +739,10 @@ export interface RootRouteChildren {
   DetailKeyRoute: typeof DetailKeyRoute
   EventIdRoute: typeof EventIdRoute
   ProjectIdRoute: typeof ProjectIdRoute
+<<<<<<< HEAD
   VoteSlugRoute: typeof VoteSlugRoute
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
   ApiPublicCompanionDeleteEventRoute: typeof ApiPublicCompanionDeleteEventRoute
   ApiPublicCompanionDriveStatusRoute: typeof ApiPublicCompanionDriveStatusRoute
   ApiPublicCompanionFinalizeRoute: typeof ApiPublicCompanionFinalizeRoute
@@ -990,6 +1041,7 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsAbsensiRouteImport
       parentRoute: typeof AuthenticatedAdminToolsRoute
     }
+<<<<<<< HEAD
     '/_authenticated/admin/tools/vote': {
       id: '/_authenticated/admin/tools/vote'
       path: '/vote'
@@ -997,6 +1049,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsVoteRouteImport
       parentRoute: typeof AuthenticatedAdminToolsRoute
     }
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
     '/api/public/companion/delete-event': {
       id: '/api/public/companion/delete-event'
       path: '/api/public/companion/delete-event'
@@ -1060,6 +1114,7 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsAbsensiIdRouteImport
       parentRoute: typeof AuthenticatedAdminToolsAbsensiRoute
     }
+<<<<<<< HEAD
     '/_authenticated/admin/tools/vote/': {
       id: '/_authenticated/admin/tools/vote/'
       path: '/'
@@ -1074,6 +1129,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsVoteIdRouteImport
       parentRoute: typeof AuthenticatedAdminToolsVoteRoute
     }
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
   }
 }
 
@@ -1095,6 +1152,7 @@ const AuthenticatedAdminToolsAbsensiRouteWithChildren =
     AuthenticatedAdminToolsAbsensiRouteChildren,
   )
 
+<<<<<<< HEAD
 interface AuthenticatedAdminToolsVoteRouteChildren {
   AuthenticatedAdminToolsVoteIdRoute: typeof AuthenticatedAdminToolsVoteIdRoute
   AuthenticatedAdminToolsVoteIndexRoute: typeof AuthenticatedAdminToolsVoteIndexRoute
@@ -1115,6 +1173,10 @@ const AuthenticatedAdminToolsVoteRouteWithChildren =
 interface AuthenticatedAdminToolsRouteChildren {
   AuthenticatedAdminToolsAbsensiRoute: typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
   AuthenticatedAdminToolsVoteRoute: typeof AuthenticatedAdminToolsVoteRouteWithChildren
+=======
+interface AuthenticatedAdminToolsRouteChildren {
+  AuthenticatedAdminToolsAbsensiRoute: typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
   AuthenticatedAdminToolsIndexRoute: typeof AuthenticatedAdminToolsIndexRoute
 }
 
@@ -1122,8 +1184,11 @@ const AuthenticatedAdminToolsRouteChildren: AuthenticatedAdminToolsRouteChildren
   {
     AuthenticatedAdminToolsAbsensiRoute:
       AuthenticatedAdminToolsAbsensiRouteWithChildren,
+<<<<<<< HEAD
     AuthenticatedAdminToolsVoteRoute:
       AuthenticatedAdminToolsVoteRouteWithChildren,
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
     AuthenticatedAdminToolsIndexRoute: AuthenticatedAdminToolsIndexRoute,
   }
 
@@ -1206,7 +1271,10 @@ const rootRouteChildren: RootRouteChildren = {
   DetailKeyRoute: DetailKeyRoute,
   EventIdRoute: EventIdRoute,
   ProjectIdRoute: ProjectIdRoute,
+<<<<<<< HEAD
   VoteSlugRoute: VoteSlugRoute,
+=======
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
   ApiPublicCompanionDeleteEventRoute: ApiPublicCompanionDeleteEventRoute,
   ApiPublicCompanionDriveStatusRoute: ApiPublicCompanionDriveStatusRoute,
   ApiPublicCompanionFinalizeRoute: ApiPublicCompanionFinalizeRoute,

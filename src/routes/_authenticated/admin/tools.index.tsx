@@ -33,6 +33,7 @@ const apps = [
     icon: CalendarCheck,
     ready: true,
   },
+<<<<<<< HEAD
   {
     key: "vote",
     to: "/admin/tools/vote",
@@ -42,6 +43,9 @@ const apps = [
     icon: Vote,
     ready: true,
   },
+=======
+  { key: "vote", label: "Vote", description: "Voting peserta event.", icon: Vote, ready: false },
+>>>>>>> bfacf289a1f133ee7f1538d526b7cec017ab7153
   { key: "undian", label: "Undian", description: "Undian doorprize event.", icon: Gift, ready: false },
   {
     key: "nomination",
