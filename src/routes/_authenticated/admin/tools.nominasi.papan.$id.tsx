@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, LayoutGrid, RotateCcw, Sparkles } from "lucide-react";
-import bgPptAsset from "@/assets/bg-ppt.png.asset.json";
-import brilianWayAsset from "@/assets/brilian-way.png.asset.json";
-import logoBriAsset from "@/assets/logo-bri.png.asset.json";
+import { Settings, Sparkles, Star, X } from "lucide-react";
 
-import { normalizeBoard, type NominasiBoard, type NominasiNominee } from "@/lib/nominasi-ui";
+import {
+  normalizeBoard,
+  type NominasiBoard,
+  type NominasiCategory,
+  type NominasiNominee,
+} from "@/lib/nominasi-ui";
 import { getNominasiEvent } from "@/lib/nominasi.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/tools/nominasi/papan/$id")({
@@ -15,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/admin/tools/nominasi/papan
       { title: "Papan Nominasi — SuperIT Apps" },
       {
         name: "description",
-        content: "Papan pengumuman Best Performance: acak nominasi lalu tampilkan pemenangnya.",
+        content: "Papan pengumuman Best Performance: ungkap nominasi satu per satu saat acara.",
       },
       { property: "og:title", content: "Papan Nominasi — SuperIT Apps" },
       {
@@ -30,33 +32,130 @@ export const Route = createFileRoute("/_authenticated/admin/tools/nominasi/papan
 });
 
 function NomineeCard({
-  nominee,
-  revealed,
-  shuffling,
-  delay,
+  n,
+  animate,
+  size = "md",
 }: {
-  nominee: NominasiNominee;
-  revealed: boolean;
-  shuffling: boolean;
-  delay: number;
+  n: NominasiNominee;
+  animate?: boolean;
+  size?: "md" | "sm";
 }) {
   return (
-    <div
-      className={`nom-card ${revealed ? "is-revealed" : ""} ${shuffling ? "is-shuffling" : ""}`}
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className="nom-frame">
-        {nominee.photo ? (
-          <img src={nominee.photo} alt={nominee.name} className="nom-photo" />
+    <>
+      {animate ? (
+        <div className="nom-sparks">
+          {Array.from({ length: 14 }).map((_, s) => (
+            <span
+              key={s}
+              className="nom-spark"
+              style={{
+                ["--tx" as string]: `${Math.cos((s / 14) * Math.PI * 2) * 130}px`,
+                ["--ty" as string]: `${Math.sin((s / 14) * Math.PI * 2) * 130}px`,
+                animationDelay: `${s * 0.04}s`,
+              }}
+            >
+              <Star className="size-4 fill-current drop-shadow-[0_0_8px_currentColor]" />
+            </span>
+          ))}
+        </div>
+      ) : null}
+      <div className={`nom-frame ${animate ? "is-glow" : ""}`}>
+        {n.photo ? (
+          <img src={n.photo} alt={n.name} loading="lazy" />
         ) : (
-          <div className="nom-photo nom-photo-empty" />
+          <div className="nom-frame-empty">Foto</div>
         )}
-        <div className="nom-shine" />
       </div>
-      <div className="nom-plate">
-        <p className="nom-name">{nominee.name}</p>
-        <p className="nom-position">{nominee.position}</p>
+      <div className={`nom-plate ${size === "sm" ? "is-sm" : ""}`}>
+        <p className="nom-name">{n.name}</p>
+        <p className="nom-position">{n.position}</p>
       </div>
+    </>
+  );
+}
+
+function FinaleOverlay({
+  board,
+  categories,
+  logoSrc,
+  logoHeight,
+  logo2Src,
+  logo2Height,
+  onClose,
+}: {
+  board: NominasiBoard;
+  categories: NominasiCategory[];
+  logoSrc: string | null;
+  logoHeight: number;
+  logo2Src: string | null;
+  logo2Height: number;
+  onClose: () => void;
+}) {
+  return (
+    <div className="nom-stage nom-finale">
+      <div className="nom-finale-head">
+        {logoSrc ? (
+          <img src={logoSrc} alt="Logo utama" style={{ height: `${logoHeight}px` }} />
+        ) : (
+          <span />
+        )}
+        <div className="min-w-0 text-center">
+          <h2 className="nom-finale-title">{board.heading}</h2>
+          <p className="nom-finale-sub">
+            [ {board.period} ] — {board.unit}
+          </p>
+        </div>
+        {logo2Src ? (
+          <img src={logo2Src} alt="Logo pendukung" style={{ height: `${logo2Height}px` }} />
+        ) : (
+          <span />
+        )}
+      </div>
+
+      <div className="nom-finale-body">
+        <div className="nom-finale-wrap">
+          {categories.map((cat) => {
+            const count = cat.nominees.length;
+            const cols = Math.min(count > 0 ? count : 1, 6);
+            return (
+              <section
+                key={cat.id}
+                className="nom-finale-cat"
+                style={{ width: `${cols * 140 + (cols - 1) * 16 + 32}px`, minWidth: "200px" }}
+              >
+                <h3>
+                  <span className="nom-finale-chip">{cat.name}</span>
+                </h3>
+                {count > 0 ? (
+                  <ul
+                    className="nom-finale-grid"
+                    style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+                  >
+                    {cat.nominees.map((n) => (
+                      <li key={n.id} className="relative min-w-0">
+                        <NomineeCard n={n} size="sm" />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="nom-finale-empty">Belum ada nominasi</p>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      </div>
+
+      <p className="nom-finale-tagline">Semangat Baru! Siap Bertransformasi!</p>
+
+      <button
+        type="button"
+        aria-label="Tutup tampilan semua kategori"
+        onClick={onClose}
+        className="nom-finale-close"
+      >
+        <X className="size-5" />
+      </button>
     </div>
   );
 }
@@ -73,161 +172,145 @@ function Page() {
     [q.data],
   );
 
-  const [activeCat, setActiveCat] = useState(0);
-  const [shuffling, setShuffling] = useState(false);
-  const [revealed, setRevealed] = useState(false);
-  const [order, setOrder] = useState<number[]>([]);
-  const [finale, setFinale] = useState(false);
-  const timers = useRef<number[]>([]);
-
-  const categories = board?.categories ?? [];
-  const current = categories[activeCat];
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [revealedMap, setRevealedMap] = useState<Record<string, number>>({});
+  const [lastRevealed, setLastRevealed] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
-    setRevealed(false);
-    setShuffling(false);
-    setOrder((current?.nominees ?? []).map((_, i) => i));
-  }, [activeCat, current?.nominees.length]);
-
-  useEffect(
-    () => () => {
-      timers.current.forEach((t) => window.clearInterval(t));
-      timers.current.forEach((t) => window.clearTimeout(t));
-    },
-    [],
-  );
-
-  function play() {
-    if (!current || current.nominees.length === 0 || shuffling) return;
-    setRevealed(false);
-    setShuffling(true);
-    const n = current.nominees.length;
-    const spin = window.setInterval(() => {
-      setOrder((o) => {
-        const next = [...o];
-        for (let i = next.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [next[i], next[j]] = [next[j]!, next[i]!];
-        }
-        return next;
-      });
-    }, 90);
-    timers.current.push(spin);
-    const stop = window.setTimeout(() => {
-      window.clearInterval(spin);
-      setOrder(Array.from({ length: n }, (_, i) => i));
-      setShuffling(false);
-      setRevealed(true);
-    }, 2600);
-    timers.current.push(stop);
-  }
+    setLastRevealed(null);
+  }, [activeId]);
 
   if (q.isLoading || !board) {
     return <div className="p-8 text-sm text-muted-foreground">Memuat papan...</div>;
   }
 
-  const leftLogo = board.logo ?? brilianWayAsset.url;
-  const rightLogo = board.logo2 ?? logoBriAsset.url;
+  const categories = board.categories;
+  const active = categories.find((c) => c.id === activeId) ?? categories[0];
+  const nominees = active?.nominees ?? [];
+  const revealed = active ? (revealedMap[active.id] ?? 0) : 0;
+  const done = revealed >= nominees.length;
+  const allDone =
+    categories.length > 0 &&
+    categories.every((c) => (revealedMap[c.id] ?? 0) >= c.nominees.length);
+
+  const logoSrc = board.logo;
+  const logoHeight = board.logoHeight;
+  const logo2Src = board.logo2;
+  const logo2Height = board.logo2Height;
 
   return (
-    <div className="nominasi-board" style={{ backgroundImage: `url(${bgPptAsset.url})` }}>
-      <div className="nom-toolbar">
-        <Link to="/admin/tools/nominasi/$id" params={{ id }} className="nom-btn nom-btn-ghost">
-          <ArrowLeft className="size-4" /> Panel
-        </Link>
-        <button type="button" className="nom-btn" onClick={play} disabled={shuffling}>
-          <Sparkles className="size-4" /> {shuffling ? "Mengacak..." : "Umumkan"}
+    <main className="nom-stage">
+      <div className="nom-inner">
+        <header className="nom-topbar">
+          {logoSrc ? (
+            <img src={logoSrc} alt="Logo utama" style={{ height: `${logoHeight}px` }} />
+          ) : (
+            <span />
+          )}
+          {logo2Src ? (
+            <img src={logo2Src} alt="Logo pendukung" style={{ height: `${logo2Height}px` }} />
+          ) : (
+            <span />
+          )}
+        </header>
+
+        <section className="nom-hero">
+          <h1 className="nom-h1">
+            {board.heading}
+            <span>{active?.name ?? "—"}</span>
+          </h1>
+          <p className="nom-period">[ {board.period} ]</p>
+        </section>
+
+        <nav className="nom-tabs">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              className={`nom-tab ${cat.id === active?.id ? "is-active" : ""}`}
+              onClick={() => {
+                setActiveId(cat.id);
+                setLastRevealed(null);
+              }}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </nav>
+
+        <div className="nom-body">
+          {nominees.length > 0 ? (
+            <ul className="nom-list">
+              {nominees.map((n, i) => {
+                const isShown = i < revealed;
+                const isNew = isShown && lastRevealed === n.id;
+                return (
+                  <li
+                    key={n.id}
+                    className={`nom-item ${isShown ? (isNew ? "nom-reveal" : "") : "is-hidden"}`}
+                  >
+                    <NomineeCard n={n} animate={isNew} />
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="nom-period">Belum ada nominasi pada kategori ini</p>
+          )}
+        </div>
+
+        <footer className="nom-footer">
+          <p className="nom-tagline">Semangat Baru! Siap Bertransformasi!</p>
+          <p className="nom-unit">{board.unit}</p>
+        </footer>
+      </div>
+
+      <div className="nom-fabs">
+        <button
+          type="button"
+          aria-label="Tampilkan semua kategori dan nominasi"
+          disabled={!allDone}
+          onClick={() => setShowAll(true)}
+          className="nom-fab nom-fab-mid"
+        >
+          <Sparkles className="size-6 fill-current" />
         </button>
         <button
           type="button"
-          className="nom-btn nom-btn-ghost"
+          aria-label="Tampilkan nominasi berikutnya"
+          disabled={done}
           onClick={() => {
-            setRevealed(false);
-            setOrder((current?.nominees ?? []).map((_, i) => i));
+            if (!active) return;
+            const next = Math.min(revealed + 1, nominees.length);
+            setRevealedMap((m) => ({ ...m, [active.id]: next }));
+            setLastRevealed(nominees[next - 1]?.id ?? null);
           }}
+          className="nom-fab nom-fab-star"
         >
-          <RotateCcw className="size-4" /> Ulang
+          <Star className="size-6 fill-current" />
         </button>
-        <button type="button" className="nom-btn nom-btn-ghost" onClick={() => setFinale(true)}>
-          <LayoutGrid className="size-4" /> Tampilkan Semua
-        </button>
+        <Link
+          to="/admin/tools/nominasi/$id"
+          params={{ id }}
+          aria-label="Buka panel admin"
+          className="nom-fab-sm"
+        >
+          <Settings className="size-4" />
+        </Link>
       </div>
 
-      <header className="nom-header">
-        <img src={leftLogo} alt="Logo kiri" style={{ height: board.logoHeight }} />
-        <div className="nom-title-wrap">
-          <h1 className="nom-heading">{board.heading}</h1>
-          <p className="nom-sub">
-            {board.period} · {board.unit}
-          </p>
-        </div>
-        <img src={rightLogo} alt="Logo kanan" style={{ height: board.logo2Height }} />
-      </header>
-
-      <nav className="nom-tabs">
-        {categories.map((c, i) => (
-          <button
-            key={c.id}
-            type="button"
-            className={`nom-tab ${i === activeCat ? "is-active" : ""}`}
-            onClick={() => setActiveCat(i)}
-          >
-            {c.name}
-          </button>
-        ))}
-      </nav>
-
-      <h2 className="nom-cat-title">{current?.name ?? "-"}</h2>
-
-      <div className="nom-grid">
-        {(order.length ? order : (current?.nominees ?? []).map((_, i) => i)).map((idx, pos) => {
-          const nom = current?.nominees[idx];
-          if (!nom) return null;
-          return (
-            <NomineeCard
-              key={nom.id}
-              nominee={nom}
-              revealed={revealed}
-              shuffling={shuffling}
-              delay={pos * 140}
-            />
-          );
-        })}
-      </div>
-
-      {finale ? (
-        <div className="nom-finale" onClick={() => setFinale(false)}>
-          <div className="nom-finale-inner" onClick={(e) => e.stopPropagation()}>
-            <h2 className="nom-heading">{board.heading}</h2>
-            <p className="nom-sub">
-              {board.period} · {board.unit}
-            </p>
-            <div className="nom-finale-grid">
-              {categories.map((c) => (
-                <div key={c.id} className="nom-finale-cat">
-                  <h3>{c.name}</h3>
-                  <div className="nom-finale-list">
-                    {c.nominees.map((n) => (
-                      <div key={n.id} className="nom-finale-item">
-                        <div className="nom-finale-photo">
-                          {n.photo ? <img src={n.photo} alt={n.name} /> : null}
-                        </div>
-                        <div>
-                          <p className="nom-name">{n.name}</p>
-                          <p className="nom-position">{n.position}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button type="button" className="nom-btn" onClick={() => setFinale(false)}>
-              Tutup
-            </button>
-          </div>
-        </div>
+      {showAll ? (
+        <FinaleOverlay
+          board={board}
+          categories={categories}
+          logoSrc={logoSrc}
+          logoHeight={logoHeight}
+          logo2Src={logo2Src}
+          logo2Height={logo2Height}
+          onClose={() => setShowAll(false)}
+        />
       ) : null}
-    </div>
+    </main>
   );
 }
