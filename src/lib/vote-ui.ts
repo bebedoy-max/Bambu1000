@@ -19,10 +19,7 @@ export type VoteSettings = {
   title: string;
   subtitle: string;
   eyebrow: string;
-<<<<<<< HEAD
   showcaseNote: string;
-=======
->>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
   eventDate: string;
   accent: string;
   logo: string | null;

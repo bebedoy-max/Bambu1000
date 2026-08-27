@@ -25,10 +25,7 @@ export function toVoteSettings(row: Row): VoteSettings {
     title: String(row["title"] ?? ""),
     subtitle: String(row["subtitle"] ?? ""),
     eyebrow: String(row["eyebrow"] ?? "Program Apresiasi"),
-<<<<<<< HEAD
     showcaseNote: String(row["showcase_note"] ?? "Dashboard pengumuman pemenang"),
-=======
->>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
     eventDate: String(row["event_date"] ?? ""),
     accent: String(row["accent"] ?? "#a855f7"),
     logo: row["logo"] ?? null,
@@ -129,10 +126,7 @@ export async function saveEvent(payload: SaveVotePayload, userId: string) {
     title: payload.title,
     subtitle: payload.subtitle,
     eyebrow: payload.eyebrow,
-<<<<<<< HEAD
     showcase_note: payload.showcaseNote,
-=======
->>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
     event_date: payload.eventDate,
     accent: payload.accent,
     logo: payload.logo,
@@ -141,7 +135,6 @@ export async function saveEvent(payload: SaveVotePayload, userId: string) {
     is_closed: payload.isClosed,
     updated_at: new Date().toISOString(),
   };
-<<<<<<< HEAD
   const missingCol = (msg: string) => /showcase_note/i.test(msg);
   if (payload.id) {
     let { error } = await db.from("vote_events").update(row).eq("id", payload.id);
@@ -149,15 +142,10 @@ export async function saveEvent(payload: SaveVotePayload, userId: string) {
       delete row["showcase_note"];
       ({ error } = await db.from("vote_events").update(row).eq("id", payload.id));
     }
-=======
-  if (payload.id) {
-    const { error } = await db.from("vote_events").update(row).eq("id", payload.id);
->>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
     if (error) throw new Error(error.message);
     return payload.id;
   }
   row["created_by"] = userId;
-<<<<<<< HEAD
   let res = await db.from("vote_events").insert(row).select("id").maybeSingle();
   if (res.error && missingCol(res.error.message)) {
     delete row["showcase_note"];
@@ -165,11 +153,6 @@ export async function saveEvent(payload: SaveVotePayload, userId: string) {
   }
   if (res.error) throw new Error(res.error.message);
   return String(res.data?.id);
-=======
-  const { data, error } = await db.from("vote_events").insert(row).select("id").maybeSingle();
-  if (error) throw new Error(error.message);
-  return String(data?.id);
->>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
 }
 
 export async function deleteEvent(id: string) {
@@ -421,7 +404,6 @@ export async function publicEvent(slug: string) {
   const nominees = await listNominees(ev.id);
   return { settings: ev, nominees };
 }
-<<<<<<< HEAD
 
 /** Data publik untuk dashboard pengumuman pemenang. */
 export async function publicShowcase(slug: string) {
@@ -493,5 +475,3 @@ export async function imageAsDataUrl(url: string) {
   }
   return `data:${type};base64,${btoa(bin)}`;
 }
-=======
->>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd

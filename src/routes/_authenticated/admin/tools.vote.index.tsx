@@ -66,10 +66,7 @@ function Page() {
           title: form.title.trim(),
           subtitle: form.subtitle.trim(),
           eyebrow: "Program Apresiasi",
-<<<<<<< HEAD
           showcaseNote: "Dashboard pengumuman pemenang",
-=======
->>>>>>> c6968cba9a717ec52067278a2d1ffce7daf39acd
           eventDate: form.eventDate,
           accent: "#a855f7",
           logo: null,
