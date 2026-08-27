@@ -53,10 +53,12 @@ const apps = [
   },
   {
     key: "nomination",
+    to: "/admin/tools/nominasi",
     label: "Nomination",
-    description: "Nominasi penghargaan pekerja.",
+    description:
+      "Papan apresiasi Best Performance: atur kategori & nominasi (bisa ambil dari Data Pekerja), lalu mainkan papan pengumumannya saat acara.",
     icon: Trophy,
-    ready: false,
+    ready: true,
   },
 ];
 

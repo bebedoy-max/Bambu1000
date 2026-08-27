@@ -121,6 +121,14 @@ export const importUndianPeserta = createServerFn({ method: "POST" })
     return importPeserta(data.eventId, data.rows);
   });
 
+export const listUndianEmployeeOptions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { assertAdmin, listEmployeeOptions } = await import("@/lib/undian.server");
+    await assertAdmin(context.userId);
+    return listEmployeeOptions();
+  });
+
 export const importUndianPesertaPekerja = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { eventId: string; kategoriAkses: string }) => data)

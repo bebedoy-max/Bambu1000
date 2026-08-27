@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePickerField } from "@/components/DatePickerField";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { UndianPesertaPicker, type PickedEmployee } from "@/components/UndianPesertaPicker";
 import {
   formatTanggalIndo,
   formatWaktu,
@@ -42,7 +43,6 @@ import {
   deleteUndianPeserta,
   getUndianEvent,
   importUndianPeserta,
-  importUndianPesertaPekerja,
   resetUndianPemenang,
   saveUndianEvent,
   undiUndianPemenang,
@@ -181,6 +181,7 @@ function Page() {
 
   /* -------------------------------- peserta -------------------------------- */
   const [cari, setCari] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [importKategori, setImportKategori] = useState("all");
   const [pesertaForm, setPesertaForm] = useState({
     nip: "",
@@ -544,18 +545,7 @@ function Page() {
                 </select>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant="default"
-                  onClick={async () => {
-                    const res = await importUndianPesertaPekerja({
-                      data: { eventId: id, kategoriAkses: importKategori },
-                    });
-                    await refresh();
-                    toast.success(
-                      res.count ? `${res.count} pekerja ditambahkan` : "Tidak ada pekerja baru",
-                    );
-                  }}
-                >
+                <Button variant="default" onClick={() => setPickerOpen(true)}>
                   <Users className="size-4" /> Impor dari Data Pekerja
                 </Button>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-secondary px-3 py-2 text-sm font-semibold">
@@ -888,6 +878,29 @@ function Page() {
             </div>
           </div>
         ) : null}
+
+        <UndianPesertaPicker
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          existingNips={peserta.map((p) => p.nip)}
+          onImport={async (rows: PickedEmployee[]) => {
+            const res = await importUndianPeserta({
+              data: {
+                eventId: id,
+                rows: rows.map((r) => ({
+                  nip: r.nip,
+                  nama: r.nama,
+                  unitKerja: r.unitKerja,
+                  kategoriAkses: importKategori,
+                })),
+              },
+            });
+            await refresh();
+            toast.success(
+              res.count ? `${res.count} pekerja ditambahkan` : "Tidak ada pekerja baru",
+            );
+          }}
+        />
       </div>
     </AdminPage>
   );

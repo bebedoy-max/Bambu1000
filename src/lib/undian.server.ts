@@ -235,25 +235,36 @@ export async function importPeserta(eventId: string, rows: PesertaInput[]) {
   return { ok: true, count: clean.length };
 }
 
-/** Impor peserta langsung dari Data Pekerja web app ini. */
-export async function importPesertaFromEmployees(eventId: string, kategoriAkses: string) {
+/** Daftar pekerja untuk picker impor peserta (lengkap dengan jabatan). */
+export type EmployeeOption = { nip: string; nama: string; unitKerja: string; jabatan: string };
+
+export async function listEmployeeOptions(): Promise<EmployeeOption[]> {
   const db = await admin();
   const { data, error } = await db
     .from("employees")
-    .select("nama,personal_number,uker:ukers(nama_uker)")
+    .select("nama,personal_number,uker:ukers(nama_uker),jabatan:job_titles(nama_jabatan)")
     .not("personal_number", "is", null)
     .order("nama", { ascending: true });
   if (error) throw new Error(error.message);
-  const existing = await db.from("undian_peserta").select("nip").eq("event_id", eventId);
-  const already = new Set((existing.data ?? []).map((r: Row) => String(r["nip"])));
-  const rows: PesertaInput[] = (data ?? [])
-    .map((r: Row) => ({
+  return ((data ?? []) as Row[])
+    .map((r) => ({
       nip: String(r["personal_number"] ?? "").trim(),
       nama: String(r["nama"] ?? "").trim(),
       unitKerja: String(r["uker"]?.["nama_uker"] ?? "-"),
-      kategoriAkses,
+      jabatan: String(r["jabatan"]?.["nama_jabatan"] ?? "-"),
     }))
-    .filter((r: PesertaInput) => r.nip && r.nama && !already.has(r.nip));
+    .filter((r) => r.nip && r.nama);
+}
+
+/** Impor peserta langsung dari Data Pekerja web app ini. */
+export async function importPesertaFromEmployees(eventId: string, kategoriAkses: string) {
+  const db = await admin();
+  const options = await listEmployeeOptions();
+  const existing = await db.from("undian_peserta").select("nip").eq("event_id", eventId);
+  const already = new Set((existing.data ?? []).map((r: Row) => String(r["nip"])));
+  const rows: PesertaInput[] = options
+    .filter((o) => !already.has(o.nip))
+    .map((o) => ({ nip: o.nip, nama: o.nama, unitKerja: o.unitKerja, kategoriAkses }));
   return importPeserta(eventId, rows);
 }
 
