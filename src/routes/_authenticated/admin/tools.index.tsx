@@ -33,7 +33,15 @@ const apps = [
     icon: CalendarCheck,
     ready: true,
   },
-  { key: "vote", label: "Vote", description: "Voting peserta event.", icon: Vote, ready: false },
+  {
+    key: "vote",
+    to: "/admin/tools/vote",
+    label: "Vote",
+    description:
+      "Buat vote event, atur kategori & nominasi dari Data Pekerja, bagikan linknya, lalu pantau rekap suaranya.",
+    icon: Vote,
+    ready: true,
+  },
   { key: "undian", label: "Undian", description: "Undian doorprize event.", icon: Gift, ready: false },
   {
     key: "nomination",
