@@ -29,6 +29,8 @@ import { PhotoGallery } from "@/components/PhotoGallery";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { supabase } from "@/lib/supabase";
 import { useDirectory } from "@/lib/directory";
+import { RotatingThumbGrid } from "@/components/RotatingThumbGrid";
+import { loadDiaryPhotos } from "@/components/DiarySummary";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -59,6 +61,8 @@ type DiaryRow = {
   solusi: string | null;
   status: string;
   keterangan: string | null;
+  created_at: string;
+  updated_at: string | null;
 };
 
 const STATUS = ["Done", "In Progress", "Failed"] as const;
@@ -100,7 +104,31 @@ function tanggalLabel(v: string) {
   });
 }
 
-function emptyForm(): Omit<DiaryRow, "id" | "user_id"> {
+/** Jam format 24 jam, mis. "14.30 WIB". */
+function jamLabel(isoStr: string | null | undefined) {
+  if (!isoStr) return null;
+  const d = new Date(isoStr);
+  if (Number.isNaN(d.getTime())) return null;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}.${pad(d.getMinutes())} WIB`;
+}
+
+/** Label last update, mis. "Last update 28 Agu 2026 · 14.30 WIB". */
+function lastUpdateLabel(r: DiaryRow) {
+  const src = r.updated_at ?? r.created_at;
+  const d = new Date(src);
+  if (Number.isNaN(d.getTime())) return null;
+  const tgl = d.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  return `Last update ${tgl} · ${jamLabel(src)}`;
+}
+
+type DiaryForm = Omit<DiaryRow, "id" | "user_id" | "created_at" | "updated_at">;
+
+function emptyForm(): DiaryForm {
   return {
     tanggal: iso(new Date()),
     nama_kegiatan: "",
@@ -143,7 +171,9 @@ function Content() {
     queryFn: async () => {
       let q = db
         .from("it_diary_logs")
-        .select("id,user_id,tanggal,nama_kegiatan,detil_problem,solusi,status,keterangan")
+        .select(
+          "id,user_id,tanggal,nama_kegiatan,detil_problem,solusi,status,keterangan,created_at,updated_at",
+        )
         .gte("tanggal", range.from)
         .lte("tanggal", range.to);
       // Petugas IT hanya melihat catatannya sendiri; manajemen melihat semua.
@@ -154,6 +184,12 @@ function Content() {
       if (error) throw error;
       return (data ?? []) as DiaryRow[];
     },
+  });
+
+  const photoMap = useQuery({
+    queryKey: ["it_diary_photos", (list.data ?? []).map((r) => r.id).join(",")],
+    enabled: !!(list.data ?? []).length,
+    queryFn: () => loadDiaryPhotos((list.data ?? []).map((r) => r.id)),
   });
 
   const nameOf = dir.nameOf;
@@ -409,72 +445,98 @@ function Content() {
       ) : (
         grouped.map((g) => (
           <div key={g.userId} className="glass-card space-y-4 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-semibold">{g.nama}</h2>
-                <p className="text-xs text-muted-foreground">
-                  {[g.jabatan, g.uker].filter(Boolean).join(" · ") || "Petugas IT"}
-                </p>
-              </div>
-              <Badge variant="secondary">
-                {g.days.reduce((n, [, items]) => n + items.length, 0)} kegiatan
-              </Badge>
-            </div>
             {g.days.map(([tgl, items]) => (
               <div key={tgl} className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground">{tanggalLabel(tgl)}</p>
                 <div className="grid gap-2">
                   {items.map((r) => (
-                    <div key={r.id} className="rounded-xl border border-border/60 p-3">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="font-medium">{r.nama_kegiatan}</p>
-                          <Badge variant={statusVariant(r.status)} className="mt-1 text-[10px]">
-                            {r.status}
-                          </Badge>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => setPhotoRow(r)}>
-                            <Images className="size-4" />
-                          </Button>
-                          {r.user_id === myId ? (
-                            <>
-                              <Button variant="ghost" size="icon" onClick={() => startEdit(r)}>
-                                <Pencil className="size-4" />
+                    <div
+                      key={r.id}
+                      className="rounded-2xl border border-border/60 bg-secondary/20 p-4 transition-colors hover:border-primary/40"
+                    >
+                      <div className="flex flex-col gap-4 lg:flex-row">
+                        <div className="min-w-0 flex-1 space-y-2">
+                          {/* Baris kepala: pill identitas (kolom label) + pill kegiatan */}
+                          <div className="flex items-start gap-3">
+                            <div className="w-40 shrink-0 rounded-2xl bg-secondary/70 px-4 py-2 text-left">
+                              <p className="border-b border-foreground/40 pb-0.5 text-sm font-semibold leading-tight">
+                                {g.nama}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {[g.jabatan, g.uker].filter(Boolean).join(" · ") || "Petugas IT"}
+                              </p>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="rounded-2xl bg-secondary/70 px-4 py-2 text-sm font-semibold">
+                                {r.nama_kegiatan}
+                              </div>
+                              <p className="mt-1 pl-4 text-left text-xs font-semibold text-muted-foreground">
+                                {jamLabel(r.created_at) ? `Open - ${jamLabel(r.created_at)}` : ""}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => setPhotoRow(r)}>
+                                <Images className="size-4" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={async () => {
-                                  const ok = await confirm({
-                                    title: "Hapus catatan?",
-                                    description: r.nama_kegiatan,
-                                    destructive: true,
-                                  });
-                                  if (ok) remove.mutate(r.id);
-                                }}
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </>
-                          ) : null}
+                              {r.user_id === myId ? (
+                                <>
+                                  <Button variant="ghost" size="icon" onClick={() => startEdit(r)}>
+                                    <Pencil className="size-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={async () => {
+                                      const ok = await confirm({
+                                        title: "Hapus catatan?",
+                                        description: r.nama_kegiatan,
+                                        destructive: true,
+                                      });
+                                      if (ok) remove.mutate(r.id);
+                                    }}
+                                  >
+                                    <Trash2 className="size-4" />
+                                  </Button>
+                                </>
+                              ) : null}
+                            </div>
+                          </div>
+
+                          {/* Last update + status, rata kanan di atas baris detail */}
+                          <div className="flex items-center justify-end gap-2 text-xs font-semibold text-muted-foreground">
+                            <span>{lastUpdateLabel(r) ?? tanggalLabel(tgl)}</span>
+                            <Badge variant={statusVariant(r.status)} className="text-[10px]">
+                              {r.status}
+                            </Badge>
+                          </div>
+
+                          <dl className="space-y-2 text-sm">
+                            {[
+                              ["Detil Problem", r.detil_problem],
+                              ["Penyelesaian", r.solusi],
+                              ["Keterangan", r.keterangan],
+                            ].map(([label, value]) => (
+                              <div key={label} className="flex items-stretch gap-3">
+                                <dt className="flex w-40 shrink-0 items-center pl-[16px] text-left text-xs font-semibold">
+                                  {label}
+                                </dt>
+                                <dd className="min-w-0 flex-1 whitespace-pre-wrap rounded-2xl bg-secondary/60 px-4 py-3">
+                                  {value || "-"}
+                                </dd>
+                              </div>
+                            ))}
+                          </dl>
                         </div>
+
+                        <RotatingThumbGrid
+                          photos={photoMap.data?.[r.id] ?? []}
+                          alt={`Foto kegiatan ${r.nama_kegiatan}`}
+                          className="w-full shrink-0 self-stretch lg:w-64"
+                        />
                       </div>
-                      <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
-                        <div>
-                          <dt className="text-xs text-muted-foreground">Detil problem</dt>
-                          <dd className="whitespace-pre-wrap">{r.detil_problem || "-"}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs text-muted-foreground">Solusi & penyelesaian</dt>
-                          <dd className="whitespace-pre-wrap">{r.solusi || "-"}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs text-muted-foreground">Keterangan</dt>
-                          <dd className="whitespace-pre-wrap">{r.keterangan || "-"}</dd>
-                        </div>
-                      </dl>
+
                     </div>
+
                   ))}
                 </div>
               </div>

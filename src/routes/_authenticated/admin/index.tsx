@@ -7,6 +7,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { StatCard } from "@/components/StatCard";
 import { ProjectSummary } from "@/components/ProjectSummary";
 import { EventSummary } from "@/components/EventSummary";
+import { DiarySummary } from "@/components/DiarySummary";
 import { useRoles } from "@/lib/roles";
 
 const db = supabase as unknown as SupabaseClient;
@@ -103,6 +104,14 @@ function Page() {
         </p>
 
         <EventSummary />
+      </section>
+
+      <section className="mt-10 border-t border-border/60 pt-8">
+        <h2 className="event-title-glow mb-1 text-lg">Kegiatan Harian IT</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Catatan kegiatan harian petugas IT terbaru beserta foto kegiatannya.
+        </p>
+        <DiarySummary limit={6} />
       </section>
     </AdminLayout>
   );
