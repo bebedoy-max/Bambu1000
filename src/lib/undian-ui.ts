@@ -11,7 +11,14 @@ export type UndianSettings = {
 };
 
 export type UndianKategori = { id: string; nama: string };
-export type UndianHadiah = { id: string; nama: string; kategoriId: string | null; jumlah: number };
+
+export type UndianHadiah = {
+  id: string;
+  nama: string;
+  kategoriId: string | null;
+  jumlah: number;
+};
+
 export type UndianPeserta = {
   id: string;
   nip: string;
@@ -20,6 +27,7 @@ export type UndianPeserta = {
   kategoriAkses: string;
   aktif: boolean;
 };
+
 export type UndianPemenang = {
   id: string;
   pesertaId: string | null;
@@ -31,7 +39,7 @@ export type UndianPemenang = {
   createdAt: string;
 };
 
-export const BULAN = [
+const BULAN = [
   "Januari",
   "Februari",
   "Maret",
@@ -53,12 +61,15 @@ export function formatTanggalIndo(dateStr?: string | null) {
   return `${parseInt(d, 10)} ${BULAN[parseInt(m, 10) - 1] ?? m} ${y}`;
 }
 
-export function formatWaktu(iso: string) {
-  return new Date(iso).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+export function formatWaktu(iso?: string | null) {
+  if (!iso) return "-";
+  const dt = new Date(iso);
+  if (Number.isNaN(dt.getTime())) return iso;
+  return dt.toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" });
 }
 
-/** Sisa kuota hadiah = jumlah hadiah dikurangi pemenang yang sudah menerimanya. */
+/** Sisa kuota hadiah = jumlah dikurangi pemenang yang sudah menerima hadiah itu. */
 export function sisaKuotaHadiah(hadiah: UndianHadiah, pemenang: UndianPemenang[]) {
   const terpakai = pemenang.filter((p) => p.hadiahNama === hadiah.nama).length;
-  return Math.max(0, (hadiah.jumlah ?? 0) - terpakai);
+  return Math.max(0, (Number(hadiah.jumlah) || 0) - terpakai);
 }

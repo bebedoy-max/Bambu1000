@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Banknote, Building2, CreditCard, Users, CalendarDays } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { PublicLayout } from "@/components/PublicLayout";
-import { StatCard } from "@/components/StatCard";
 import { ProjectSummary } from "@/components/ProjectSummary";
 import { EventSummary } from "@/components/EventSummary";
-import { Button } from "@/components/ui/button";
 import { AuthSplash } from "@/components/AuthSplash";
+import { InfographicStats } from "@/components/home/InfographicStats";
+import { HomeCarousel } from "@/components/home/HomeCarousel";
+import { MarketPanel } from "@/components/home/MarketPanel";
+import { NewsPanel } from "@/components/home/NewsPanel";
+import { UpcomingEvents } from "@/components/home/UpcomingEvents";
 import { clearPostLogin, POST_LOGIN_TARGET } from "@/lib/post-login";
 
 export const Route = createFileRoute("/")({
@@ -107,36 +110,37 @@ function Index() {
 
   if (redirecting) return <AuthSplash label="Menyiapkan panel Anda..." />;
 
+  const maxStat = Math.max(
+    1,
+    ...cards.map((c) => (typeof c.value === "number" ? c.value : 0)),
+  );
+  const infographics = cards.map((c) => ({
+    label: c.label,
+    value: c.value,
+    icon: c.icon,
+    detailKey: c.detailKey,
+    description: c.hint,
+    ratio: typeof c.value === "number" ? (c.value / maxStat) * 100 : 8,
+  }));
+
   return (
     <PublicLayout>
-      <section className="glass-card mb-8 overflow-hidden p-8 sm:p-10">
-        <p className="text-xs font-semibold tracking-[0.2em] text-accent uppercase">
-          Branch Office Pringsewu
-        </p>
-        <h1 className="mt-3 max-w-2xl text-3xl leading-tight font-bold sm:text-4xl">
-          <span className="gradient-text">Dashboard Monitoring</span> Operasional & Infrastruktur IT
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-          Pantau unit kerja, jaringan mesin ATM dan EDC, data pegawai, serta kegiatan kantor dalam
-          satu tampilan terpadu.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-2">
-          <Button asChild>
-            <Link to="/profil">Profil Kantor</Link>
-          </Button>
-          <Button asChild variant="secondary">
-            <Link to="/informasi">Informasi Umum</Link>
-          </Button>
-        </div>
-      </section>
+      <HomeCarousel />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {cards.map((c) => (
-          <StatCard key={c.label} {...c} />
-        ))}
+      <div className="mt-4 grid gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-3">
+          <InfographicStats items={infographics} />
+        </div>
+        <div className="lg:col-span-6">
+          <NewsPanel />
+        </div>
+        <div className="grid content-start gap-4 lg:col-span-3">
+          <MarketPanel />
+          <UpcomingEvents />
+        </div>
       </div>
 
-      <section className="mt-8">
+      <section className="mt-10 border-t border-border/60 pt-8">
         <h2 className="event-title-glow mb-4 text-lg">Project IT</h2>
         <ProjectSummary limit={4} />
       </section>
@@ -148,7 +152,7 @@ function Index() {
         </p>
         <EventSummary limit={6} />
       </section>
-
     </PublicLayout>
   );
 }
+

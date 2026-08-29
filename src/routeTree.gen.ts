@@ -25,6 +25,7 @@ import { Route as ProjectIdRouteImport } from './routes/project.$id'
 import { Route as VoteShowSlugRouteImport } from './routes/vote-show.$slug'
 import { Route as VoteSlugRouteImport } from './routes/vote.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminAgendaRouteImport } from './routes/_authenticated/admin/agenda'
 import { Route as AuthenticatedAdminAksesRouteImport } from './routes/_authenticated/admin/akses'
 import { Route as AuthenticatedAdminApprovalRouteImport } from './routes/_authenticated/admin/approval'
 import { Route as AuthenticatedAdminAtmRouteImport } from './routes/_authenticated/admin/atm'
@@ -151,6 +152,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminAgendaRoute =
+  AuthenticatedAdminAgendaRouteImport.update({
+    id: '/admin/agenda',
+    path: '/admin/agenda',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminAksesRoute = AuthenticatedAdminAksesRouteImport.update({
   id: '/admin/akses',
   path: '/admin/akses',
@@ -430,6 +437,7 @@ export interface FileRoutesByFullPath {
   '/project/$id': typeof ProjectIdRoute
   '/vote-show/$slug': typeof VoteShowSlugRoute
   '/vote/$slug': typeof VoteSlugRoute
+  '/admin/agenda': typeof AuthenticatedAdminAgendaRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
@@ -493,6 +501,7 @@ export interface FileRoutesByTo {
   '/project/$id': typeof ProjectIdRoute
   '/vote-show/$slug': typeof VoteShowSlugRoute
   '/vote/$slug': typeof VoteSlugRoute
+  '/admin/agenda': typeof AuthenticatedAdminAgendaRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
@@ -553,6 +562,7 @@ export interface FileRoutesById {
   '/project/$id': typeof ProjectIdRoute
   '/vote-show/$slug': typeof VoteShowSlugRoute
   '/vote/$slug': typeof VoteSlugRoute
+  '/_authenticated/admin/agenda': typeof AuthenticatedAdminAgendaRoute
   '/_authenticated/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/_authenticated/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/_authenticated/admin/atm': typeof AuthenticatedAdminAtmRoute
@@ -618,6 +628,7 @@ export interface FileRouteTypes {
     | '/project/$id'
     | '/vote-show/$slug'
     | '/vote/$slug'
+    | '/admin/agenda'
     | '/admin/akses'
     | '/admin/approval'
     | '/admin/atm'
@@ -681,6 +692,7 @@ export interface FileRouteTypes {
     | '/project/$id'
     | '/vote-show/$slug'
     | '/vote/$slug'
+    | '/admin/agenda'
     | '/admin/akses'
     | '/admin/approval'
     | '/admin/atm'
@@ -740,6 +752,7 @@ export interface FileRouteTypes {
     | '/project/$id'
     | '/vote-show/$slug'
     | '/vote/$slug'
+    | '/_authenticated/admin/agenda'
     | '/_authenticated/admin/akses'
     | '/_authenticated/admin/approval'
     | '/_authenticated/admin/atm'
@@ -926,6 +939,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/agenda': {
+      id: '/_authenticated/admin/agenda'
+      path: '/admin/agenda'
+      fullPath: '/admin/agenda'
+      preLoaderRoute: typeof AuthenticatedAdminAgendaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/akses': {
@@ -1353,6 +1373,7 @@ const AuthenticatedAdminToolsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminAgendaRoute: typeof AuthenticatedAdminAgendaRoute
   AuthenticatedAdminAksesRoute: typeof AuthenticatedAdminAksesRoute
   AuthenticatedAdminApprovalRoute: typeof AuthenticatedAdminApprovalRoute
   AuthenticatedAdminAtmRoute: typeof AuthenticatedAdminAtmRoute
@@ -1382,6 +1403,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminAgendaRoute: AuthenticatedAdminAgendaRoute,
   AuthenticatedAdminAksesRoute: AuthenticatedAdminAksesRoute,
   AuthenticatedAdminApprovalRoute: AuthenticatedAdminApprovalRoute,
   AuthenticatedAdminAtmRoute: AuthenticatedAdminAtmRoute,
