@@ -4,7 +4,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { RotatingThumb } from "@/components/RotatingThumbGrid";
 import { useDirectory } from "@/lib/directory";
-import frameAsset from "@/assets/diary-frame.png.asset.json";
+// Frame di-bundle oleh Vite (bukan CDN eksternal) agar tetap termuat di hosting mana pun.
+import frameUrl from "@/assets/diary-frame.png";
+import { maskSensitiveText } from "@/lib/maskSensitive";
+
 
 
 const db = supabase as unknown as SupabaseClient;
@@ -87,12 +90,19 @@ export function DiarySummary({ limit = 6 }: { limit?: number }) {
     return <p className="text-sm text-muted-foreground">Belum ada catatan kegiatan harian IT.</p>;
 
   return (
-    <div className="flex flex-wrap gap-[30px]">
+    <div
+      className="grid justify-start"
+      style={{
+        gridTemplateColumns: "repeat(auto-fill, 360px)",
+        gap: "16px",
+        justifyContent: "start",
+      }}
+    >
       {rows.map((r) => (
         <DiaryCard
           key={r.id}
           title={r.nama_kegiatan}
-          description={r.detil_problem ?? ""}
+          description={maskSensitiveText(r.detil_problem)}
           status={r.status}
           date={fmt(r.tanggal)}
           officer={dir.nameOf(r.user_id)}
@@ -120,12 +130,16 @@ export function DiaryCard({
   photos: string[];
 }) {
   const statusTone =
-    status === "Failed" ? "text-destructive" : "text-white";
+    status === "Failed"
+      ? "text-destructive"
+      : status === "Done"
+        ? "text-[oklch(0.85_0.18_145)]"
+        : "text-white";
   const statusGlowColor = statusGlow(status);
 
   const maskStyle = {
-    WebkitMaskImage: `url(${frameAsset.url})`,
-    maskImage: `url(${frameAsset.url})`,
+    WebkitMaskImage: `url(${frameUrl})`,
+    maskImage: `url(${frameUrl})`,
     WebkitMaskSize: "100% 100%",
     maskSize: "100% 100%",
     WebkitMaskRepeat: "no-repeat",
@@ -133,7 +147,7 @@ export function DiaryCard({
   } as const;
 
   return (
-    <article className="relative max-w-[360px] flex-[1_1_360px] [aspect-ratio:1842/1758] [container-type:inline-size]">
+    <article className="relative w-[360px] [aspect-ratio:1842/1758] [container-type:inline-size]">
       {/* Frame dari gambar, diwarnai mengikuti tema aplikasi. */}
       <div
         aria-hidden
@@ -141,9 +155,9 @@ export function DiaryCard({
         style={maskStyle}
       />
 
-      {/* Nama kegiatan — strip kiri atas frame, di-center di ruang strip yang lebih tinggi agar 2 baris terlihat balance. */}
+      {/* Nama kegiatan — strip kiri atas frame, digeser sedikit ke bawah agar ter-center antara batas bawah frame & batas atas box deskripsi. */}
       <h3
-        className="absolute top-0 left-0 flex h-[11.5%] w-[70%] items-center px-[4cqw] text-[clamp(10px,3.6cqw,14px)] leading-[1.05] font-extrabold text-foreground"
+        className="absolute top-0 left-0 flex h-[11.5%] w-[70%] items-center px-[4cqw] pt-[3.4cqw] text-[clamp(10px,3.6cqw,14px)] leading-[1.05] font-extrabold text-foreground"
         title={title}
       >
         <span className="line-clamp-2 w-full overflow-hidden break-words">{title}</span>
@@ -151,7 +165,7 @@ export function DiaryCard({
 
       {/* Status — pada blok kanan atas frame dengan glow sesuai status. */}
       <span
-        className={`diary-pulse-glow absolute top-0 right-0 flex h-[11.5%] w-[28.3%] items-center justify-center px-[1.5cqw] text-[clamp(10px,3.6cqw,14px)] leading-none font-extrabold whitespace-nowrap ${statusTone}`}
+        className={`diary-pulse-glow absolute top-0 right-0 flex h-[11.5%] w-[28.3%] items-center justify-center px-[1.5cqw] pb-[3.6cqw] text-[clamp(10px,3.6cqw,14px)] leading-none font-extrabold whitespace-nowrap ${statusTone}`}
         style={{ ["--diary-glow" as string]: statusGlowColor }}
       >
         <span className="truncate">{status}</span>
@@ -159,7 +173,7 @@ export function DiaryCard({
 
       {/* Nama petugas — blok kiri bawah frame, naik sedikit agar center, teks putih + glow berwarna. */}
       <span
-        className="diary-pulse-glow absolute bottom-0 left-0 flex h-[8.4%] w-[50.5%] items-start pt-[1.5cqw] overflow-hidden px-[4cqw] text-[clamp(11px,4.2cqw,17px)] leading-[1.35] font-semibold text-white"
+        className="diary-pulse-glow absolute bottom-0 left-0 flex h-[8.4%] w-[50.5%] items-center px-[4cqw] pb-[1cqw] text-[clamp(11px,4.2cqw,17px)] leading-[1.35] font-semibold text-white"
         style={{ ["--diary-glow" as string]: officerGlow(officer) }}
       >
         <span className="truncate">{officer}</span>

@@ -31,6 +31,7 @@ import { supabase } from "@/lib/supabase";
 import { useDirectory } from "@/lib/directory";
 import { RotatingThumbGrid } from "@/components/RotatingThumbGrid";
 import { loadDiaryPhotos } from "@/components/DiarySummary";
+import { maskSensitiveText } from "@/lib/maskSensitive";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -306,10 +307,10 @@ function Content() {
                 .map(
                   (i) => `<tr>
                     <td>${esc(i.nama_kegiatan)}</td>
-                    <td>${esc(i.detil_problem ?? "-")}</td>
-                    <td>${esc(i.solusi ?? "-")}</td>
+                    <td>${esc(maskSensitiveText(i.detil_problem) || "-")}</td>
+                    <td>${esc(maskSensitiveText(i.solusi) || "-")}</td>
                     <td>${esc(i.status)}</td>
-                    <td>${esc(i.keterangan ?? "-")}</td>
+                    <td>${esc(maskSensitiveText(i.keterangan) || "-")}</td>
                   </tr>`,
                 )
                 .join("")}
@@ -521,7 +522,7 @@ function Content() {
                                   {label}
                                 </dt>
                                 <dd className="min-w-0 flex-1 whitespace-pre-wrap rounded-2xl bg-secondary/60 px-4 py-3">
-                                  {value || "-"}
+                                  {maskSensitiveText(value as string) || "-"}
                                 </dd>
                               </div>
                             ))}
