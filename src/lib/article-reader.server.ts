@@ -7,7 +7,7 @@ type ArticleContent = {
   sourceUrl: string;
 };
 
-type ReaderInput = { url: string; headline?: string; source?: string };
+type ReaderInput = { url: string; headline?: string | undefined; source?: string | undefined };
 
 const BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 const GOOGLEBOT_UA = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
@@ -56,6 +56,77 @@ async function readOfficialMirror(sourceUrl: string, headline: string) {
   return isUsableArticle(parsed.blocks, parsed.title) ? parsed : null;
 }
 
+/** Buang penanda halaman dari URL agar dapat URL dasar artikel. */
+function stripPageMarkers(input: string): string {
+  const u = new URL(input);
+  for (const key of ["page", "single", "halaman", "all"]) u.searchParams.delete(key);
+  u.hash = "";
+  // .../judul-berita/2  atau  .../judul-berita-halaman-3
+  u.pathname = u.pathname
+    .replace(/\/(?:halaman|page)[-/]?\d{1,2}\/?$/i, "")
+    .replace(/\/\d{1,2}\/?$/, "");
+  return u.toString();
+}
+
+/** Varian URL "tampilkan semua halaman" yang dipakai penerbit Indonesia. */
+function showAllCandidates(input: string): string[] {
+  try {
+    const base = stripPageMarkers(input);
+    const withParam = (key: string, value: string) => {
+      const u = new URL(base);
+      u.searchParams.set(key, value);
+      return u.toString();
+    };
+    return [withParam("page", "all"), withParam("single", "1"), base];
+  } catch {
+    return [input];
+  }
+}
+
+/** URL halaman ke-n untuk penerbit yang tidak menyediakan "show all". */
+function pageUrl(input: string, page: number): string | null {
+  try {
+    const u = new URL(stripPageMarkers(input));
+    u.searchParams.set("page", String(page));
+    return u.toString();
+  } catch {
+    return null;
+  }
+}
+
+const cleanTitle = (value: string) =>
+  value
+    .replace(/\s*[-–|]\s*(?:Semua Halaman|All Pages)\s*$/i, "")
+    .replace(/\s*[-–|]\s*(?:Halaman|Page)\s*\d+\s*$/i, "")
+    .trim();
+
+/** Gabungkan isi seluruh halaman (halaman 2..maks) bila artikel bersambung. */
+async function mergePages(sourceUrl: string, first: ArticleContent["blocks"]) {
+  const blocks = [...first];
+  const seen = new Set(blocks.map((b) => b.text));
+  for (let page = 2; page <= 8; page++) {
+    const url = pageUrl(sourceUrl, page);
+    if (!url) break;
+    let added = 0;
+    try {
+      const html = await fetchText(url);
+      if (!html) break;
+      const parsed = extractArticle(html);
+      if (!isUsableArticle(parsed.blocks, parsed.title)) break;
+      for (const block of parsed.blocks) {
+        if (seen.has(block.text)) continue;
+        seen.add(block.text);
+        blocks.push(block);
+        added++;
+      }
+    } catch {
+      break;
+    }
+    if (!added) break;
+  }
+  return blocks;
+}
+
 export async function readArticle(data: ReaderInput): Promise<ArticleContent> {
   let sourceUrl = data.url;
   let title = "";
@@ -67,10 +138,15 @@ export async function readArticle(data: ReaderInput): Promise<ArticleContent> {
     // URL masukan mungkin sudah merupakan URL penerbit.
   }
 
+  // Prioritaskan versi "seluruh halaman" agar artikel bersambung utuh.
+  const [allUrl, singleUrl, baseUrl] = showAllCandidates(sourceUrl);
   const attempts = [
-    { url: sourceUrl, ua: BROWSER_UA },
-    { url: sourceUrl, ua: GOOGLEBOT_UA },
-    { url: sourceUrl.replace(/\/?$/, "/amp"), ua: BROWSER_UA },
+    { url: allUrl ?? sourceUrl, ua: BROWSER_UA, merge: false },
+    { url: singleUrl ?? sourceUrl, ua: BROWSER_UA, merge: false },
+    { url: baseUrl ?? sourceUrl, ua: BROWSER_UA, merge: true },
+    { url: sourceUrl, ua: BROWSER_UA, merge: true },
+    { url: sourceUrl, ua: GOOGLEBOT_UA, merge: true },
+    { url: sourceUrl.replace(/\/?$/, "/amp"), ua: BROWSER_UA, merge: false },
   ];
 
   for (const attempt of attempts) {
@@ -78,12 +154,17 @@ export async function readArticle(data: ReaderInput): Promise<ArticleContent> {
       const html = await fetchText(attempt.url, attempt.ua);
       if (!html) continue;
       const parsed = extractArticle(html);
-      title = parsed.title || title;
-      if (isUsableArticle(parsed.blocks, parsed.title)) return { title, blocks: parsed.blocks, sourceUrl };
+      title = cleanTitle(parsed.title) || title;
+      if (isUsableArticle(parsed.blocks, parsed.title)) {
+        const blocks = attempt.merge
+          ? await mergePages(attempt.url, parsed.blocks)
+          : parsed.blocks;
+        return { title, blocks, sourceUrl: attempt.url };
+      }
 
       if (structuredBlocks.length === 0) {
         const meta = extractStructured(html);
-        title = title || meta.title;
+        title = title || cleanTitle(meta.title);
         const body = blocksFromPlainText(meta.body);
         structuredBlocks = body.length ? body : blocksFromPlainText(meta.description);
       }
@@ -91,6 +172,7 @@ export async function readArticle(data: ReaderInput): Promise<ArticleContent> {
       // Coba mode pembaca berikutnya.
     }
   }
+
 
   try {
     const response = await fetch(`https://r.jina.ai/${sourceUrl}`, {

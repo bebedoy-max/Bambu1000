@@ -98,28 +98,54 @@ const pick = (xml: string, tag: string) => {
     .trim();
 };
 
-/** Berita terkait BRI dari Google News RSS. */
-export const getNews = createServerFn({ method: "GET" }).handler(async () => {
+/** Topik berita: perbankan & teknologi perbankan BRI, bisnis/keuangan, kebijakan BI/OJK, fintech global. */
+const NEWS_QUERIES = [
+  'when:7d ("Bank BRI" OR BBRI) (perbankan OR digital OR teknologi)',
+  "when:7d (Bank Indonesia OR OJK) kebijakan perbankan",
+  "when:3d berita bisnis keuangan Indonesia terkini",
+  "when:3d fintech OR digital banking technology",
+];
+
+async function fetchGoogleNews(query: string, limit: number): Promise<NewsItem[]> {
   try {
     const res = await fetch(
-      "https://news.google.com/rss/search?q=Bank+BRI&hl=id&gl=ID&ceid=ID:id",
-      { signal: AbortSignal.timeout(6000) },
+      `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=id&gl=ID&ceid=ID:id`,
+      { signal: AbortSignal.timeout(7000) },
     );
+    if (!res.ok) return [];
     const xml = await res.text();
-    const items = xml.split("<item>").slice(1, 7);
-    return items.map((raw): NewsItem => {
-      const title = pick(raw, "title");
-      const source = pick(raw, "source") || "Google News";
-      return {
-        title: title.replace(new RegExp(` - ${source}$`), ""),
-        link: pick(raw, "link"),
-        date: pick(raw, "pubDate") || null,
-        source,
-      };
-    });
+    return xml
+      .split("<item>")
+      .slice(1, limit + 1)
+      .map((raw): NewsItem => {
+        const title = pick(raw, "title");
+        const source = pick(raw, "source") || "Google News";
+        return {
+          title: title.replace(new RegExp(` - ${source}$`), ""),
+          link: pick(raw, "link"),
+          date: pick(raw, "pubDate") || null,
+          source,
+        };
+      })
+      .filter((n) => n.title && n.link);
   } catch {
-    return [] as NewsItem[];
+    return [];
   }
+}
+
+/** Berita perbankan, bisnis, keuangan & fintech — minimal 10 item terbaru, diurutkan waktu. */
+export const getNews = createServerFn({ method: "GET" }).handler(async () => {
+  const batches = await Promise.all(NEWS_QUERIES.map((q) => fetchGoogleNews(q, 8)));
+  const seen = new Set<string>();
+  const merged: NewsItem[] = [];
+  for (const item of batches.flat()) {
+    const key = item.title.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(item);
+  }
+  merged.sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
+  return merged.slice(0, 14);
 });
 
 export type PublicWinner = { category: string; name: string; position: string; photo: string | null };

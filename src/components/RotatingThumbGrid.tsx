@@ -7,10 +7,12 @@ export function RotatingThumb({
   ids,
   alt,
   delay,
+  className,
 }: {
   ids: string[];
   alt: string;
   delay: number;
+  className?: string;
 }) {
   const [current, setCurrent] = useState(0);
   const [next, setNext] = useState(0);
@@ -32,9 +34,11 @@ export function RotatingThumb({
     return () => clearInterval(t);
   }, [ids, delay, current]);
 
+  const box = className ?? "aspect-square w-full";
+
   if (!ids.length)
     return (
-      <div className="grid aspect-square w-full place-items-center bg-secondary/60 text-muted-foreground">
+      <div className={`grid place-items-center bg-secondary/60 text-muted-foreground ${box}`}>
         <ImageOff className="size-4" />
       </div>
     );
@@ -45,19 +49,19 @@ export function RotatingThumb({
   const nextSrc = nextId ? driveThumb(nextId) : driveThumb(currentId);
 
   return (
-    <div className="relative aspect-square w-full overflow-hidden">
+    <div className={`relative overflow-hidden ${box}`}>
       <img
         src={driveThumb(currentId)}
         alt={alt}
         loading="lazy"
-        className="absolute inset-0 aspect-square w-full object-cover transition-opacity duration-[3000ms] ease-in-out"
+        className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[3000ms] ease-in-out"
         style={{ opacity: transitioning ? 0 : 1 }}
       />
       <img
         src={nextSrc}
         alt={alt}
         loading="lazy"
-        className="absolute inset-0 aspect-square w-full object-cover transition-opacity duration-[3000ms] ease-in-out"
+        className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[3000ms] ease-in-out"
         style={{ opacity: transitioning ? 1 : 0 }}
       />
     </div>

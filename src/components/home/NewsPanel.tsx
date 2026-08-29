@@ -5,10 +5,29 @@ import { Newspaper } from "lucide-react";
 import { getNews, type NewsItem } from "@/lib/home-feeds.functions";
 import { NewsArticleDialog } from "./NewsArticleDialog";
 
-/** Panel berita ringkas seputar BRI. */
+const THREE_HOURS = 3 * 60 * 60 * 1000;
+
+/** Format tanggal & jam dalam Waktu Indonesia Barat. */
+function formatWib(date: string) {
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.toLocaleString("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Jakarta",
+  })} WIB`;
+}
+
+/** Panel berita perbankan, bisnis & keuangan (refresh tiap 3 jam). */
 export function NewsPanel() {
-  const q = useQuery({ queryKey: ["home-news"], queryFn: () => getNews(), staleTime: 600_000 });
-  const items = (q.data ?? []).slice(0, 5);
+  const q = useQuery({
+    queryKey: ["home-news"],
+    queryFn: () => getNews(),
+    staleTime: THREE_HOURS,
+    refetchInterval: THREE_HOURS,
+    refetchIntervalInBackground: true,
+  });
+  const items = (q.data ?? []).slice(0, 12);
 
   const [selected, setSelected] = useState<NewsItem | null>(null);
 
@@ -33,7 +52,7 @@ export function NewsPanel() {
             </button>
             <p className="mt-1 text-[11px] text-muted-foreground">
               {n.source}
-              {n.date ? ` · ${new Date(n.date).toLocaleDateString("id-ID", { dateStyle: "medium" })}` : ""}
+              {n.date ? ` · ${formatWib(n.date)}` : ""}
             </p>
           </li>
         ))}

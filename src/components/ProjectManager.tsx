@@ -31,6 +31,7 @@ import {
   projectParamSummary,
   type ProjectItem,
 } from "@/lib/projects";
+import { slideImageSrc } from "@/lib/carousel";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -43,6 +44,7 @@ type FormState = {
   custom: ProjectItem[];
   tanggal_mulai: string;
   deadline: string;
+  foto_url: string;
 };
 
 const emptyForm: FormState = {
@@ -52,6 +54,7 @@ const emptyForm: FormState = {
   custom: [],
   tanggal_mulai: "",
   deadline: "",
+  foto_url: "",
 };
 
 const fmt = (v: unknown) =>
@@ -93,6 +96,7 @@ export function ProjectManager({ canWrite }: { canWrite: boolean }) {
         custom_items: form.custom,
         tanggal_mulai: form.tanggal_mulai || null,
         deadline: form.deadline || null,
+        foto_url: form.foto_url.trim() || null,
       };
       if (editing) {
         const { error } = await db.from("projects").update(body).eq("id", editing["id"] as string);
@@ -152,6 +156,7 @@ export function ProjectManager({ canWrite }: { canWrite: boolean }) {
       custom: projectCustomItems(row),
       tanggal_mulai: row["tanggal_mulai"] ? String(row["tanggal_mulai"]).slice(0, 10) : "",
       deadline: row["deadline"] ? String(row["deadline"]).slice(0, 10) : "",
+      foto_url: String(row["foto_url"] ?? ""),
     });
     setOpen(true);
   }
@@ -283,6 +288,26 @@ export function ProjectManager({ canWrite }: { canWrite: boolean }) {
                 value={form.deskripsi}
                 onChange={(e) => setForm((f) => ({ ...f, deskripsi: e.target.value }))}
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="foto_url">Gambar Project (URL / ID Google Drive)</Label>
+              <Input
+                id="foto_url"
+                placeholder="https://… atau ID file Google Drive"
+                value={form.foto_url}
+                onChange={(e) => setForm((f) => ({ ...f, foto_url: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Dipakai sebagai gambar slide project pada carousel dashboard.
+              </p>
+              {form.foto_url.trim() ? (
+                <img
+                  src={slideImageSrc(form.foto_url.trim(), 600)}
+                  alt="Pratinjau gambar project"
+                  className="h-32 w-full rounded-xl border border-border/60 object-cover"
+                />
+              ) : null}
             </div>
 
             <div className="grid gap-2">

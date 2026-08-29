@@ -88,34 +88,39 @@ export function InfographicStats({ items }: { items: InfographicStat[] }) {
                   params={{ key: s.detailKey }}
                   search={{ from: "/" }}
                   aria-label={`Lihat detail ${s.label}`}
-                  className={`group relative flex items-center gap-2 rounded-full border border-primary/25 bg-card/70 py-1.5 pl-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_65%,transparent)] active:translate-y-0 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
+                  className={`group relative flex items-center gap-2 rounded-full border border-primary/30 border-t-primary/50 border-b-background/70 bg-gradient-to-b from-card/90 via-card/70 to-background/80 py-1.5 pl-4 backdrop-blur-xl transition-all duration-300 [box-shadow:inset_0_1px_0_color-mix(in_oklab,var(--primary)_35%,transparent),inset_0_-2px_6px_color-mix(in_oklab,black_45%,transparent),0_6px_14px_-6px_color-mix(in_oklab,black_75%,transparent),0_2px_0_color-mix(in_oklab,var(--primary)_18%,transparent)] hover:-translate-y-1 hover:border-primary/60 hover:[box-shadow:inset_0_1px_0_color-mix(in_oklab,var(--primary)_55%,transparent),inset_0_-2px_8px_color-mix(in_oklab,black_45%,transparent),0_14px_26px_-10px_color-mix(in_oklab,var(--primary)_70%,transparent)] active:translate-y-0 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
                     right ? "pr-11" : "pr-3"
                   }`}
                 >
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-3 top-0.5 h-1/2 rounded-full bg-gradient-to-b from-primary-foreground/20 to-transparent opacity-60"
+                  />
                   <span
                     className={`absolute top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-[10px] font-black text-primary-foreground tabular-nums transition-transform duration-300 group-hover:scale-110 ${
                       right ? "-left-4 sm:-right-4 sm:left-auto" : "-left-4"
                     }`}
                     style={{
                       backgroundImage: "var(--gradient-stat)",
-                      boxShadow: "var(--shadow-glow)",
+                      boxShadow:
+                        "var(--shadow-glow), inset 0 1px 1px color-mix(in oklab, white 45%, transparent), inset 0 -2px 4px color-mix(in oklab, black 40%, transparent)",
                     }}
                   >
                     {String(i + 1).padStart(2, "0")}
                   </span>
 
-                  <span className="grid size-6 shrink-0 place-items-center rounded-full border border-primary/30 bg-primary/10">
+                  <span className="relative grid size-6 shrink-0 place-items-center rounded-full border border-primary/40 bg-gradient-to-b from-primary/25 to-primary/5 [box-shadow:inset_0_1px_1px_color-mix(in_oklab,white_25%,transparent)]">
                     <s.icon className="size-3 text-accent" />
                   </span>
 
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[7px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+                  <span className="relative min-w-0 flex-1">
+                    <span className="block truncate text-[9px] font-extrabold tracking-[0.16em] text-foreground/85 uppercase drop-shadow-[0_1px_0_color-mix(in_oklab,black_60%,transparent)] sm:text-[10px]">
                       {s.label}
                     </span>
-                    <span className="block text-lg leading-tight font-black tabular-nums">
+                    <span className="block text-lg leading-tight font-black tabular-nums drop-shadow-[0_1px_1px_color-mix(in_oklab,black_65%,transparent)]">
                       {s.value}
                     </span>
-                    <span className="mt-0.5 block h-0.5 w-full overflow-hidden rounded-full bg-secondary/70">
+                    <span className="mt-0.5 block h-0.5 w-full overflow-hidden rounded-full bg-background/70 [box-shadow:inset_0_1px_1px_color-mix(in_oklab,black_60%,transparent)]">
                       <span
                         className="block h-full rounded-full transition-all duration-700"
                         style={{
@@ -125,6 +130,7 @@ export function InfographicStats({ items }: { items: InfographicStat[] }) {
                       />
                     </span>
                   </span>
+
 
                 </Link>
               </li>

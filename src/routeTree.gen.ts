@@ -31,6 +31,7 @@ import { Route as AuthenticatedAdminApprovalRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminAtmRouteImport } from './routes/_authenticated/admin/atm'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminBukuHarianRouteImport } from './routes/_authenticated/admin/buku-harian'
+import { Route as AuthenticatedAdminCarouselRouteImport } from './routes/_authenticated/admin/carousel'
 import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin/crm'
 import { Route as AuthenticatedAdminDriveRouteImport } from './routes/_authenticated/admin/drive'
 import { Route as AuthenticatedAdminEdcRouteImport } from './routes/_authenticated/admin/edc'
@@ -183,6 +184,12 @@ const AuthenticatedAdminBukuHarianRoute =
   AuthenticatedAdminBukuHarianRouteImport.update({
     id: '/admin/buku-harian',
     path: '/admin/buku-harian',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminCarouselRoute =
+  AuthenticatedAdminCarouselRouteImport.update({
+    id: '/admin/carousel',
+    path: '/admin/carousel',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminCrmRoute = AuthenticatedAdminCrmRouteImport.update({
@@ -443,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/buku-harian': typeof AuthenticatedAdminBukuHarianRoute
+  '/admin/carousel': typeof AuthenticatedAdminCarouselRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/drive': typeof AuthenticatedAdminDriveRoute
   '/admin/edc': typeof AuthenticatedAdminEdcRoute
@@ -507,6 +515,7 @@ export interface FileRoutesByTo {
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/buku-harian': typeof AuthenticatedAdminBukuHarianRoute
+  '/admin/carousel': typeof AuthenticatedAdminCarouselRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/drive': typeof AuthenticatedAdminDriveRoute
   '/admin/edc': typeof AuthenticatedAdminEdcRoute
@@ -568,6 +577,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/buku-harian': typeof AuthenticatedAdminBukuHarianRoute
+  '/_authenticated/admin/carousel': typeof AuthenticatedAdminCarouselRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/_authenticated/admin/drive': typeof AuthenticatedAdminDriveRoute
   '/_authenticated/admin/edc': typeof AuthenticatedAdminEdcRoute
@@ -634,6 +644,7 @@ export interface FileRouteTypes {
     | '/admin/atm'
     | '/admin/audit'
     | '/admin/buku-harian'
+    | '/admin/carousel'
     | '/admin/crm'
     | '/admin/drive'
     | '/admin/edc'
@@ -698,6 +709,7 @@ export interface FileRouteTypes {
     | '/admin/atm'
     | '/admin/audit'
     | '/admin/buku-harian'
+    | '/admin/carousel'
     | '/admin/crm'
     | '/admin/drive'
     | '/admin/edc'
@@ -758,6 +770,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/atm'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/buku-harian'
+    | '/_authenticated/admin/carousel'
     | '/_authenticated/admin/crm'
     | '/_authenticated/admin/drive'
     | '/_authenticated/admin/edc'
@@ -981,6 +994,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/buku-harian'
       fullPath: '/admin/buku-harian'
       preLoaderRoute: typeof AuthenticatedAdminBukuHarianRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/carousel': {
+      id: '/_authenticated/admin/carousel'
+      path: '/admin/carousel'
+      fullPath: '/admin/carousel'
+      preLoaderRoute: typeof AuthenticatedAdminCarouselRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/crm': {
@@ -1379,6 +1399,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminAtmRoute: typeof AuthenticatedAdminAtmRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminBukuHarianRoute: typeof AuthenticatedAdminBukuHarianRoute
+  AuthenticatedAdminCarouselRoute: typeof AuthenticatedAdminCarouselRoute
   AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
   AuthenticatedAdminDriveRoute: typeof AuthenticatedAdminDriveRoute
   AuthenticatedAdminEdcRoute: typeof AuthenticatedAdminEdcRoute
@@ -1409,6 +1430,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminAtmRoute: AuthenticatedAdminAtmRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
   AuthenticatedAdminBukuHarianRoute: AuthenticatedAdminBukuHarianRoute,
+  AuthenticatedAdminCarouselRoute: AuthenticatedAdminCarouselRoute,
   AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
   AuthenticatedAdminDriveRoute: AuthenticatedAdminDriveRoute,
   AuthenticatedAdminEdcRoute: AuthenticatedAdminEdcRoute,

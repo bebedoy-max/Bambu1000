@@ -68,6 +68,8 @@
   --color-info: var(--info);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-diary-frame: var(--diary-frame);
+  --color-diary-frame-foreground: var(--diary-frame-foreground);
 }
 
 /* Dark Blue Metallic — brushed steel navy, cool glassmorphism */
@@ -94,6 +96,8 @@
   --info: oklch(0.72 0.11 235);
   --brand: oklch(0.55 0.13 250);
   --brand-foreground: oklch(0.99 0.004 250);
+  --diary-frame: oklch(0.38 0.055 249);
+  --diary-frame-foreground: oklch(0.95 0.012 250);
   --border: oklch(0.85 0.03 240 / 14%);
   --input: oklch(0.85 0.03 240 / 14%);
   --ring: oklch(0.66 0.12 245);
