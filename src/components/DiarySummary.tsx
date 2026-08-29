@@ -4,6 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { RotatingThumb } from "@/components/RotatingThumbGrid";
 import { useDirectory } from "@/lib/directory";
+import frameAsset from "@/assets/diary-frame.png.asset.json";
+
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -12,8 +14,24 @@ type DiaryRow = {
   user_id: string;
   tanggal: string;
   nama_kegiatan: string;
+  detil_problem: string | null;
   status: string;
 };
+
+/** Warna glow unik per petugas IT (hash nama → hue stabil). */
+function officerGlow(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+  return `oklch(0.82 0.16 ${h})`;
+}
+
+/** Warna glow untuk status kegiatan. */
+function statusGlow(s: string) {
+  if (s === "Done") return "oklch(0.74 0.12 175)"; // success green
+  if (s === "Failed") return "oklch(0.62 0.2 24)"; // destructive red
+  return "oklch(0.72 0.11 235)"; // in-progress blue
+}
+
 
 export function statusVariant(s: string): "default" | "secondary" | "destructive" {
   if (s === "Done") return "default";
@@ -51,7 +69,7 @@ export function DiarySummary({ limit = 6 }: { limit?: number }) {
     queryFn: async () => {
       const { data, error } = await db
         .from("it_diary_logs")
-        .select("id,user_id,tanggal,nama_kegiatan,status")
+        .select("id,user_id,tanggal,nama_kegiatan,detil_problem,status")
         .order("tanggal", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(limit);
@@ -69,11 +87,12 @@ export function DiarySummary({ limit = 6 }: { limit?: number }) {
     return <p className="text-sm text-muted-foreground">Belum ada catatan kegiatan harian IT.</p>;
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="flex flex-wrap gap-[30px]">
       {rows.map((r) => (
         <DiaryCard
           key={r.id}
           title={r.nama_kegiatan}
+          description={r.detil_problem ?? ""}
           status={r.status}
           date={fmt(r.tanggal)}
           officer={dir.nameOf(r.user_id)}
@@ -84,43 +103,82 @@ export function DiarySummary({ limit = 6 }: { limit?: number }) {
   );
 }
 
-/** Kartu kegiatan harian IT dengan frame dan tab yang menyatu seperti mockup. */
+/** Kartu kegiatan harian IT — memakai frame gambar, warna mengikuti tema aplikasi. */
 export function DiaryCard({
   title,
+  description = "",
   status,
   date: _date,
   officer,
   photos,
 }: {
   title: string;
+  description?: string;
   status: string;
   date: string;
   officer: string;
   photos: string[];
 }) {
-  const statusTone = status === "Failed" ? "text-destructive" : "text-diary-frame-foreground";
+  const statusTone =
+    status === "Failed" ? "text-destructive" : "text-white";
+  const statusGlowColor = statusGlow(status);
+
+  const maskStyle = {
+    WebkitMaskImage: `url(${frameAsset.url})`,
+    maskImage: `url(${frameAsset.url})`,
+    WebkitMaskSize: "100% 100%",
+    maskSize: "100% 100%",
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+  } as const;
 
   return (
-    <article className="relative aspect-square w-full max-w-[360px] overflow-hidden rounded-[1.5rem] border border-primary/25 bg-diary-frame shadow-[inset_0_1px_0_color-mix(in_oklab,var(--color-primary-foreground)_18%,transparent),0_12px_28px_-18px_var(--color-primary)] [container-type:inline-size]">
-      {/* Bidang gelap membuat frame, blok status, dan blok petugas menjadi satu plate. */}
-      <div className="absolute inset-[2.8%] rounded-[1.15rem] bg-background" />
+    <article className="relative max-w-[360px] flex-[1_1_360px] [aspect-ratio:1842/1758] [container-type:inline-size]">
+      {/* Frame dari gambar, diwarnai mengikuti tema aplikasi. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-primary/35"
+        style={maskStyle}
+      />
 
-      {/* Judul kegiatan */}
-      <div className="absolute top-[8%] left-[6%] z-10 flex h-[15.5%] w-[63%] items-center rounded-[1rem] bg-diary-frame px-[4.5%]">
-        <h3 className="line-clamp-2 text-[clamp(12px,4cqw,15px)] leading-[1.25] font-bold text-diary-frame-foreground">
-          {title}
-        </h3>
-      </div>
+      {/* Nama kegiatan — strip kiri atas frame, di-center di ruang strip yang lebih tinggi agar 2 baris terlihat balance. */}
+      <h3
+        className="absolute top-0 left-0 flex h-[11.5%] w-[70%] items-center px-[4cqw] text-[clamp(10px,3.6cqw,14px)] leading-[1.05] font-extrabold text-foreground"
+        title={title}
+      >
+        <span className="line-clamp-2 w-full overflow-hidden break-words">{title}</span>
+      </h3>
 
-      {/* Tab status menyatu langsung dengan sisi atas dan kanan frame. */}
-      <div className="absolute top-0 right-0 z-10 flex h-[17%] w-[29%] items-center justify-center rounded-bl-[1rem] bg-diary-frame px-[2%] pt-[1%]">
-        <span className={`whitespace-nowrap text-[clamp(9px,3.15cqw,12px)] leading-none font-bold ${statusTone}`}>{status}</span>
-      </div>
+      {/* Status — pada blok kanan atas frame dengan glow sesuai status. */}
+      <span
+        className={`diary-pulse-glow absolute top-0 right-0 flex h-[11.5%] w-[28.3%] items-center justify-center px-[1.5cqw] text-[clamp(10px,3.6cqw,14px)] leading-none font-extrabold whitespace-nowrap ${statusTone}`}
+        style={{ ["--diary-glow" as string]: statusGlowColor }}
+      >
+        <span className="truncate">{status}</span>
+      </span>
 
-      {/* Panel foto: warna dasar plate sekaligus menjadi border dan pemisah salib. */}
-      <div className="absolute top-[27%] right-[5.5%] bottom-[12.5%] left-[5.5%] z-10 grid grid-cols-2 grid-rows-2 gap-[1.4%] overflow-hidden rounded-[1.05rem] bg-diary-frame p-[1.4%]">
+      {/* Nama petugas — blok kiri bawah frame, naik sedikit agar center, teks putih + glow berwarna. */}
+      <span
+        className="diary-pulse-glow absolute bottom-0 left-0 flex h-[8.4%] w-[50.5%] items-start pt-[1.5cqw] overflow-hidden px-[4cqw] text-[clamp(11px,4.2cqw,17px)] leading-[1.35] font-semibold text-white"
+        style={{ ["--diary-glow" as string]: officerGlow(officer) }}
+      >
+        <span className="truncate">{officer}</span>
+      </span>
+
+      {/* Area isi di dalam frame. */}
+      <div className="absolute top-[11.5%] right-[1.3%] bottom-[8.4%] left-[1.3%] flex flex-col gap-[2.5cqw] p-[2.5cqw]">
+        <div
+          className="overflow-hidden rounded-[0.9rem] bg-primary/25 px-[3.5cqw] py-[2.8cqw] ring-1 ring-primary/25"
+          title={description || undefined}
+        >
+          <p className="line-clamp-2 text-left text-[clamp(10px,3.2cqw,13px)] leading-[1.35] font-normal break-all text-foreground/85">
+            {description || "Tidak ada deskripsi."}
+          </p>
+        </div>
+
+        <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-[1.8cqw]">
           {Array.from({ length: 4 }, (_, slot) => (
-            <div key={slot} className="overflow-hidden bg-background first:rounded-tl-[0.65rem] [&:nth-child(2)]:rounded-tr-[0.65rem] [&:nth-child(3)]:rounded-bl-[0.65rem] [&:nth-child(4)]:rounded-br-[0.65rem]">
+            <div key={slot} className="overflow-hidden rounded-[0.7rem] bg-background/60">
               <RotatingThumb
                 ids={photos.filter((_, i) => i % 4 === slot)}
                 alt={`Foto kegiatan ${title}`}
@@ -129,15 +187,13 @@ export function DiaryCard({
               />
             </div>
           ))}
-      </div>
-
-      {/* Tab nama petugas menyatu langsung dengan sisi kiri dan bawah frame. */}
-      <div className="absolute bottom-0 left-0 z-20 flex h-[10%] w-[52%] items-center rounded-tr-[0.8rem] bg-diary-frame px-[6%] pb-[0.5%]">
-        <span className="truncate text-[clamp(10px,3.25cqw,12px)] leading-none font-bold text-diary-frame-foreground">{officer}</span>
+        </div>
       </div>
     </article>
   );
 }
+
+
 
 
 

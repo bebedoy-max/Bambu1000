@@ -1077,3 +1077,30 @@
   box-shadow: var(--nb-shadow-plate);
 }
 
+
+/* Kartu kegiatan harian IT — glow pulse lambat pada nama petugas & status.
+   Warna diambil dari --diary-glow (dihitung per petugas atau per status). */
+@keyframes diaryPulseGlow {
+  0%,
+  100% {
+    text-shadow: 0 0 6px color-mix(in oklab, var(--diary-glow) 45%, transparent);
+    opacity: 0.9;
+  }
+  50% {
+    text-shadow:
+      0 0 14px color-mix(in oklab, var(--diary-glow) 95%, transparent),
+      0 0 28px color-mix(in oklab, var(--diary-glow) 60%, transparent),
+      0 0 42px color-mix(in oklab, var(--diary-glow) 35%, transparent);
+    opacity: 1;
+  }
+}
+
+.diary-pulse-glow {
+  animation: diaryPulseGlow 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diary-pulse-glow {
+    animation: none;
+  }
+}
