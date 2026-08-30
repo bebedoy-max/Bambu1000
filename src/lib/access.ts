@@ -163,10 +163,10 @@ export const menuTree: MenuNode[] = [
     keys: ["project", "project-progress", "foto", "agenda"],
   },
   { type: "item", key: "tools" },
-  { type: "item", key: "tutorial" },
   { type: "item", key: "tiket" },
   { type: "item", key: "buku-harian" },
   { type: "item", key: "plugin" },
+  { type: "item", key: "tutorial" },
   {
     type: "group",
     key: "setting",
