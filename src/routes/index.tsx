@@ -8,6 +8,7 @@ import { ProjectSummary } from "@/components/ProjectSummary";
 import { EventSummary } from "@/components/EventSummary";
 import { AuthSplash } from "@/components/AuthSplash";
 import { InfographicStats } from "@/components/home/InfographicStats";
+import { WorkerSlider } from "@/components/home/WorkerSlider";
 import { HomeCarousel } from "@/components/home/HomeCarousel";
 import { MarketPanel } from "@/components/home/MarketPanel";
 import { NewsPanel } from "@/components/home/NewsPanel";
@@ -128,8 +129,9 @@ function Index() {
       <HomeCarousel />
 
       <div className="mt-4 grid gap-4 lg:grid-cols-12">
-        <div className="lg:col-span-3">
+        <div className="grid content-start gap-4 lg:col-span-3">
           <InfographicStats items={infographics} />
+          <WorkerSlider />
         </div>
         <div className="lg:col-span-6">
           <NewsPanel />
@@ -141,16 +143,16 @@ function Index() {
       </div>
 
       <section className="mt-10 border-t border-border/60 pt-8">
-        <h2 className="event-title-glow mb-4 text-lg">Project IT</h2>
-        <ProjectSummary limit={4} />
-      </section>
-
-      <section className="mt-10 border-t border-border/60 pt-8">
         <h2 className="event-title-glow mb-1 text-lg">The Event's BRI BO Pringsewu</h2>
         <p className="mb-4 text-sm text-muted-foreground">
           Galery foto acara dan kegiatan BRI Branch Office Pringsewu.
         </p>
         <EventSummary limit={6} />
+      </section>
+
+      <section className="mt-10 border-t border-border/60 pt-8">
+        <h2 className="event-title-glow mb-4 text-lg">Project IT</h2>
+        <ProjectSummary limit={4} />
       </section>
     </PublicLayout>
   );

@@ -103,6 +103,13 @@ export const menuItems: MenuItem[] = [
   { key: "foto", to: "/admin/foto", label: "Event", icon: Image, defaults: ADMIN_ONLY },
   { key: "agenda", to: "/admin/agenda", label: "Agenda Upcoming Event", icon: CalendarClock, defaults: ADMIN_ONLY },
   { key: "carousel", to: "/admin/carousel", label: "Konten Carousel", icon: GalleryHorizontal, defaults: ADMIN_ONLY },
+  {
+    key: "slide-pekerja",
+    to: "/admin/slide-pekerja",
+    label: "Slide Profil Pekerja",
+    icon: IdCard,
+    defaults: ADMIN_ONLY,
+  },
   { key: "tools", to: "/admin/tools", label: "SuperIT Apps", icon: Wrench, defaults: ADMIN_ONLY },
   { key: "tutorial", to: "/admin/tutorial", label: "Tutorial", icon: BookOpen, defaults: ADMIN_ONLY },
   { key: "tiket", to: "/admin/tiket", label: "Tiket IT", icon: LifeBuoy, defaults: ALL },
@@ -157,7 +164,7 @@ export const menuTree: MenuNode[] = [
     key: "setting",
     label: "Setting",
     icon: Settings,
-    keys: ["akses", "users", "drive", "jabatan", "jenis-perangkat", "carousel"],
+    keys: ["akses", "users", "drive", "jabatan", "jenis-perangkat", "carousel", "slide-pekerja"],
   },
   { type: "item", key: "audit" },
 ];

@@ -133,9 +133,9 @@ async function fetchGoogleNews(query: string, limit: number): Promise<NewsItem[]
   }
 }
 
-/** Berita perbankan, bisnis, keuangan & fintech — minimal 10 item terbaru, diurutkan waktu. */
+/** Berita perbankan, bisnis, keuangan & fintech — hanya yang isinya bisa dibaca. */
 export const getNews = createServerFn({ method: "GET" }).handler(async () => {
-  const batches = await Promise.all(NEWS_QUERIES.map((q) => fetchGoogleNews(q, 8)));
+  const batches = await Promise.all(NEWS_QUERIES.map((q) => fetchGoogleNews(q, 12)));
   const seen = new Set<string>();
   const merged: NewsItem[] = [];
   for (const item of batches.flat()) {
@@ -145,7 +145,9 @@ export const getNews = createServerFn({ method: "GET" }).handler(async () => {
     merged.push(item);
   }
   merged.sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
-  return merged.slice(0, 14);
+
+  const { keepReadableCached } = await import("./news-readable.server");
+  return keepReadableCached(merged.slice(0, 36), 14);
 });
 
 export type PublicWinner = { category: string; name: string; position: string; photo: string | null };

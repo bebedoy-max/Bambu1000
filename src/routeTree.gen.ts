@@ -45,6 +45,7 @@ import { Route as AuthenticatedAdminPluginRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminProjectRouteImport } from './routes/_authenticated/admin/project'
 import { Route as AuthenticatedAdminProjectProgressRouteImport } from './routes/_authenticated/admin/project-progress'
 import { Route as AuthenticatedAdminQrisRouteImport } from './routes/_authenticated/admin/qris'
+import { Route as AuthenticatedAdminSlidePekerjaRouteImport } from './routes/_authenticated/admin/slide-pekerja'
 import { Route as AuthenticatedAdminTiketRouteImport } from './routes/_authenticated/admin/tiket'
 import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin/tools'
 import { Route as AuthenticatedAdminTutorialRouteImport } from './routes/_authenticated/admin/tutorial'
@@ -264,6 +265,12 @@ const AuthenticatedAdminQrisRoute = AuthenticatedAdminQrisRouteImport.update({
   path: '/admin/qris',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminSlidePekerjaRoute =
+  AuthenticatedAdminSlidePekerjaRouteImport.update({
+    id: '/admin/slide-pekerja',
+    path: '/admin/slide-pekerja',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminTiketRoute = AuthenticatedAdminTiketRouteImport.update({
   id: '/admin/tiket',
   path: '/admin/tiket',
@@ -464,6 +471,7 @@ export interface FileRoutesByFullPath {
   '/admin/project': typeof AuthenticatedAdminProjectRoute
   '/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/admin/qris': typeof AuthenticatedAdminQrisRoute
+  '/admin/slide-pekerja': typeof AuthenticatedAdminSlidePekerjaRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/admin/tools': typeof AuthenticatedAdminToolsRouteWithChildren
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
@@ -529,6 +537,7 @@ export interface FileRoutesByTo {
   '/admin/project': typeof AuthenticatedAdminProjectRoute
   '/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/admin/qris': typeof AuthenticatedAdminQrisRoute
+  '/admin/slide-pekerja': typeof AuthenticatedAdminSlidePekerjaRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
   '/admin/uker': typeof AuthenticatedAdminUkerRoute
@@ -591,6 +600,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/project': typeof AuthenticatedAdminProjectRoute
   '/_authenticated/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/_authenticated/admin/qris': typeof AuthenticatedAdminQrisRoute
+  '/_authenticated/admin/slide-pekerja': typeof AuthenticatedAdminSlidePekerjaRoute
   '/_authenticated/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/_authenticated/admin/tools': typeof AuthenticatedAdminToolsRouteWithChildren
   '/_authenticated/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
@@ -658,6 +668,7 @@ export interface FileRouteTypes {
     | '/admin/project'
     | '/admin/project-progress'
     | '/admin/qris'
+    | '/admin/slide-pekerja'
     | '/admin/tiket'
     | '/admin/tools'
     | '/admin/tutorial'
@@ -723,6 +734,7 @@ export interface FileRouteTypes {
     | '/admin/project'
     | '/admin/project-progress'
     | '/admin/qris'
+    | '/admin/slide-pekerja'
     | '/admin/tiket'
     | '/admin/tutorial'
     | '/admin/uker'
@@ -784,6 +796,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/project'
     | '/_authenticated/admin/project-progress'
     | '/_authenticated/admin/qris'
+    | '/_authenticated/admin/slide-pekerja'
     | '/_authenticated/admin/tiket'
     | '/_authenticated/admin/tools'
     | '/_authenticated/admin/tutorial'
@@ -1092,6 +1105,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/qris'
       fullPath: '/admin/qris'
       preLoaderRoute: typeof AuthenticatedAdminQrisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/slide-pekerja': {
+      id: '/_authenticated/admin/slide-pekerja'
+      path: '/admin/slide-pekerja'
+      fullPath: '/admin/slide-pekerja'
+      preLoaderRoute: typeof AuthenticatedAdminSlidePekerjaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/tiket': {
@@ -1413,6 +1433,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminProjectRoute: typeof AuthenticatedAdminProjectRoute
   AuthenticatedAdminProjectProgressRoute: typeof AuthenticatedAdminProjectProgressRoute
   AuthenticatedAdminQrisRoute: typeof AuthenticatedAdminQrisRoute
+  AuthenticatedAdminSlidePekerjaRoute: typeof AuthenticatedAdminSlidePekerjaRoute
   AuthenticatedAdminTiketRoute: typeof AuthenticatedAdminTiketRoute
   AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRouteWithChildren
   AuthenticatedAdminTutorialRoute: typeof AuthenticatedAdminTutorialRoute
@@ -1445,6 +1466,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminProjectProgressRoute:
     AuthenticatedAdminProjectProgressRoute,
   AuthenticatedAdminQrisRoute: AuthenticatedAdminQrisRoute,
+  AuthenticatedAdminSlidePekerjaRoute: AuthenticatedAdminSlidePekerjaRoute,
   AuthenticatedAdminTiketRoute: AuthenticatedAdminTiketRoute,
   AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRouteWithChildren,
   AuthenticatedAdminTutorialRoute: AuthenticatedAdminTutorialRoute,

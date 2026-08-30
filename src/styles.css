@@ -1121,3 +1121,19 @@
     animation: none;
   }
 }
+
+/* Pulse glow untuk frame foto pada slide profil pekerja. */
+@keyframes worker-glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--glow) 55%, transparent),
+      0 0 10px color-mix(in oklab, var(--glow) 35%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px color-mix(in oklab, var(--glow) 85%, transparent),
+      0 0 26px color-mix(in oklab, var(--glow) 70%, transparent),
+      0 0 48px color-mix(in oklab, var(--glow) 45%, transparent);
+  }
+}

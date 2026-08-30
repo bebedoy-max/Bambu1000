@@ -173,6 +173,29 @@ export async function readArticle(data: ReaderInput): Promise<ArticleContent> {
     }
   }
 
+  // Penerbit yang memblokir permintaan server: coba lewat proxy pembaca publik.
+  for (const proxy of [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(sourceUrl)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(sourceUrl)}`,
+  ]) {
+    try {
+      const html = await fetchText(proxy, BROWSER_UA, 15_000);
+      if (!html) continue;
+      const parsed = extractArticle(html);
+      title = cleanTitle(parsed.title) || title;
+      if (isUsableArticle(parsed.blocks, parsed.title)) {
+        return { title, blocks: parsed.blocks, sourceUrl };
+      }
+      if (structuredBlocks.length === 0) {
+        const meta = extractStructured(html);
+        title = title || cleanTitle(meta.title);
+        const body = blocksFromPlainText(meta.body);
+        structuredBlocks = body.length ? body : blocksFromPlainText(meta.description);
+      }
+    } catch {
+      // Coba proxy berikutnya.
+    }
+  }
 
   try {
     const response = await fetch(`https://r.jina.ai/${sourceUrl}`, {
