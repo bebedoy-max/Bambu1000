@@ -42,16 +42,24 @@ async function fetchDeposito(): Promise<DepositoRates | null> {
 
   // Ambil blok tabel "Deposito Rupiah" pertama: baris tenor tebal diikuti baris angka.
   const rupiahBlock = /\*\*Deposito Rupiah\*\*([\s\S]*?)(?:\*\*Deposito Valas\*\*|$)/.exec(md)?.[1] ?? "";
-  const rupiahRow = rupiahBlock
-    .split("\n")
-    .map((l) => l.trim())
-    .find((l) => /^\|[\d.,]+%.*\|$/.test(l) && l.includes("%"));
+  const rupiahLines = rupiahBlock.split("\n").map((l) => l.trim());
+  const rupiahRow = rupiahLines.find((l) => /^\|\s*[\d.,]+\s*%/.test(l));
+  // Baris header tenor: "| **1** | **3** | **6** | ..."
+  const tenorRow = rupiahLines.find((l) => /^\|\s*\*\*\d+\*\*\s*\|/.test(l));
   const rupiah: { tenor: string; rate: string }[] = [];
   if (rupiahRow) {
     const rates = rupiahRow.split("|").map((s) => s.trim()).filter(Boolean);
-    const tenors = ["1 bln", "3 bln", "6 bln", "12 bln", "24 bln", "36 bln"];
+    const parsedTenors = (tenorRow ?? "")
+      .split("|")
+      .map((s) => s.replace(/\*/g, "").trim())
+      .filter((s) => /^\d+$/.test(s))
+      .map((n) => `${n} bln`);
+    const tenors = parsedTenors.length === rates.length
+      ? parsedTenors
+      : ["1 bln", "3 bln", "6 bln", "12 bln", "24 bln", "36 bln"];
     rates.forEach((r, i) => rupiah.push({ tenor: tenors[i] ?? `Tenor ${i + 1}`, rate: r }));
   }
+
 
   const valasBlock = /\*\*Deposito Valas\*\*([\s\S]*?)(?:!\[|_Last Update_|$)/.exec(md)?.[1] ?? "";
   const valasRowLine = valasBlock

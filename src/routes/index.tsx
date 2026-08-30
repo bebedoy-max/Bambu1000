@@ -13,6 +13,7 @@ import { HomeCarousel } from "@/components/home/HomeCarousel";
 import { MarketPanel } from "@/components/home/MarketPanel";
 import { BankRatesPanel } from "@/components/home/BankRatesPanel";
 import { NewsPanel } from "@/components/home/NewsPanel";
+import { InfoBoard } from "@/components/home/InfoBoard";
 import { UpcomingEvents } from "@/components/home/UpcomingEvents";
 import { clearPostLogin, POST_LOGIN_TARGET } from "@/lib/post-login";
 
@@ -134,7 +135,8 @@ function Index() {
           <InfographicStats items={infographics} />
           <WorkerSlider />
         </div>
-        <div className="lg:col-span-6">
+        <div className="grid content-start gap-4 lg:col-span-6">
+          <InfoBoard />
           <NewsPanel />
         </div>
         <div className="grid content-start gap-4 lg:col-span-3">

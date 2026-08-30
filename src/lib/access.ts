@@ -17,6 +17,7 @@ import {
   Laptop,
   LifeBuoy,
   ListChecks,
+  MonitorPlay,
   NotebookPen,
   Puzzle,
   QrCode,
@@ -102,6 +103,13 @@ export const menuItems: MenuItem[] = [
   },
   { key: "foto", to: "/admin/foto", label: "Event", icon: Image, defaults: ADMIN_ONLY },
   { key: "agenda", to: "/admin/agenda", label: "Agenda Upcoming Event", icon: CalendarClock, defaults: ADMIN_ONLY },
+  {
+    key: "papan-informasi",
+    to: "/admin/papan-informasi",
+    label: "Papan Informasi",
+    icon: MonitorPlay,
+    defaults: ADMIN_ONLY,
+  },
   { key: "carousel", to: "/admin/carousel", label: "Konten Carousel", icon: GalleryHorizontal, defaults: ADMIN_ONLY },
   {
     key: "slide-pekerja",
@@ -164,7 +172,7 @@ export const menuTree: MenuNode[] = [
     key: "setting",
     label: "Setting",
     icon: Settings,
-    keys: ["akses", "users", "drive", "jabatan", "jenis-perangkat", "carousel", "slide-pekerja"],
+    keys: ["akses", "users", "drive", "jabatan", "jenis-perangkat", "carousel", "slide-pekerja", "papan-informasi"],
   },
   { type: "item", key: "audit" },
 ];
