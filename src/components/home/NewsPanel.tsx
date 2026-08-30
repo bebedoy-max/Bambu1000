@@ -26,8 +26,11 @@ export function NewsPanel() {
     staleTime: THREE_HOURS,
     refetchInterval: THREE_HOURS,
     refetchIntervalInBackground: true,
+    retry: 2,
+    placeholderData: (prev) => prev,
   });
-  const items = (q.data ?? []).slice(0, 12);
+  const items = (q.data ?? []).slice(0, 10);
+
 
   const [selected, setSelected] = useState<NewsItem | null>(null);
 

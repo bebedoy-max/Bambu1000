@@ -103,7 +103,14 @@ const NEWS_QUERIES = [
   'when:7d ("Bank BRI" OR BBRI) (perbankan OR digital OR teknologi)',
   "when:7d (Bank Indonesia OR OJK) kebijakan perbankan",
   "when:3d berita bisnis keuangan Indonesia terkini",
+  "when:2d ekonomi Indonesia trending hari ini",
   "when:3d fintech OR digital banking technology",
+];
+
+/** Cadangan topik umum bila kueri utama sepi. */
+const FALLBACK_QUERIES = [
+  "when:2d berita terkini Indonesia",
+  "when:2d pasar saham IHSG rupiah",
 ];
 
 async function fetchGoogleNews(query: string, limit: number): Promise<NewsItem[]> {
@@ -133,21 +140,38 @@ async function fetchGoogleNews(query: string, limit: number): Promise<NewsItem[]
   }
 }
 
-/** Berita perbankan, bisnis, keuangan & fintech — hanya yang isinya bisa dibaca. */
-export const getNews = createServerFn({ method: "GET" }).handler(async () => {
-  const batches = await Promise.all(NEWS_QUERIES.map((q) => fetchGoogleNews(q, 12)));
+function mergeUnique(lists: NewsItem[][]): NewsItem[] {
   const seen = new Set<string>();
   const merged: NewsItem[] = [];
-  for (const item of batches.flat()) {
+  for (const item of lists.flat()) {
     const key = item.title.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
     merged.push(item);
   }
   merged.sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
+  return merged;
+}
+
+const NEWS_TARGET = 10;
+
+/** Berita perbankan, bisnis, keuangan & fintech — minimal 10 item, diutamakan yang isinya terbaca. */
+export const getNews = createServerFn({ method: "GET" }).handler(async () => {
+  let merged = mergeUnique(await Promise.all(NEWS_QUERIES.map((q) => fetchGoogleNews(q, 12))));
+  if (merged.length < NEWS_TARGET * 2) {
+    const extra = await Promise.all(FALLBACK_QUERIES.map((q) => fetchGoogleNews(q, 12)));
+    merged = mergeUnique([merged, ...extra]);
+  }
 
   const { keepReadableCached } = await import("./news-readable.server");
-  return keepReadableCached(merged.slice(0, 36), 14);
+  return keepReadableCached(merged.slice(0, 40), 12);
+});
+
+
+/** Suku bunga Deposito & Giro BRI (cache 6 jam di server). */
+export const getBankRates = createServerFn({ method: "GET" }).handler(async () => {
+  const { getBankRates: load } = await import("./bank-rates.server");
+  return load();
 });
 
 export type PublicWinner = { category: string; name: string; position: string; photo: string | null };

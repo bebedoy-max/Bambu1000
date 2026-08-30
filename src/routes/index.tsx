@@ -11,6 +11,7 @@ import { InfographicStats } from "@/components/home/InfographicStats";
 import { WorkerSlider } from "@/components/home/WorkerSlider";
 import { HomeCarousel } from "@/components/home/HomeCarousel";
 import { MarketPanel } from "@/components/home/MarketPanel";
+import { BankRatesPanel } from "@/components/home/BankRatesPanel";
 import { NewsPanel } from "@/components/home/NewsPanel";
 import { UpcomingEvents } from "@/components/home/UpcomingEvents";
 import { clearPostLogin, POST_LOGIN_TARGET } from "@/lib/post-login";
@@ -138,6 +139,7 @@ function Index() {
         </div>
         <div className="grid content-start gap-4 lg:col-span-3">
           <MarketPanel />
+          <BankRatesPanel />
           <UpcomingEvents />
         </div>
       </div>

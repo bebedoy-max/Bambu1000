@@ -57,7 +57,7 @@ export async function loadCarouselConfig(): Promise<CarouselSourceConfig[]> {
 
 /** Sumber gambar slide: URL langsung atau ID file Google Drive. */
 export function slideImageSrc(photo: string, size = 1200) {
-  return /^https?:\/\//i.test(photo) ? photo : driveThumb(photo, size);
+  return /^(https?:|data:|blob:)/i.test(photo) ? photo : driveThumb(photo, size);
 }
 
 /** Acak urutan slide (Fisher–Yates). */

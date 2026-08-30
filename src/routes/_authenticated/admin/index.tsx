@@ -11,6 +11,7 @@ import { InfographicStats } from "@/components/home/InfographicStats";
 import { HomeCarousel } from "@/components/home/HomeCarousel";
 import { WorkerSlider } from "@/components/home/WorkerSlider";
 import { MarketPanel } from "@/components/home/MarketPanel";
+import { BankRatesPanel } from "@/components/home/BankRatesPanel";
 import { NewsPanel } from "@/components/home/NewsPanel";
 import { UpcomingEvents } from "@/components/home/UpcomingEvents";
 
@@ -79,6 +80,7 @@ function Page() {
         </div>
         <div className="grid content-start gap-4 lg:col-span-3">
           <MarketPanel />
+          <BankRatesPanel />
           <UpcomingEvents />
         </div>
       </div>
