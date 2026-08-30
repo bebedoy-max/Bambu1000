@@ -2,7 +2,17 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
-import { CheckCircle2, HandHelping, ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
+import {
+  Camera,
+  CheckCircle2,
+  HandHelping,
+  ImagePlus,
+  Loader2,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  Undo2,
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAccess } from "@/lib/access";
 import { useDirectory } from "@/lib/directory";
@@ -11,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { CameraCapture } from "@/components/CameraCapture";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +34,7 @@ import {
 const db = supabase as unknown as SupabaseClient;
 const BUCKET = "ticket-photos";
 
-export type TicketStatus = "open" | "in_progress" | "done";
+export type TicketStatus = "open" | "in_progress" | "finish" | "done";
 
 type Ticket = {
   id: string;
@@ -36,6 +47,11 @@ type Ticket = {
   handled_by: string | null;
   handled_at: string | null;
   catatan_tindak_lanjut: string | null;
+  solusi: string | null;
+  foto_solusi_url: string | null;
+  finished_at: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
   status: TicketStatus;
   created_at: string;
   resolved_at: string | null;
@@ -44,7 +60,14 @@ type Ticket = {
 const statusMeta: Record<TicketStatus, { label: string; className: string }> = {
   open: { label: "Open", className: "bg-amber-500/15 text-amber-500 border-amber-500/30" },
   in_progress: { label: "In Progress", className: "bg-sky-500/15 text-sky-400 border-sky-500/30" },
-  done: { label: "Done", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+  finish: {
+    label: "Finish — Menunggu Approval",
+    className: "bg-violet-500/15 text-violet-400 border-violet-500/30",
+  },
+  done: {
+    label: "Done",
+    className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/40 ticket-done-pulse",
+  },
 };
 
 function fmt(v: string | null) {
@@ -59,7 +82,7 @@ function useTickets() {
       const { data, error } = await db
         .from("it_tickets")
         .select(
-          "id,judul,deskripsi,foto_url,reporter_nama,reporter_uker,reported_by,handled_by,handled_at,catatan_tindak_lanjut,status,created_at,resolved_at",
+          "id,judul,deskripsi,foto_url,reporter_nama,reporter_uker,reported_by,handled_by,handled_at,catatan_tindak_lanjut,solusi,foto_solusi_url,finished_at,approved_by,approved_at,status,created_at,resolved_at",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -68,7 +91,7 @@ function useTickets() {
   });
 }
 
-/** Menu Tiket IT: manajemen membuat tiket, petugas IT menindaklanjuti. */
+/** Menu Tiket IT: manajemen membuat & menyetujui, petugas IT menindaklanjuti. */
 export function TicketManager() {
   const access = useAccess();
   const dir = useDirectory();
@@ -83,24 +106,28 @@ export function TicketManager() {
   const [deskripsi, setDeskripsi] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
+  // Dialog penyelesaian oleh petugas IT
+  const [finishFor, setFinishFor] = useState<Ticket | null>(null);
+  const [keterangan, setKeterangan] = useState("");
+  const [buktiFile, setBuktiFile] = useState<File | null>(null);
+  const [camOpen, setCamOpen] = useState(false);
+
   const rows = useMemo(() => tickets.data ?? [], [tickets.data]);
-  const mine = useMemo(
-    () => rows.filter((t) => t.reported_by === dir.myId),
-    [rows, dir.myId],
-  );
+  const mine = useMemo(() => rows.filter((t) => t.reported_by === dir.myId), [rows, dir.myId]);
   const list = isPetugasIt ? rows : mine;
+
+  async function uploadFoto(f: File, prefix: string) {
+    const ext = f.name.split(".").pop() || "jpg";
+    const path = `${prefix}/${dir.myId}/${Date.now()}.${ext}`;
+    const { error } = await db.storage.from(BUCKET).upload(path, f, { upsert: true });
+    if (error) throw error;
+    return db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+  }
 
   const create = useMutation({
     mutationFn: async () => {
       if (!judul.trim()) throw new Error("Judul tiket wajib diisi.");
-      let foto_url: string | null = null;
-      if (file) {
-        const ext = file.name.split(".").pop() || "jpg";
-        const path = `${dir.myId}/${Date.now()}.${ext}`;
-        const { error: upErr } = await db.storage.from(BUCKET).upload(path, file, { upsert: true });
-        if (upErr) throw upErr;
-        foto_url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-      }
+      const foto_url = file ? await uploadFoto(file, "laporan") : null;
       const { error } = await db.from("it_tickets").insert({
         judul: judul.trim(),
         deskripsi: deskripsi.trim() || null,
@@ -126,7 +153,62 @@ export function TicketManager() {
       const { error } = await db.from("it_tickets").update(v.patch).eq("id", v.id);
       if (error) throw error;
     },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["it_tickets"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const finish = useMutation({
+    mutationFn: async () => {
+      const t = finishFor;
+      if (!t) return;
+      if (!keterangan.trim()) throw new Error("Keterangan penyelesaian wajib diisi.");
+      if (!buktiFile) throw new Error("Foto bukti penyelesaian wajib dilampirkan.");
+      const foto_solusi_url = await uploadFoto(buktiFile, "solusi");
+      const now = new Date().toISOString();
+      const { error } = await db
+        .from("it_tickets")
+        .update({
+          status: "finish",
+          solusi: keterangan.trim(),
+          foto_solusi_url,
+          finished_at: now,
+          handled_by: t.handled_by ?? dir.myId,
+          handled_at: t.handled_at ?? now,
+        })
+        .eq("id", t.id);
+      if (error) throw error;
+    },
     onSuccess: () => {
+      toast.success("Tiket ditandai selesai. Menunggu approval pembuat tiket.");
+      setFinishFor(null);
+      setKeterangan("");
+      setBuktiFile(null);
+      setCamOpen(false);
+      void qc.invalidateQueries({ queryKey: ["it_tickets"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const approve = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db.rpc("approve_ticket", { _ticket_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Tiket disetujui — status Done dan tercatat di Buku Harian IT.");
+      void qc.invalidateQueries({ queryKey: ["it_tickets"] });
+      void qc.invalidateQueries({ queryKey: ["it_diary_logs"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const reject = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db.rpc("reject_ticket", { _ticket_id: id, _alasan: null });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Penyelesaian ditolak, tiket kembali In Progress.");
       void qc.invalidateQueries({ queryKey: ["it_tickets"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -158,21 +240,6 @@ export function TicketManager() {
     );
   }
 
-  function selesaikan(t: Ticket) {
-    update.mutate(
-      {
-        id: t.id,
-        patch: {
-          status: "done",
-          handled_by: t.handled_by ?? dir.myId,
-          handled_at: t.handled_at ?? new Date().toISOString(),
-          resolved_at: new Date().toISOString(),
-        },
-      },
-      { onSuccess: () => toast.success("Tiket ditandai selesai.") },
-    );
-  }
-
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -182,8 +249,8 @@ export function TicketManager() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {isPetugasIt
-              ? "Tindak lanjuti tiket yang dibuka manajemen dan perbarui statusnya."
-              : "Buka tiket keluhan IT. Nama pembuat, unit kerja, dan tanggal terisi otomatis."}
+              ? "Tindak lanjuti tiket, lampirkan keterangan & foto bukti saat selesai, lalu tunggu approval pembuat tiket."
+              : "Buka tiket keluhan IT dan setujui hasil penyelesaian dari petugas IT."}
           </p>
         </div>
         {canCreate ? (
@@ -205,6 +272,7 @@ export function TicketManager() {
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           {list.map((t) => {
             const meta = statusMeta[t.status] ?? statusMeta.open;
+            const isReporter = t.reported_by === dir.myId;
             return (
               <div key={t.id} className="glass-card flex flex-col gap-3 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -246,47 +314,91 @@ export function TicketManager() {
                     <dd>{t.handled_by ? dir.nameOf(t.handled_by) : "-"}</dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">Selesai</dt>
-                    <dd>{fmt(t.resolved_at)}</dd>
+                    <dt className="text-muted-foreground">Disetujui</dt>
+                    <dd>{fmt(t.approved_at)}</dd>
                   </div>
                 </dl>
 
-                {isPetugasIt ? (
-                  <div className="flex flex-wrap gap-2">
-                    {t.status === "open" ? (
-                      <Button size="sm" onClick={() => handover(t)} disabled={update.isPending}>
-                        {update.isPending ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          <HandHelping className="size-4" />
-                        )}
-                        Tindak Lanjuti
-                      </Button>
+                {t.solusi || t.foto_solusi_url ? (
+                  <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Keterangan penyelesaian
+                    </p>
+                    {t.solusi ? (
+                      <p className="mt-1 text-sm whitespace-pre-wrap">{t.solusi}</p>
                     ) : null}
-                    {t.status !== "done" ? (
+                    {t.foto_solusi_url ? (
+                      <a href={t.foto_solusi_url} target="_blank" rel="noreferrer">
+                        <img
+                          src={t.foto_solusi_url}
+                          alt={`Bukti penyelesaian ${t.judul}`}
+                          loading="lazy"
+                          className="mt-2 max-h-48 w-full rounded-lg object-cover"
+                        />
+                      </a>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                <div className="flex flex-wrap gap-2">
+                  {isPetugasIt && t.status === "open" ? (
+                    <Button size="sm" onClick={() => handover(t)} disabled={update.isPending}>
+                      {update.isPending ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <HandHelping className="size-4" />
+                      )}
+                      Tindak Lanjuti
+                    </Button>
+                  ) : null}
+
+                  {isPetugasIt && t.status === "in_progress" ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        setFinishFor(t);
+                        setKeterangan(t.solusi ?? "");
+                        setBuktiFile(null);
+                        setCamOpen(false);
+                      }}
+                    >
+                      <CheckCircle2 className="size-4" /> Selesai
+                    </Button>
+                  ) : null}
+
+                  {isPetugasIt && t.status === "finish" ? (
+                    <span className="text-xs text-muted-foreground">
+                      Menunggu approval pembuat tiket.
+                    </span>
+                  ) : null}
+
+                  {isReporter && t.status === "finish" ? (
+                    <>
                       <Button
                         size="sm"
-                        variant="secondary"
-                        onClick={() => selesaikan(t)}
-                        disabled={update.isPending}
+                        onClick={() => approve.mutate(t.id)}
+                        disabled={approve.isPending}
                       >
-                        <CheckCircle2 className="size-4" /> Tandai Selesai
+                        {approve.isPending ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <ShieldCheck className="size-4" />
+                        )}
+                        Setujui Selesai
                       </Button>
-                    ) : (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() =>
-                          update.mutate({
-                            id: t.id,
-                            patch: { status: "in_progress", resolved_at: null },
-                          })
-                        }
-                        disabled={update.isPending}
+                        onClick={() => reject.mutate(t.id)}
+                        disabled={reject.isPending}
                       >
-                        Buka Kembali
+                        <Undo2 className="size-4" /> Belum Selesai
                       </Button>
-                    )}
+                    </>
+                  ) : null}
+
+                  {isPetugasIt || (isReporter && t.status === "open") ? (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -295,19 +407,8 @@ export function TicketManager() {
                     >
                       <Trash2 className="size-4" />
                     </Button>
-                  </div>
-                ) : t.status === "open" ? (
-                  <div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => remove.mutate(t.id)}
-                      disabled={remove.isPending}
-                    >
-                      <Trash2 className="size-4" /> Batalkan tiket
-                    </Button>
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
               </div>
             );
           })}
@@ -362,7 +463,71 @@ export function TicketManager() {
               {create.isPending ? <Loader2 className="size-4 animate-spin" /> : null} Submit Tiket
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
+      <Dialog open={!!finishFor} onOpenChange={(v) => (v ? null : setFinishFor(null))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Selesaikan Tiket</DialogTitle>
+            <DialogDescription>
+              Keterangan dan foto bukti wajib diisi. Status menjadi Finish dan menunggu approval
+              pembuat tiket.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div className="grid gap-1.5">
+              <Label htmlFor="keterangan">Keterangan Penyelesaian</Label>
+              <Textarea
+                id="keterangan"
+                rows={4}
+                value={keterangan}
+                onChange={(e) => setKeterangan(e.target.value)}
+                placeholder="Tindakan yang dilakukan hingga problem teratasi"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="flex items-center gap-2">
+                <ImagePlus className="size-4" /> Foto Bukti
+              </Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setBuktiFile(e.target.files?.[0] ?? null)}
+              />
+              {camOpen ? (
+                <CameraCapture
+                  onCapture={(f) => setBuktiFile(f)}
+                  onClose={() => setCamOpen(false)}
+                />
+              ) : (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="justify-self-start"
+                  onClick={() => setCamOpen(true)}
+                >
+                  <Camera className="size-4" /> Foto dengan Kamera
+                </Button>
+              )}
+              {buktiFile ? (
+                <img
+                  src={URL.createObjectURL(buktiFile)}
+                  alt="Pratinjau bukti penyelesaian"
+                  className="max-h-48 w-full rounded-xl object-cover"
+                />
+              ) : null}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setFinishFor(null)}>
+              Batal
+            </Button>
+            <Button onClick={() => finish.mutate()} disabled={finish.isPending}>
+              {finish.isPending ? <Loader2 className="size-4 animate-spin" /> : null} Tandai Selesai
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
