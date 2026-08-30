@@ -8,6 +8,7 @@ export type PhotoEntity =
   | "perangkat"
   | "event"
   | "absensi"
+  | "project"
   | "buku-harian";
 
 export const photoEntities: Record<PhotoEntity, { label: string; folder: string }> = {
@@ -19,8 +20,10 @@ export const photoEntities: Record<PhotoEntity, { label: string; folder: string 
   perangkat: { label: "Data Perangkat IT", folder: "Foto Data Perangkat IT" },
   event: { label: "Event", folder: "Foto Event" },
   absensi: { label: "Absensi Event", folder: "Foto Absensi" },
+  project: { label: "Project IT", folder: "Foto Project IT" },
   "buku-harian": { label: "Buku Harian IT", folder: "Foto Buku Harian IT" },
 };
+
 
 export const photoEntityKeys = Object.keys(photoEntities) as PhotoEntity[];
 

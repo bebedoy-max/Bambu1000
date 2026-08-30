@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Copy, Plus, Trash2, Vote } from "lucide-react";
+import { Copy, Plus, QrCode, Trash2, Vote } from "lucide-react";
 import { toast } from "sonner";
 import { AdminPage } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { DatePickerField } from "@/components/DatePickerField";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { QrCodeDialog } from "@/components/QrCodeDialog";
 import { formatDateID, slugify } from "@/lib/absensi-ui";
 import { defaultVoteCategories, type VoteSettings } from "@/lib/vote-ui";
 import { deleteVoteEvent, listVoteEvents, saveVoteEvent } from "@/lib/vote.functions";
@@ -44,9 +45,16 @@ function Page() {
   const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [qr, setQr] = useState<{
+    url: string;
+    title: string;
+    dateText: string;
+    locationText: string;
+  } | null>(null);
   const [form, setForm] = useState({
     title: "Apresiasi Pekerja",
     subtitle: "Si Paling Brilian Ways",
+    location: "BRI BO Pringsewu",
     eventDate: new Date().toISOString().slice(0, 10),
   });
 
@@ -67,6 +75,7 @@ function Page() {
           subtitle: form.subtitle.trim(),
           eyebrow: "Program Apresiasi",
           showcaseNote: "Dashboard pengumuman pemenang",
+          location: form.location.trim(),
           eventDate: form.eventDate,
           accent: "#a855f7",
           logo: null,
@@ -163,6 +172,20 @@ function Page() {
                   <Button size="sm" variant="secondary" onClick={() => copyLink(ev.slug)}>
                     <Copy className="size-4" /> Salin link
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() =>
+                      setQr({
+                        url: `${window.location.origin}/vote/${ev.slug}`,
+                        title: ev.title,
+                        dateText: formatDateID(ev.eventDate),
+                        locationText: ev.location || ev.subtitle || "BRI BO Pringsewu",
+                      })
+                    }
+                  >
+                    <QrCode className="size-4" /> Generate QR
+                  </Button>
                   {q.data?.panel ? (
                     <Button size="sm" variant="ghost" onClick={() => void remove(ev.id)}>
                       <Trash2 className="size-4" />
@@ -196,6 +219,13 @@ function Page() {
               />
             </div>
             <div>
+              <Label>Lokasi Acara</Label>
+              <Input
+                value={form.location}
+                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+              />
+            </div>
+            <div>
               <Label>Tanggal</Label>
               <DatePickerField
                 value={form.eventDate}
@@ -213,6 +243,17 @@ function Page() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <QrCodeDialog
+        open={!!qr}
+        onOpenChange={(v) => !v && setQr(null)}
+        url={qr?.url ?? ""}
+        title={qr ? `QR Vote — ${qr.title}` : "QR Code"}
+        fileName={qr ? `qr-vote-${qr.title}` : "qr-code"}
+        eventName={qr?.title}
+        dateText={qr?.dateText}
+        locationText={qr?.locationText}
+      />
     </AdminPage>
   );
 }

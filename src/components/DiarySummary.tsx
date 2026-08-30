@@ -176,7 +176,7 @@ export function DiaryCard({
         className="diary-pulse-glow absolute bottom-0 left-0 flex h-[8.4%] w-[50.5%] items-center px-[4cqw] pb-[1cqw] text-[clamp(11px,4.2cqw,17px)] leading-[1.35] font-semibold text-white"
         style={{ ["--diary-glow" as string]: officerGlow(officer) }}
       >
-        <span className="truncate">{officer}</span>
+        <span className="truncate">{officer.replace(/\bPetugas IT\b/g, "Pet. IT")}</span>
       </span>
 
       {/* Area isi di dalam frame. */}

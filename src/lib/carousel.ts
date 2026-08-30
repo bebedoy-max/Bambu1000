@@ -18,14 +18,17 @@ export type CarouselSourceConfig = {
   aktif: boolean;
   jumlah: number;
   urutan: number;
+  /** Konten terpilih; kosong = pakai konten terbaru sejumlah `jumlah`. */
+  item_ids: string[];
 };
 
 /** Default: 5 konten terakhir dari masing-masing bagian. */
 export const defaultCarouselConfig: CarouselSourceConfig[] = carouselSources.map((s, i) => ({
   sumber: s.value,
   aktif: true,
-  jumlah: 5,
+  jumlah: 10,
   urutan: i + 1,
+  item_ids: [],
 }));
 
 /** Ambil pengaturan carousel; jatuh ke default bila tabel belum ada / kosong. */
@@ -33,15 +36,19 @@ export async function loadCarouselConfig(): Promise<CarouselSourceConfig[]> {
   try {
     const { data, error } = await db
       .from("carousel_sources")
-      .select("sumber,aktif,jumlah,urutan")
+      .select("sumber,aktif,jumlah,urutan,item_ids")
       .order("urutan", { ascending: true });
     if (error || !data?.length) return defaultCarouselConfig;
     const rows = data as CarouselSourceConfig[];
     return carouselSources.map((s, i) => {
       const row = rows.find((r) => r.sumber === s.value);
       return row
-        ? { ...row, jumlah: Math.max(1, Math.min(20, Number(row.jumlah) || 5)) }
-        : { sumber: s.value, aktif: false, jumlah: 5, urutan: i + 1 };
+        ? {
+            ...row,
+            jumlah: Math.max(1, Math.min(20, Number(row.jumlah) || 10)),
+            item_ids: Array.isArray(row.item_ids) ? row.item_ids : [],
+          }
+        : { sumber: s.value, aktif: false, jumlah: 10, urutan: i + 1, item_ids: [] };
     });
   } catch {
     return defaultCarouselConfig;
@@ -63,4 +70,46 @@ export function shuffle<T>(arr: T[]): T[] {
     a[j] = ai;
   }
   return a;
+}
+
+export type CarouselCandidate = { id: string; label: string; sub: string };
+
+/** Daftar konten terakhir sebuah bagian untuk diceklis admin. */
+export async function loadCarouselCandidates(
+  sumber: CarouselSourceKey,
+  limit = 10,
+): Promise<CarouselCandidate[]> {
+  const fmt = (v: string | null) =>
+    v ? new Date(v.length <= 10 ? `${v}T00:00:00` : v).toLocaleDateString("id-ID", { dateStyle: "long" }) : "—";
+
+  if (sumber === "event") {
+    const { data } = await db
+      .from("events")
+      .select("id,nama_event,tanggal_mulai")
+      .order("tanggal_mulai", { ascending: false, nullsFirst: false })
+      .limit(limit);
+    return ((data ?? []) as { id: string; nama_event: string; tanggal_mulai: string | null }[]).map(
+      (e) => ({ id: e.id, label: e.nama_event, sub: fmt(e.tanggal_mulai) }),
+    );
+  }
+  if (sumber === "project") {
+    const { data } = await db
+      .from("projects")
+      .select("id,nama_project,deadline")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    return ((data ?? []) as { id: string; nama_project: string; deadline: string | null }[]).map(
+      (p) => ({ id: p.id, label: p.nama_project, sub: p.deadline ? `Deadline ${fmt(p.deadline)}` : "Project berjalan" }),
+    );
+  }
+  const { data } = await db
+    .from("it_diary_logs")
+    .select("id,nama_kegiatan,tanggal")
+    .order("tanggal", { ascending: false })
+    .limit(limit);
+  return ((data ?? []) as { id: string; nama_kegiatan: string; tanggal: string }[]).map((d) => ({
+    id: d.id,
+    label: d.nama_kegiatan,
+    sub: fmt(d.tanggal),
+  }));
 }

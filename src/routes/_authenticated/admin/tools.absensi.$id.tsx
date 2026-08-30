@@ -343,6 +343,9 @@ function Page() {
             url={shareUrl}
             title={`QR Absensi — ${settings.eventName}`}
             fileName={`qr-absensi-${settings.eventName}`}
+            eventName={settings.eventName}
+            dateText={formatDateID(settings.eventDate)}
+            locationText={settings.officeName}
           />
         </div>
       )}

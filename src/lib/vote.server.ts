@@ -26,6 +26,7 @@ export function toVoteSettings(row: Row): VoteSettings {
     subtitle: String(row["subtitle"] ?? ""),
     eyebrow: String(row["eyebrow"] ?? "Program Apresiasi"),
     showcaseNote: String(row["showcase_note"] ?? "Dashboard pengumuman pemenang"),
+    location: String(row["location"] ?? ""),
     eventDate: String(row["event_date"] ?? ""),
     accent: String(row["accent"] ?? "#a855f7"),
     logo: row["logo"] ?? null,
@@ -127,6 +128,7 @@ export async function saveEvent(payload: SaveVotePayload, userId: string) {
     subtitle: payload.subtitle,
     eyebrow: payload.eyebrow,
     showcase_note: payload.showcaseNote,
+    location: payload.location,
     event_date: payload.eventDate,
     accent: payload.accent,
     logo: payload.logo,
@@ -135,11 +137,12 @@ export async function saveEvent(payload: SaveVotePayload, userId: string) {
     is_closed: payload.isClosed,
     updated_at: new Date().toISOString(),
   };
-  const missingCol = (msg: string) => /showcase_note/i.test(msg);
+  const missingCol = (msg: string) => /showcase_note|location/i.test(msg);
   if (payload.id) {
     let { error } = await db.from("vote_events").update(row).eq("id", payload.id);
     if (error && missingCol(error.message)) {
       delete row["showcase_note"];
+      delete row["location"];
       ({ error } = await db.from("vote_events").update(row).eq("id", payload.id));
     }
     if (error) throw new Error(error.message);
@@ -149,6 +152,7 @@ export async function saveEvent(payload: SaveVotePayload, userId: string) {
   let res = await db.from("vote_events").insert(row).select("id").maybeSingle();
   if (res.error && missingCol(res.error.message)) {
     delete row["showcase_note"];
+    delete row["location"];
     res = await db.from("vote_events").insert(row).select("id").maybeSingle();
   }
   if (res.error) throw new Error(res.error.message);

@@ -67,7 +67,12 @@ function Page() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
-  const [qr, setQr] = useState<{ url: string; title: string } | null>(null);
+  const [qr, setQr] = useState<{
+    url: string;
+    title: string;
+    dateText: string;
+    locationText: string;
+  } | null>(null);
   const [displayOpen, setDisplayOpen] = useState(false);
   const [display, setDisplay] = useState<AbsensiDisplay>(defaultAbsensiDisplay);
   const [savingDisplay, setSavingDisplay] = useState(false);
@@ -216,7 +221,14 @@ function Page() {
                   <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => setQr({ url: linkOf(ev.slug), title: ev.eventName })}
+                    onClick={() =>
+                      setQr({
+                        url: linkOf(ev.slug),
+                        title: ev.eventName,
+                        dateText: formatDateID(ev.eventDate),
+                        locationText: ev.officeName ?? "",
+                      })
+                    }
                   >
                     <QrCode className="size-4" /> Generate QR
                   </Button>
@@ -336,6 +348,9 @@ function Page() {
         url={qr?.url ?? ""}
         title={qr ? `QR Absensi — ${qr.title}` : "QR Code"}
         fileName={qr ? `qr-absensi-${qr.title}` : "qr-code"}
+        eventName={qr?.title}
+        dateText={qr?.dateText}
+        locationText={qr?.locationText}
       />
     </AdminPage>
   );

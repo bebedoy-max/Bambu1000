@@ -7,6 +7,8 @@ import { supabase } from "@/lib/supabase";
 import { getPublicEventPhotos } from "@/lib/public-events.functions";
 import { loadDiaryPhotos } from "@/components/DiarySummary";
 import { loadCarouselConfig, shuffle, slideImageSrc } from "@/lib/carousel";
+import { getImageFocus, type ImageFocusMap } from "@/lib/image-focus.functions";
+import { SmartCoverImage } from "@/components/SmartCoverImage";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -15,22 +17,29 @@ type Slide = {
   kind: "Event" | "Project IT" | "Buku Harian IT";
   title: string;
   subtitle: string;
-  photo: string | null;
+  photos: string[];
   to?: { to: string; params: Record<string, string> };
 };
 
-async function loadSlides(): Promise<Slide[]> {
+type CarouselData = { slides: Slide[]; focus: ImageFocusMap };
+
+/** Maksimal foto per slide yang ikut dianalisis wajahnya di server. */
+const MAX_PHOTOS_PER_SLIDE = 3;
+
+async function loadSlides(): Promise<CarouselData> {
   const config = await loadCarouselConfig();
   const conf = (key: string) => config.find((c) => c.sumber === key);
   const slides: Slide[] = [];
 
   const evConf = conf("event");
   if (evConf?.aktif) {
-    const { data: events } = await db
+    let evQuery = db
       .from("events")
       .select("id,nama_event,tanggal_mulai")
-      .order("tanggal_mulai", { ascending: false, nullsFirst: false })
-      .limit(evConf.jumlah);
+      .order("tanggal_mulai", { ascending: false, nullsFirst: false });
+    if (evConf.item_ids.length) evQuery = evQuery.in("id", evConf.item_ids);
+    else evQuery = evQuery.limit(evConf.jumlah);
+    const { data: events } = await evQuery;
     const evRows = (events ?? []) as {
       id: string;
       nama_event: string;
@@ -54,8 +63,13 @@ async function loadSlides(): Promise<Slide[]> {
         }
       }
     }
+    const byEvent = new Map<string, string[]>();
+    for (const p of photos) {
+      const list = byEvent.get(p.event_id) ?? [];
+      list.push(p.drive_file_id);
+      byEvent.set(p.event_id, list);
+    }
     for (const e of evRows) {
-      const first = photos.find((p) => p.event_id === e.id)?.drive_file_id ?? null;
       slides.push({
         id: `event-${e.id}`,
         kind: "Event",
@@ -63,7 +77,7 @@ async function loadSlides(): Promise<Slide[]> {
         subtitle: e.tanggal_mulai
           ? new Date(e.tanggal_mulai).toLocaleDateString("id-ID", { dateStyle: "long" })
           : "Kegiatan kantor",
-        photo: first,
+        photos: byEvent.get(e.id) ?? [],
         to: { to: "/event/$id", params: { id: e.id } },
       });
     }
@@ -71,11 +85,13 @@ async function loadSlides(): Promise<Slide[]> {
 
   const prConf = conf("project");
   if (prConf?.aktif) {
-    const { data: projects } = await db
+    let prQuery = db
       .from("projects")
       .select("id,nama_project,deskripsi,deadline,foto_url")
-      .order("created_at", { ascending: false })
-      .limit(prConf.jumlah);
+      .order("created_at", { ascending: false });
+    if (prConf.item_ids.length) prQuery = prQuery.in("id", prConf.item_ids);
+    else prQuery = prQuery.limit(prConf.jumlah);
+    const { data: projects } = await prQuery;
     for (const p of (projects ?? []) as {
       id: string;
       nama_project: string;
@@ -92,7 +108,7 @@ async function loadSlides(): Promise<Slide[]> {
           (p.deadline
             ? `Deadline ${new Date(p.deadline).toLocaleDateString("id-ID", { dateStyle: "long" })}`
             : "Project berjalan"),
-        photo: p.foto_url || null,
+        photos: p.foto_url ? [p.foto_url] : [],
         to: { to: "/project/$id", params: { id: p.id } },
       });
     }
@@ -100,11 +116,13 @@ async function loadSlides(): Promise<Slide[]> {
 
   const dConf = conf("diary");
   if (dConf?.aktif) {
-    const { data: diary } = await db
+    let dQuery = db
       .from("it_diary_logs")
       .select("id,nama_kegiatan,status,tanggal")
-      .order("tanggal", { ascending: false })
-      .limit(dConf.jumlah);
+      .order("tanggal", { ascending: false });
+    if (dConf.item_ids.length) dQuery = dQuery.in("id", dConf.item_ids);
+    else dQuery = dQuery.limit(dConf.jumlah);
+    const { data: diary } = await dQuery;
     const dRows = (diary ?? []) as {
       id: string;
       nama_kegiatan: string;
@@ -120,18 +138,40 @@ async function loadSlides(): Promise<Slide[]> {
         kind: "Buku Harian IT",
         title: d.nama_kegiatan,
         subtitle: `${d.status} · ${new Date(`${d.tanggal}T00:00:00`).toLocaleDateString("id-ID", { dateStyle: "long" })}`,
-        photo: dPhotos[d.id]?.[0] ?? null,
+        photos: dPhotos[d.id] ?? [],
       });
     }
   }
 
-  return shuffle(slides);
+  const ordered = shuffle(slides).map((s) => ({
+    ...s,
+    photos: s.photos.slice(0, MAX_PHOTOS_PER_SLIDE),
+  }));
+
+  // Titik fokus dihitung di server sebelum gambar dirender, jadi crop tidak
+  // berubah setelah gambar tampil.
+  const images = Array.from(
+    new Map(
+      ordered
+        .flatMap((s) => s.photos)
+        .map((p) => [p, { key: p, url: slideImageSrc(p, 1200) }] as const),
+    ).values(),
+  );
+  let focus: ImageFocusMap = {};
+  try {
+    focus = await getImageFocus({ data: { images } });
+  } catch {
+    focus = {};
+  }
+
+  return { slides: ordered, focus };
 }
 
 /** Carousel utama dashboard: event, project IT, dan buku harian IT. */
 export function HomeCarousel() {
   const q = useQuery({ queryKey: ["home-carousel"], queryFn: loadSlides, staleTime: 60_000 });
-  const slides = useMemo(() => q.data ?? [], [q.data]);
+  const slides = useMemo(() => q.data?.slides ?? [], [q.data]);
+  const focusMap = useMemo(() => q.data?.focus ?? {}, [q.data]);
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
@@ -140,19 +180,39 @@ export function HomeCarousel() {
     return () => clearInterval(t);
   }, [slides.length]);
 
+  // Foto per slide dipilih sekali (stabil) supaya gambar tidak berganti di
+  // tengah transisi. Foto dengan wajah terdeteksi diutamakan.
+  const photoBySlide = useMemo(() => {
+    const map: Record<string, string | null> = {};
+    for (const s of slides) {
+      if (!s.photos.length) {
+        map[s.id] = null;
+        continue;
+      }
+      const withFace = s.photos.filter((p) => focusMap[p]?.face);
+      const pool = withFace.length ? withFace : s.photos;
+      map[s.id] = pool[Math.floor(Math.random() * pool.length) % pool.length]!;
+    }
+    return map;
+  }, [slides, focusMap]);
+
   const active = slides[idx % (slides.length || 1)];
+  const photoOf = (s: Slide) => photoBySlide[s.id] ?? null;
 
   return (
     <div className="glass-card relative h-[8cm] min-h-[8cm] lg:h-[14cm] lg:min-h-[14cm] overflow-hidden">
-      {slides.map((s, i) => (
+      {slides.map((s, i) => {
+        const photo = photoOf(s);
+        return (
         <div
           key={s.id}
           className="absolute inset-0 transition-opacity duration-700"
           style={{ opacity: i === idx ? 1 : 0, pointerEvents: i === idx ? "auto" : "none" }}
         >
-          {s.photo ? (
-            <img
-              src={slideImageSrc(s.photo, 1200)}
+          {photo ? (
+            <SmartCoverImage
+              src={slideImageSrc(photo, 1200)}
+              focus={focusMap[photo]}
               alt={s.title}
               className="absolute inset-0 size-full object-cover"
               loading="lazy"
@@ -165,7 +225,8 @@ export function HomeCarousel() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/10" />
         </div>
-      ))}
+        );
+      })}
 
       {!slides.length ? (
         <div className="grid h-full min-h-[8cm] lg:min-h-[14cm] place-items-center text-muted-foreground">

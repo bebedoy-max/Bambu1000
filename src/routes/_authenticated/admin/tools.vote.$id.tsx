@@ -394,6 +394,14 @@ function Page() {
                 />
               </div>
               <div>
+                <Label>Lokasi Acara</Label>
+                <Input
+                  value={event.location}
+                  onChange={(e) => patch({ location: e.target.value })}
+                  placeholder="BRI BO Pringsewu"
+                />
+              </div>
+              <div>
                 <Label>Tanggal</Label>
                 <DatePickerField
                   value={event.eventDate}

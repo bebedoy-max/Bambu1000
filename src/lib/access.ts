@@ -145,7 +145,7 @@ export const menuTree: MenuNode[] = [
     key: "project-event",
     label: "Project & Event",
     icon: CalendarDays,
-    keys: ["project", "project-progress", "foto", "agenda", "carousel"],
+    keys: ["project", "project-progress", "foto", "agenda"],
   },
   { type: "item", key: "tools" },
   { type: "item", key: "tutorial" },
@@ -157,7 +157,7 @@ export const menuTree: MenuNode[] = [
     key: "setting",
     label: "Setting",
     icon: Settings,
-    keys: ["akses", "users", "drive", "jabatan", "jenis-perangkat"],
+    keys: ["akses", "users", "drive", "jabatan", "jenis-perangkat", "carousel"],
   },
   { type: "item", key: "audit" },
 ];
