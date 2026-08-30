@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   Banknote,
   BookOpen,
+  Brain,
   Boxes,
   Building2,
   CalendarClock,
@@ -138,6 +139,13 @@ export const menuItems: MenuItem[] = [
     icon: SlidersHorizontal,
     defaults: ["super_admin"],
   },
+  {
+    key: "ai-brain",
+    to: "/admin/ai-brain",
+    label: "AI Brain",
+    icon: Brain,
+    defaults: ["super_admin"],
+  },
   { key: "audit", to: "/admin/audit", label: "Audit Log", icon: ScrollText, defaults: ["super_admin"] },
 ];
 
@@ -172,7 +180,7 @@ export const menuTree: MenuNode[] = [
     key: "setting",
     label: "Setting",
     icon: Settings,
-    keys: ["akses", "users", "drive", "jabatan", "jenis-perangkat", "carousel", "slide-pekerja", "papan-informasi"],
+    keys: ["akses", "users", "ai-brain", "drive", "jabatan", "jenis-perangkat", "carousel", "slide-pekerja", "papan-informasi"],
   },
   { type: "item", key: "audit" },
 ];

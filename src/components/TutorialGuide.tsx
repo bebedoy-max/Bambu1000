@@ -1,26 +1,17 @@
-import { useContext, useMemo, useState } from "react";
-import { BookOpen, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { BookOpen, Loader2, Search, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
-import { PageEditContext } from "@/components/AdminLayout";
-import { useConfirm } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useAccess } from "@/lib/access";
+import { generateTutorialTopic } from "@/lib/ai-brain.functions";
 import {
   groupTopics,
   parseContent,
   tutorialTopics,
-  useDeleteTutorial,
-  useSaveTutorial,
   useTutorials,
   type TutorialTopic,
 } from "@/lib/tutorial";
@@ -69,17 +60,17 @@ function ContentView({ raw }: { raw: string }) {
 }
 
 export function TutorialGuide() {
-  const canEdit = useContext(PageEditContext);
-  const confirm = useConfirm();
+  const qc = useQueryClient();
+  const access = useAccess();
+  const isSuper = access.level === "super_admin";
+  const generate = useServerFn(generateTutorialTopic);
   const { data: rows = [], isLoading } = useTutorials();
-  const save = useSaveTutorial();
-  const del = useDeleteTutorial();
 
   const topics = useMemo(() => tutorialTopics(), []);
   const [q, setQ] = useState("");
   const [active, setActive] = useState<string>(topics[0]?.key ?? "umum");
-  const [editing, setEditing] = useState<TutorialTopic | null>(null);
-  const [form, setForm] = useState({ judul: "", ringkasan: "", konten: "" });
+  const [busy, setBusy] = useState<string | null>(null);
+  const [bulk, setBulk] = useState<{ done: number; total: number } | null>(null);
 
   const byKey = useMemo(() => new Map(rows.map((r) => [r.topic_key, r])), [rows]);
   const filtered = useMemo(() => {
@@ -100,43 +91,57 @@ export function TutorialGuide() {
   const current = topics.find((t) => t.key === active) ?? topics[0];
   const currentRow = current ? byKey.get(current.key) : undefined;
 
-  function openEditor(topic: TutorialTopic) {
-    const row = byKey.get(topic.key);
-    setForm({
-      judul: row?.judul ?? topic.label,
-      ringkasan: row?.ringkasan ?? "",
-      konten: row?.konten ?? "",
+  const konteks = useMemo(
+    () =>
+      `Daftar menu aplikasi: ${topics.map((t) => `${t.label} (${t.key})`).join(", ")}.`,
+    [topics],
+  );
+
+  async function writeTopic(topic: TutorialTopic) {
+    await generate({
+      data: {
+        topicKey: topic.key,
+        topicLabel: topic.label,
+        topicGroup: topic.group,
+        konteks,
+      },
     });
-    setEditing(topic);
   }
 
-  async function submit() {
-    if (!editing) return;
-    if (!form.judul.trim()) {
-      toast.error("Judul wajib diisi");
+  async function generateOne(topic: TutorialTopic) {
+    setBusy(topic.key);
+    try {
+      await writeTopic(topic);
+      await qc.invalidateQueries({ queryKey: ["tutorials"] });
+      toast.success(`Panduan "${topic.label}" ditulis AI`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function generateMissing() {
+    const targets = topics.filter((t) => !(byKey.get(t.key)?.konten ?? "").trim());
+    if (!targets.length) {
+      toast.info("Semua topik sudah terisi.");
       return;
     }
-    try {
-      await save.mutateAsync({ topic_key: editing.key, ...form });
-      toast.success("Panduan disimpan");
-      setEditing(null);
-    } catch (e) {
-      toast.error((e as Error).message);
+    setBulk({ done: 0, total: targets.length });
+    let ok = 0;
+    for (const [i, t] of targets.entries()) {
+      try {
+        await writeTopic(t);
+        ok += 1;
+      } catch (e) {
+        toast.error(`${t.label}: ${(e as Error).message}`);
+        break;
+      }
+      setBulk({ done: i + 1, total: targets.length });
     }
-  }
-
-  async function remove(topicKey: string) {
-    const ok = await confirm({
-      title: "Hapus panduan?",
-      description: "Isi panduan untuk topik ini akan dihapus.",
-    });
-    if (!ok) return;
-    try {
-      await del.mutateAsync(topicKey);
-      toast.success("Panduan dihapus");
-    } catch (e) {
-      toast.error((e as Error).message);
-    }
+    setBulk(null);
+    await qc.invalidateQueries({ queryKey: ["tutorials"] });
+    if (ok) toast.success(`${ok} panduan ditulis AI`);
   }
 
   const filled = rows.filter((r) => (r.konten ?? "").trim()).length;
@@ -147,13 +152,26 @@ export function TutorialGuide() {
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-semibold">Tutorial &amp; Panduan</h1>
           <p className="text-sm text-muted-foreground">
-            Panduan tata cara penggunaan seluruh fitur aplikasi. Daftar topik mengikuti menu yang
-            ada, jadi menu/fitur baru otomatis muncul di sini.
+            Panduan tata cara penggunaan seluruh fitur aplikasi, ditulis otomatis oleh AI Brain.
+            Daftar topik mengikuti menu yang ada, jadi menu/fitur baru otomatis muncul di sini.
           </p>
         </div>
         <Badge variant="secondary">
           {filled}/{topics.length} topik terisi
         </Badge>
+        {isSuper ? (
+          <Button onClick={generateMissing} disabled={!!bulk || !!busy}>
+            {bulk ? (
+              <>
+                <Loader2 className="size-4 animate-spin" /> {bulk.done}/{bulk.total}
+              </>
+            ) : (
+              <>
+                <Wand2 className="size-4" /> Tulis semua dengan AI
+              </>
+            )}
+          </Button>
+        ) : null}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -210,18 +228,20 @@ export function TutorialGuide() {
                     <p className="mt-1 text-sm text-muted-foreground">{currentRow.ringkasan}</p>
                   ) : null}
                 </div>
-                {canEdit ? (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="secondary" onClick={() => openEditor(current)}>
-                      {currentRow ? <Pencil className="size-4" /> : <Plus className="size-4" />}
-                      {currentRow ? "Edit" : "Tulis panduan"}
-                    </Button>
-                    {currentRow ? (
-                      <Button size="sm" variant="ghost" onClick={() => remove(current.key)}>
-                        <Trash2 className="size-4" />
-                      </Button>
-                    ) : null}
-                  </div>
+                {isSuper ? (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={busy === current.key || !!bulk}
+                    onClick={() => generateOne(current)}
+                  >
+                    {busy === current.key ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="size-4" />
+                    )}
+                    {currentRow ? "Tulis ulang dengan AI" : "Tulis dengan AI"}
+                  </Button>
                 ) : null}
               </div>
 
@@ -232,7 +252,7 @@ export function TutorialGuide() {
                   <div className="flex flex-col items-center gap-2 py-12 text-center">
                     <BookOpen className="size-8 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                      Panduan untuk topik ini belum ditulis.
+                      Panduan untuk topik ini belum ditulis AI.
                     </p>
                   </div>
                 )}
@@ -241,52 +261,6 @@ export function TutorialGuide() {
           )}
         </section>
       </div>
-
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Panduan · {editing?.label}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Judul</Label>
-              <Input
-                value={form.judul}
-                onChange={(e) => setForm((s) => ({ ...s, judul: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label>Ringkasan</Label>
-              <Input
-                value={form.ringkasan}
-                onChange={(e) => setForm((s) => ({ ...s, ringkasan: e.target.value }))}
-                placeholder="Satu kalimat penjelasan singkat"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label>Isi panduan</Label>
-              <Textarea
-                rows={14}
-                value={form.konten}
-                onChange={(e) => setForm((s) => ({ ...s, konten: e.target.value }))}
-                placeholder={"## Judul bagian\n- poin penting\n1. langkah pertama\n2. langkah kedua"}
-              />
-              <p className="text-xs text-muted-foreground">
-                Format: <code>## Judul</code> untuk sub-judul, <code>- </code> untuk poin,{" "}
-                <code>1. </code> untuk langkah berurutan.
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditing(null)}>
-              Batal
-            </Button>
-            <Button onClick={submit} disabled={save.isPending}>
-              Simpan
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
