@@ -88,8 +88,8 @@ export function InfographicStats({ items }: { items: InfographicStat[] }) {
                   params={{ key: s.detailKey }}
                   search={{ from: "/" }}
                   aria-label={`Lihat detail ${s.label}`}
-                  className={`group relative flex items-center gap-2 rounded-full border border-primary/30 border-t-primary/50 border-b-background/70 bg-gradient-to-b from-card/90 via-card/70 to-background/80 py-1.5 pl-4 backdrop-blur-xl transition-all duration-300 [box-shadow:inset_0_1px_0_color-mix(in_oklab,var(--primary)_35%,transparent),inset_0_-2px_6px_color-mix(in_oklab,black_45%,transparent),0_6px_14px_-6px_color-mix(in_oklab,black_75%,transparent),0_2px_0_color-mix(in_oklab,var(--primary)_18%,transparent)] hover:-translate-y-1 hover:border-primary/60 hover:[box-shadow:inset_0_1px_0_color-mix(in_oklab,var(--primary)_55%,transparent),inset_0_-2px_8px_color-mix(in_oklab,black_45%,transparent),0_14px_26px_-10px_color-mix(in_oklab,var(--primary)_70%,transparent)] active:translate-y-0 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
-                    right ? "pr-11" : "pr-3"
+                  className={`group relative flex items-center gap-3 rounded-full border border-primary/30 border-t-primary/50 border-b-background/70 bg-gradient-to-b from-card/90 via-card/70 to-background/80 py-2.5 pl-6 backdrop-blur-xl transition-all duration-300 [box-shadow:inset_0_1px_0_color-mix(in_oklab,var(--primary)_35%,transparent),inset_0_-2px_6px_color-mix(in_oklab,black_45%,transparent),0_6px_14px_-6px_color-mix(in_oklab,black_75%,transparent),0_2px_0_color-mix(in_oklab,var(--primary)_18%,transparent)] hover:-translate-y-1 hover:border-primary/60 hover:[box-shadow:inset_0_1px_0_color-mix(in_oklab,var(--primary)_55%,transparent),inset_0_-2px_8px_color-mix(in_oklab,black_45%,transparent),0_14px_26px_-10px_color-mix(in_oklab,var(--primary)_70%,transparent)] active:translate-y-0 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
+                    right ? "pr-14" : "pr-3"
                   }`}
                 >
                   <span
@@ -109,25 +109,16 @@ export function InfographicStats({ items }: { items: InfographicStat[] }) {
                     {String(i + 1).padStart(2, "0")}
                   </span>
 
-                  <span className="relative grid size-6 shrink-0 place-items-center rounded-full border border-primary/40 bg-gradient-to-b from-primary/25 to-primary/5 [box-shadow:inset_0_1px_1px_color-mix(in_oklab,white_25%,transparent)]">
-                    <s.icon className="size-3 text-accent" />
+                  <span className="relative ml-3 grid size-10 shrink-0 place-items-center rounded-full border border-primary/40 bg-gradient-to-b from-primary/25 to-primary/5 [box-shadow:inset_0_1px_1px_color-mix(in_oklab,white_25%,transparent)]">
+                    <s.icon className="size-6 text-accent" />
                   </span>
 
                   <span className="relative min-w-0 flex-1">
-                    <span className="block truncate text-[9px] font-extrabold tracking-[0.16em] text-foreground/85 uppercase drop-shadow-[0_1px_0_color-mix(in_oklab,black_60%,transparent)] sm:text-[10px]">
+                    <span className="block truncate text-[10px] font-extrabold tracking-[0.16em] text-foreground/85 uppercase drop-shadow-[0_1px_0_color-mix(in_oklab,black_60%,transparent)] sm:text-[11px]">
                       {s.label}
                     </span>
                     <span className="block text-lg leading-tight font-black tabular-nums drop-shadow-[0_1px_1px_color-mix(in_oklab,black_65%,transparent)]">
                       {s.value}
-                    </span>
-                    <span className="mt-0.5 block h-0.5 w-full overflow-hidden rounded-full bg-background/70 [box-shadow:inset_0_1px_1px_color-mix(in_oklab,black_60%,transparent)]">
-                      <span
-                        className="block h-full rounded-full transition-all duration-700"
-                        style={{
-                          width: `${Math.max(6, Math.min(100, s.ratio))}%`,
-                          backgroundImage: "var(--gradient-stat)",
-                        }}
-                      />
                     </span>
                   </span>
 

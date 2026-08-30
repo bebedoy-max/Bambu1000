@@ -16,6 +16,7 @@ import { EventPhotoGrid } from "@/components/EventPhotoGrid";
 const db = supabase as unknown as SupabaseClient;
 
 type Detail = {
+  photo: string | null;
   personal_number: string;
   jabatan: string;
   uker: string;
@@ -71,6 +72,7 @@ export function EmployeeProfileLink({
 
       const updatedRaw = String(row["updated_at"] ?? row["created_at"] ?? "");
       return {
+        photo: row["n"] ? String(row["n"]) : null,
         personal_number: String(row["personal_number"] ?? ""),
         jabatan,
         uker,
@@ -107,28 +109,44 @@ export function EmployeeProfileLink({
           {detail.isLoading ? (
             <p className="text-sm text-muted-foreground">Memuat detail pekerja…</p>
           ) : (
-            <div className="space-y-4">
-              <dl className="space-y-2">
-                <Field label="Personal Number">{d?.personal_number || "—"}</Field>
-                <Field label="Jabatan">{d?.jabatan || "—"}</Field>
-                <Field label="Unit Kerja">{d?.uker || "—"}</Field>
-                <Field label="No. Telp">{d?.no_telepon || "—"}</Field>
-                <Field label="Profile" align="start">
-                  <span className="block min-h-24 whitespace-pre-line">
-                    {d?.profil || "Belum ada deskripsi profil untuk pekerja ini."}
-                  </span>
-                </Field>
-              </dl>
+            <div className="space-y-5">
+              {/* Foto kiri + data kanan, seperti referensi desain */}
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                <div className="mx-auto w-40 shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-muted sm:mx-0 sm:w-44">
+                  {d?.photo ? (
+                    <img
+                      src={d.photo}
+                      alt={`Foto profil ${nama}`}
+                      className="block aspect-square w-full object-cover object-[50%_20%]"
+                    />
+                  ) : (
+                    <div className="flex aspect-square w-full items-center justify-center text-muted-foreground">
+                      <UserRound className="size-12" />
+                    </div>
+                  )}
+                </div>
 
+                <dl className="flex-1 space-y-2.5 sm:pt-1">
+                  <Field label="Personal Number">{d?.personal_number || "—"}</Field>
+                  <Field label="Jabatan">{d?.jabatan || "—"}</Field>
+                  <Field label="Unit Kerja">{d?.uker || "—"}</Field>
+                  <Field label="No. Telp">{d?.no_telepon || "—"}</Field>
+                </dl>
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-sm text-muted-foreground">Profile</span>
+                <p className="min-h-28 w-full rounded-2xl border border-border/60 px-4 py-3 text-sm whitespace-pre-line">
+                  {d?.profil || "Belum ada deskripsi profil untuk pekerja ini."}
+                </p>
+              </div>
 
               <section className="space-y-2">
                 <h3 className="text-sm font-semibold">Foto Event {nama}</h3>
-                <div className="rounded-2xl border border-border/60 p-3">
-                  <EventPhotoGrid
-                    workerId={employeeId}
-                    emptyText="Belum ada foto untuk pekerja ini"
-                  />
-                </div>
+                <EventPhotoGrid
+                  workerId={employeeId}
+                  emptyText="Belum ada foto untuk pekerja ini"
+                />
               </section>
 
               <p className="text-right text-xs text-muted-foreground">
@@ -145,19 +163,16 @@ export function EmployeeProfileLink({
 function Field({
   label,
   children,
-  align = "center",
 }: {
   label: string;
   children: React.ReactNode;
-  align?: "center" | "start";
 }) {
   return (
-    <div className={`flex gap-3 ${align === "start" ? "items-start" : "items-center"}`}>
-      <dt className="w-32 shrink-0 text-sm text-muted-foreground">{label}</dt>
-      <dd
-        className="flex-1 rounded-full border border-border/60 px-4 py-2 text-sm data-[block=true]:rounded-2xl"
-        data-block={align === "start"}
-      >
+    <div className="flex items-center gap-3">
+      <dt className="w-28 shrink-0 text-xs text-muted-foreground sm:w-32 sm:text-sm">
+        {label}
+      </dt>
+      <dd className="flex-1 rounded-full border border-border/60 px-4 py-2 text-sm">
         {children}
       </dd>
     </div>

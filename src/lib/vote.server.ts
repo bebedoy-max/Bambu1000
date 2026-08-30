@@ -458,10 +458,14 @@ export async function workerPhotos(input: {
       .contains("matched_worker_ids", [workerId])
       .order("processed_at", { ascending: false })
       .limit(60);
+    const seen = new Set(out.map((o) => o.url));
     for (const p of ((photos ?? []) as Row[])) {
       const fid = String(p["drive_file_id"] ?? "");
       if (!fid) continue;
-      out.push({ url: driveThumbUrl(fid), label: "Foto event" });
+      const url = driveThumbUrl(fid);
+      if (seen.has(url)) continue; // hindari foto ganda di picker
+      seen.add(url);
+      out.push({ url, label: "Foto event" });
     }
   }
   return out;

@@ -867,7 +867,16 @@ function Page() {
                   <img
                     src={p.url}
                     alt={p.label}
-                    className="aspect-square w-full object-cover transition group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
+                    className="transition group-hover:scale-105"
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      aspectRatio: "1 / 1",
+                      objectFit: "cover",
+                      objectPosition: "50% 20%",
+                    }}
                   />
                   <span className="block truncate p-1 text-[10px] text-muted-foreground">
                     {p.label}

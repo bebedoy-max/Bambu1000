@@ -4,7 +4,10 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { CalendarDays } from "lucide-react";
 import { db } from "@/lib/face";
 import { RotatingThumbGrid } from "@/components/RotatingThumbGrid";
-import { getPublicEventPhotos } from "@/lib/public-events.functions";
+import {
+  getPublicEventPhotoCounts,
+  getPublicEventPhotoPage,
+} from "@/lib/public-events.functions";
 import { getEventLikes } from "@/lib/event-likes.functions";
 import { EventCardActions } from "@/components/EventCardActions";
 
@@ -16,10 +19,48 @@ type EventRow = {
   tanggal_mulai: string | null;
 };
 
-export type EventSummaryRow = EventRow & { photos: string[] };
+export type EventSummaryRow = EventRow & { photos: string[]; photoCount: number };
 
 const fmt = (d: string | null) =>
   d ? new Date(d).toLocaleDateString("id-ID", { dateStyle: "medium" }) : "—";
+
+const THUMBS_PER_EVENT = 12;
+
+/** Ambil foto & jumlah foto satu event; jatuh ke server function bila RLS menutup akses. */
+async function loadOneEvent(e: EventRow, fallbackCounts: Record<string, number>): Promise<EventSummaryRow> {
+  let photos: string[] = [];
+  let photoCount = 0;
+
+  const [{ data: rows }, { count }] = await Promise.all([
+    db
+      .from("event_photos")
+      .select("drive_file_id,processed_at")
+      .eq("event_id", e.id)
+      .order("processed_at", { ascending: false })
+      .limit(THUMBS_PER_EVENT),
+    db
+      .from("event_photos")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", e.id),
+  ]);
+
+  photos = ((rows ?? []) as { drive_file_id: string }[]).map((p) => p.drive_file_id);
+  photoCount = count ?? 0;
+
+  if (!photos.length) {
+    try {
+      const fallback = await getPublicEventPhotoPage({
+        data: { eventId: e.id, limit: THUMBS_PER_EVENT },
+      });
+      photos = fallback.map((p) => p.drive_file_id);
+    } catch {
+      /* biarkan kosong */
+    }
+  }
+  if (!photoCount) photoCount = fallbackCounts[e.id] ?? photos.length;
+
+  return { ...e, photos, photoCount };
+}
 
 async function loadEventSummary(): Promise<EventSummaryRow[]> {
   const { data, error } = await db
@@ -29,34 +70,16 @@ async function loadEventSummary(): Promise<EventSummaryRow[]> {
   if (error) throw error;
   const events = (data ?? []) as EventRow[];
   if (!events.length) return [];
-
-  const { data: photos } = await db
-    .from("event_photos")
-    .select("event_id,drive_file_id,processed_at")
-    .in(
-      "event_id",
-      events.map((e) => e.id),
-    )
-    .order("processed_at", { ascending: false })
-    .limit(600);
-
-  // Pengunjung publik tidak punya akses baca tabel foto event, jadi ambil
-  // lewat server function (hanya id file Drive) sebagai fallback.
-  let list = (photos ?? []) as { event_id: string; drive_file_id: string }[];
-  if (!list.length) {
-    try {
-      list = await getPublicEventPhotos();
-    } catch {
-      list = [];
-    }
+  let counts: Record<string, number> = {};
+  try {
+    counts = await getPublicEventPhotoCounts();
+  } catch {
+    counts = {};
   }
-
-  const map: Record<string, string[]> = {};
-  for (const p of list) {
-    (map[p.event_id] ??= []).push(p.drive_file_id);
-  }
-  return events.map((e) => ({ ...e, photos: map[e.id] ?? [] }));
+  return Promise.all(events.map((e) => loadOneEvent(e, counts)));
 }
+
+
 
 /**
  * Kluster kartu event berjalan: tiap kartu memuat grid thumbnail foto event
@@ -94,7 +117,7 @@ export function EventSummary({ limit }: { limit?: number }) {
             <div className="mt-3">
               <h3 className="font-semibold">{e.nama_event}</h3>
               <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CalendarDays className="size-3.5" /> {fmt(e.tanggal_mulai)} · {e.photos.length} foto
+                <CalendarDays className="size-3.5" /> {fmt(e.tanggal_mulai)} · {e.photoCount} foto
               </p>
               {e.deskripsi ? (
                 <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{e.deskripsi}</p>
