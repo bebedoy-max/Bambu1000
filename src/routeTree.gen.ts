@@ -78,10 +78,7 @@ import { Route as AuthenticatedAdminToolsUndianIndexRouteImport } from './routes
 import { Route as AuthenticatedAdminToolsUndianIdRouteImport } from './routes/_authenticated/admin/tools.undian.$id'
 import { Route as AuthenticatedAdminToolsVoteIndexRouteImport } from './routes/_authenticated/admin/tools.vote.index'
 import { Route as AuthenticatedAdminToolsVoteIdRouteImport } from './routes/_authenticated/admin/tools.vote.$id'
-<<<<<<< HEAD
 import { Route as AuthenticatedAdminToolsZoomIndexRouteImport } from './routes/_authenticated/admin/tools.zoom.index'
-=======
->>>>>>> a17b745412c2f19140267dafb4fe09a1b5504793
 import { Route as AuthenticatedAdminToolsNominasiPapanIdRouteImport } from './routes/_authenticated/admin/tools.nominasi.papan.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -466,15 +463,12 @@ const AuthenticatedAdminToolsVoteIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminToolsVoteRoute,
   } as any)
-<<<<<<< HEAD
 const AuthenticatedAdminToolsZoomIndexRoute =
   AuthenticatedAdminToolsZoomIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedAdminToolsZoomRoute,
   } as any)
-=======
->>>>>>> a17b745412c2f19140267dafb4fe09a1b5504793
 const AuthenticatedAdminToolsNominasiPapanIdRoute =
   AuthenticatedAdminToolsNominasiPapanIdRouteImport.update({
     id: '/papan/$id',
@@ -551,10 +545,7 @@ export interface FileRoutesByFullPath {
   '/admin/tools/nominasi/': typeof AuthenticatedAdminToolsNominasiIndexRoute
   '/admin/tools/undian/': typeof AuthenticatedAdminToolsUndianIndexRoute
   '/admin/tools/vote/': typeof AuthenticatedAdminToolsVoteIndexRoute
-<<<<<<< HEAD
   '/admin/tools/zoom/': typeof AuthenticatedAdminToolsZoomIndexRoute
-=======
->>>>>>> a17b745412c2f19140267dafb4fe09a1b5504793
   '/admin/tools/nominasi/papan/$id': typeof AuthenticatedAdminToolsNominasiPapanIdRoute
 }
 export interface FileRoutesByTo {
@@ -620,10 +611,7 @@ export interface FileRoutesByTo {
   '/admin/tools/nominasi': typeof AuthenticatedAdminToolsNominasiIndexRoute
   '/admin/tools/undian': typeof AuthenticatedAdminToolsUndianIndexRoute
   '/admin/tools/vote': typeof AuthenticatedAdminToolsVoteIndexRoute
-<<<<<<< HEAD
   '/admin/tools/zoom': typeof AuthenticatedAdminToolsZoomIndexRoute
-=======
->>>>>>> a17b745412c2f19140267dafb4fe09a1b5504793
   '/admin/tools/nominasi/papan/$id': typeof AuthenticatedAdminToolsNominasiPapanIdRoute
 }
 export interface FileRoutesById {
@@ -697,10 +685,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/tools/nominasi/': typeof AuthenticatedAdminToolsNominasiIndexRoute
   '/_authenticated/admin/tools/undian/': typeof AuthenticatedAdminToolsUndianIndexRoute
   '/_authenticated/admin/tools/vote/': typeof AuthenticatedAdminToolsVoteIndexRoute
-<<<<<<< HEAD
   '/_authenticated/admin/tools/zoom/': typeof AuthenticatedAdminToolsZoomIndexRoute
-=======
->>>>>>> a17b745412c2f19140267dafb4fe09a1b5504793
   '/_authenticated/admin/tools/nominasi/papan/$id': typeof AuthenticatedAdminToolsNominasiPapanIdRoute
 }
 export interface FileRouteTypes {
@@ -774,10 +759,7 @@ export interface FileRouteTypes {
     | '/admin/tools/nominasi/'
     | '/admin/tools/undian/'
     | '/admin/tools/vote/'
-<<<<<<< HEAD
     | '/admin/tools/zoom/'
-=======
->>>>>>> a17b745412c2f19140267dafb4fe09a1b5504793
     | '/admin/tools/nominasi/papan/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -843,10 +825,7 @@ export interface FileRouteTypes {
     | '/admin/tools/nominasi'
     | '/admin/tools/undian'
     | '/admin/tools/vote'
-<<<<<<< HEAD
     | '/admin/tools/zoom'
-=======
->>>>>>> a17b745412c2f19140267dafb4fe09a1b5504793
     | '/admin/tools/nominasi/papan/$id'
   id:
     | '__root__'
@@ -919,10 +898,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/tools/nominasi/'
     | '/_authenticated/admin/tools/undian/'
     | '/_authenticated/admin/tools/vote/'
-<<<<<<< HEAD
     | '/_authenticated/admin/tools/zoom/'
-=======
->>>>>>> a17b745412c2f19140267dafb4fe09a1b5504793
     | '/_authenticated/admin/tools/nominasi/papan/$id'
   fileRoutesById: FileRoutesById
 }
@@ -1438,7 +1414,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsVoteIdRouteImport
       parentRoute: typeof AuthenticatedAdminToolsVoteRoute
     }
-<<<<<<< HEAD
     '/_authenticated/admin/tools/zoom/': {
       id: '/_authenticated/admin/tools/zoom/'
       path: '/'
@@ -1446,8 +1421,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsZoomIndexRouteImport
       parentRoute: typeof AuthenticatedAdminToolsZoomRoute
     }
-=======
->>>>>>> a17b745412c2f19140267dafb4fe09a1b5504793
     '/_authenticated/admin/tools/nominasi/papan/$id': {
       id: '/_authenticated/admin/tools/nominasi/papan/$id'
       path: '/papan/$id'
