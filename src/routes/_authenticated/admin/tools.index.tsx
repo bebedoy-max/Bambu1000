@@ -59,6 +59,7 @@ const apps = [
       "Papan apresiasi Best Performance: atur kategori & nominasi (bisa ambil dari Data Pekerja), lalu mainkan papan pengumumannya saat acara.",
     icon: Trophy,
     ready: true,
+<<<<<<< HEAD
   },
   {
     key: "zoom",
@@ -68,6 +69,8 @@ const apps = [
       "Buat jadwal Zoom Meeting langsung dari panel: atur topik, agenda, waktu, durasi, lalu bagikan tautan undangannya.",
     icon: Video,
     ready: true,
+=======
+>>>>>>> a17b745412c2f19140267dafb4fe09a1b5504793
   },
 ];
 
