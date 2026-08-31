@@ -16,6 +16,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { format } from "date-fns";
 import { DatePickerField } from "@/components/DatePickerField";
 import { useConfirm } from "@/components/ConfirmDialog";
 import {
@@ -46,6 +54,23 @@ export const Route = createFileRoute("/_authenticated/admin/tools/zoom/")({
   component: Page,
 });
 
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+
+function durationLabel(minutes: number) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (m === 0) return `${h} jam`;
+  return `${h} jam ${m} menit`;
+}
+
+const DURATION_OPTIONS = (() => {
+  const opts: number[] = [];
+  for (let min = 60; min <= 180; min += 30) opts.push(min);
+  for (let min = 240; min <= 720; min += 60) opts.push(min);
+  return opts;
+})();
+
 const emptyForm = {
   topic: "",
   agenda: "",
@@ -65,6 +90,52 @@ function formatWaktu(iso: string, tz: string) {
   } catch {
     return iso;
   }
+}
+
+function formatInviteTime(iso: string, tz: string) {
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: tz || "Asia/Jakarta",
+      timeZoneName: "short",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
+function formatMeetingId(id: string | null) {
+  if (!id) return null;
+  const digits = id.replace(/\D/g, "");
+  return digits.replace(/(\d{3})(\d{4})(\d{4})/, "$1 $2 $3");
+}
+
+/** Format undangan ala Zoom saat tombol Salin diklik. */
+function buildInviteText(m: {
+  topic: string;
+  start_time: string;
+  timezone: string;
+  join_url: string | null;
+  zoom_meeting_id: string | null;
+  password: string | null;
+}) {
+  const lines = [
+    "BO PRINGSEWU is inviting you to a scheduled Zoom meeting.",
+    "",
+    `Topic: ${m.topic}`,
+    `Time: ${formatInviteTime(m.start_time, m.timezone)}`,
+    "",
+    "Join Zoom Meeting",
+    m.join_url ?? "",
+  ];
+  const mid = formatMeetingId(m.zoom_meeting_id);
+  if (mid) lines.push("", `Meeting ID: ${mid}`);
+  if (m.password) lines.push(`Passcode: ${m.password}`);
+  return lines.join("\n");
 }
 
 function Page() {
@@ -208,8 +279,8 @@ function Page() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            void navigator.clipboard.writeText(m.join_url!);
-                            toast.success("Tautan disalin.");
+                            void navigator.clipboard.writeText(buildInviteText(m));
+                            toast.success("Undangan meeting disalin.");
                           }}
                         >
                           <Copy className="size-4" /> Salin
@@ -264,25 +335,82 @@ function Page() {
                 onChange={(e) => setForm((f) => ({ ...f, agenda: e.target.value }))}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="start">Waktu mulai</Label>
-              <DatePickerField
-                id="start"
-                withTime
-                value={form.startTime}
-                onChange={(v) => setForm((f) => ({ ...f, startTime: v }))}
-              />
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="start">Tanggal</Label>
+                <DatePickerField
+                  id="start"
+                  value={form.startTime.slice(0, 10)}
+                  onChange={(v) =>
+                    setForm((f) => ({ ...f, startTime: v ? `${v}T${f.startTime.slice(11, 16) || "00:00"}` : "" }))
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="start-hour">Jam</Label>
+                <Select
+                  value={form.startTime ? form.startTime.slice(11, 13) : ""}
+                  onValueChange={(h) =>
+                    setForm((f) => ({
+                      ...f,
+                      startTime: `${f.startTime.slice(0, 10) || format(new Date(), "yyyy-MM-dd")}T${h}:${f.startTime.slice(14, 16) || "00"}`,
+                    }))
+                  }
+                >
+                  <SelectTrigger id="start-hour">
+                    <SelectValue placeholder="Jam" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {HOURS.map((h) => (
+                      <SelectItem key={h} value={h}>
+                        {h}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="start-minute">Menit</Label>
+                <Select
+                  value={form.startTime ? form.startTime.slice(14, 16) : ""}
+                  onValueChange={(m) =>
+                    setForm((f) => ({
+                      ...f,
+                      startTime: `${f.startTime.slice(0, 10) || format(new Date(), "yyyy-MM-dd")}T${f.startTime.slice(11, 13) || "00"}:${m}`,
+                    }))
+                  }
+                >
+                  <SelectTrigger id="start-minute">
+                    <SelectValue placeholder="Menit" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {MINUTES.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="duration">Durasi (menit)</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  min={15}
-                  value={form.duration}
-                  onChange={(e) => setForm((f) => ({ ...f, duration: Number(e.target.value) }))}
-                />
+                <Label htmlFor="duration">Durasi</Label>
+                <Select
+                  value={String(form.duration)}
+                  onValueChange={(v) => setForm((f) => ({ ...f, duration: Number(v) }))}
+                >
+                  <SelectTrigger id="duration">
+                    <SelectValue placeholder="Pilih durasi" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {DURATION_OPTIONS.map((min) => (
+                      <SelectItem key={min} value={String(min)}>
+                        {durationLabel(min)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="password">Passcode (opsional)</Label>
