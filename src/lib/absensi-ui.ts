@@ -224,3 +224,31 @@ export function slugify(text: string) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
 }
+
+/** Bagian pengaturan tampilan yang bisa dipakai sebagai default absensi event baru. */
+export type AbsensiDisplay = Pick<
+  AbsensiSettings,
+  | "logo"
+  | "logoLeft"
+  | "logoRight"
+  | "logoLeftSize"
+  | "logoRightSize"
+  | "logoLeftTop"
+  | "logoRightTop"
+  | "background"
+  | "cardBackground"
+  | "themeColor"
+>;
+
+export const defaultAbsensiDisplay: AbsensiDisplay = {
+  logo: null,
+  logoLeft: null,
+  logoRight: null,
+  logoLeftSize: 136,
+  logoRightSize: 136,
+  logoLeftTop: 14,
+  logoRightTop: 14,
+  background: null,
+  cardBackground: null,
+  themeColor: "gold",
+};

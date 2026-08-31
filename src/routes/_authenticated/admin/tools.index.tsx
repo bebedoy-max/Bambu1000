@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarCheck, Gift, Sparkles, Trophy, Vote } from "lucide-react";
+import { CalendarCheck, Gift, Sparkles, Trophy, Video, Vote } from "lucide-react";
 import { AdminPage } from "@/components/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 
@@ -42,13 +42,32 @@ const apps = [
     icon: Vote,
     ready: true,
   },
-  { key: "undian", label: "Undian", description: "Undian doorprize event.", icon: Gift, ready: false },
+  {
+    key: "undian",
+    to: "/admin/tools/undian",
+    label: "Undian",
+    description:
+      "Undian doorprize acara: atur kategori, hadiah, dan peserta (bisa impor dari Data Pekerja), lalu kocok pemenangnya di panggung.",
+    icon: Gift,
+    ready: true,
+  },
   {
     key: "nomination",
+    to: "/admin/tools/nominasi",
     label: "Nomination",
-    description: "Nominasi penghargaan pekerja.",
+    description:
+      "Papan apresiasi Best Performance: atur kategori & nominasi (bisa ambil dari Data Pekerja), lalu mainkan papan pengumumannya saat acara.",
     icon: Trophy,
-    ready: false,
+    ready: true,
+  },
+  {
+    key: "zoom",
+    to: "/admin/tools/zoom",
+    label: "Zoom Meeting",
+    description:
+      "Buat jadwal Zoom Meeting langsung dari panel: atur topik, agenda, waktu, durasi, lalu bagikan tautan undangannya.",
+    icon: Video,
+    ready: true,
   },
 ];
 

@@ -22,12 +22,17 @@ import { Route as AbsensiSlugRouteImport } from './routes/absensi.$slug'
 import { Route as DetailKeyRouteImport } from './routes/detail.$key'
 import { Route as EventIdRouteImport } from './routes/event.$id'
 import { Route as ProjectIdRouteImport } from './routes/project.$id'
+import { Route as VoteShowSlugRouteImport } from './routes/vote-show.$slug'
 import { Route as VoteSlugRouteImport } from './routes/vote.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminAgendaRouteImport } from './routes/_authenticated/admin/agenda'
+import { Route as AuthenticatedAdminAiBrainRouteImport } from './routes/_authenticated/admin/ai-brain'
 import { Route as AuthenticatedAdminAksesRouteImport } from './routes/_authenticated/admin/akses'
 import { Route as AuthenticatedAdminApprovalRouteImport } from './routes/_authenticated/admin/approval'
 import { Route as AuthenticatedAdminAtmRouteImport } from './routes/_authenticated/admin/atm'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
+import { Route as AuthenticatedAdminBukuHarianRouteImport } from './routes/_authenticated/admin/buku-harian'
+import { Route as AuthenticatedAdminCarouselRouteImport } from './routes/_authenticated/admin/carousel'
 import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin/crm'
 import { Route as AuthenticatedAdminDriveRouteImport } from './routes/_authenticated/admin/drive'
 import { Route as AuthenticatedAdminEdcRouteImport } from './routes/_authenticated/admin/edc'
@@ -35,22 +40,28 @@ import { Route as AuthenticatedAdminFotoRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminIpRouteImport } from './routes/_authenticated/admin/ip'
 import { Route as AuthenticatedAdminJabatanRouteImport } from './routes/_authenticated/admin/jabatan'
 import { Route as AuthenticatedAdminJenisPerangkatRouteImport } from './routes/_authenticated/admin/jenis-perangkat'
+import { Route as AuthenticatedAdminPapanInformasiRouteImport } from './routes/_authenticated/admin/papan-informasi'
 import { Route as AuthenticatedAdminPegawaiRouteImport } from './routes/_authenticated/admin/pegawai'
 import { Route as AuthenticatedAdminPerangkatRouteImport } from './routes/_authenticated/admin/perangkat'
 import { Route as AuthenticatedAdminPluginRouteImport } from './routes/_authenticated/admin/plugin'
 import { Route as AuthenticatedAdminProjectRouteImport } from './routes/_authenticated/admin/project'
 import { Route as AuthenticatedAdminProjectProgressRouteImport } from './routes/_authenticated/admin/project-progress'
 import { Route as AuthenticatedAdminQrisRouteImport } from './routes/_authenticated/admin/qris'
+import { Route as AuthenticatedAdminSlidePekerjaRouteImport } from './routes/_authenticated/admin/slide-pekerja'
 import { Route as AuthenticatedAdminTiketRouteImport } from './routes/_authenticated/admin/tiket'
 import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin/tools'
 import { Route as AuthenticatedAdminTutorialRouteImport } from './routes/_authenticated/admin/tutorial'
 import { Route as AuthenticatedAdminUkerRouteImport } from './routes/_authenticated/admin/uker'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as ApiZoomCallbackRouteImport } from './routes/api/zoom/callback'
 import { Route as AuthenticatedAdminEventIndexRouteImport } from './routes/_authenticated/admin/event/index'
 import { Route as AuthenticatedAdminEventIdRouteImport } from './routes/_authenticated/admin/event/$id'
 import { Route as AuthenticatedAdminToolsIndexRouteImport } from './routes/_authenticated/admin/tools.index'
 import { Route as AuthenticatedAdminToolsAbsensiRouteImport } from './routes/_authenticated/admin/tools.absensi'
+import { Route as AuthenticatedAdminToolsNominasiRouteImport } from './routes/_authenticated/admin/tools.nominasi'
+import { Route as AuthenticatedAdminToolsUndianRouteImport } from './routes/_authenticated/admin/tools.undian'
 import { Route as AuthenticatedAdminToolsVoteRouteImport } from './routes/_authenticated/admin/tools.vote'
+import { Route as AuthenticatedAdminToolsZoomRouteImport } from './routes/_authenticated/admin/tools.zoom'
 import { Route as ApiPublicCompanionDeleteEventRouteImport } from './routes/api/public/companion/delete-event'
 import { Route as ApiPublicCompanionDriveStatusRouteImport } from './routes/api/public/companion/drive-status'
 import { Route as ApiPublicCompanionFinalizeRouteImport } from './routes/api/public/companion/finalize'
@@ -58,10 +69,17 @@ import { Route as ApiPublicCompanionInstallerRouteImport } from './routes/api/pu
 import { Route as ApiPublicCompanionUploadRouteImport } from './routes/api/public/companion/upload'
 import { Route as ApiPublicCompanionUploadUrlRouteImport } from './routes/api/public/companion/upload-url'
 import { Route as ApiPublicGoogleDriveCallbackRouteImport } from './routes/api/public/google-drive/callback'
+import { Route as ApiPublicZoomCallbackRouteImport } from './routes/api/public/zoom/callback'
 import { Route as AuthenticatedAdminToolsAbsensiIndexRouteImport } from './routes/_authenticated/admin/tools.absensi.index'
 import { Route as AuthenticatedAdminToolsAbsensiIdRouteImport } from './routes/_authenticated/admin/tools.absensi.$id'
+import { Route as AuthenticatedAdminToolsNominasiIndexRouteImport } from './routes/_authenticated/admin/tools.nominasi.index'
+import { Route as AuthenticatedAdminToolsNominasiIdRouteImport } from './routes/_authenticated/admin/tools.nominasi.$id'
+import { Route as AuthenticatedAdminToolsUndianIndexRouteImport } from './routes/_authenticated/admin/tools.undian.index'
+import { Route as AuthenticatedAdminToolsUndianIdRouteImport } from './routes/_authenticated/admin/tools.undian.$id'
 import { Route as AuthenticatedAdminToolsVoteIndexRouteImport } from './routes/_authenticated/admin/tools.vote.index'
 import { Route as AuthenticatedAdminToolsVoteIdRouteImport } from './routes/_authenticated/admin/tools.vote.$id'
+import { Route as AuthenticatedAdminToolsZoomIndexRouteImport } from './routes/_authenticated/admin/tools.zoom.index'
+import { Route as AuthenticatedAdminToolsNominasiPapanIdRouteImport } from './routes/_authenticated/admin/tools.nominasi.papan.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -127,6 +145,11 @@ const ProjectIdRoute = ProjectIdRouteImport.update({
   path: '/project/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VoteShowSlugRoute = VoteShowSlugRouteImport.update({
+  id: '/vote-show/$slug',
+  path: '/vote-show/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VoteSlugRoute = VoteSlugRouteImport.update({
   id: '/vote/$slug',
   path: '/vote/$slug',
@@ -137,6 +160,18 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminAgendaRoute =
+  AuthenticatedAdminAgendaRouteImport.update({
+    id: '/admin/agenda',
+    path: '/admin/agenda',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminAiBrainRoute =
+  AuthenticatedAdminAiBrainRouteImport.update({
+    id: '/admin/ai-brain',
+    path: '/admin/ai-brain',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminAksesRoute = AuthenticatedAdminAksesRouteImport.update({
   id: '/admin/akses',
   path: '/admin/akses',
@@ -158,6 +193,18 @@ const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
   path: '/admin/audit',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminBukuHarianRoute =
+  AuthenticatedAdminBukuHarianRouteImport.update({
+    id: '/admin/buku-harian',
+    path: '/admin/buku-harian',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminCarouselRoute =
+  AuthenticatedAdminCarouselRouteImport.update({
+    id: '/admin/carousel',
+    path: '/admin/carousel',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminCrmRoute = AuthenticatedAdminCrmRouteImport.update({
   id: '/admin/crm',
   path: '/admin/crm',
@@ -195,6 +242,12 @@ const AuthenticatedAdminJenisPerangkatRoute =
     path: '/admin/jenis-perangkat',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminPapanInformasiRoute =
+  AuthenticatedAdminPapanInformasiRouteImport.update({
+    id: '/admin/papan-informasi',
+    path: '/admin/papan-informasi',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminPegawaiRoute =
   AuthenticatedAdminPegawaiRouteImport.update({
     id: '/admin/pegawai',
@@ -230,6 +283,12 @@ const AuthenticatedAdminQrisRoute = AuthenticatedAdminQrisRouteImport.update({
   path: '/admin/qris',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminSlidePekerjaRoute =
+  AuthenticatedAdminSlidePekerjaRouteImport.update({
+    id: '/admin/slide-pekerja',
+    path: '/admin/slide-pekerja',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminTiketRoute = AuthenticatedAdminTiketRouteImport.update({
   id: '/admin/tiket',
   path: '/admin/tiket',
@@ -256,6 +315,11 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiZoomCallbackRoute = ApiZoomCallbackRouteImport.update({
+  id: '/api/zoom/callback',
+  path: '/api/zoom/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminEventIndexRoute =
   AuthenticatedAdminEventIndexRouteImport.update({
     id: '/admin/event/',
@@ -280,10 +344,28 @@ const AuthenticatedAdminToolsAbsensiRoute =
     path: '/absensi',
     getParentRoute: () => AuthenticatedAdminToolsRoute,
   } as any)
+const AuthenticatedAdminToolsNominasiRoute =
+  AuthenticatedAdminToolsNominasiRouteImport.update({
+    id: '/nominasi',
+    path: '/nominasi',
+    getParentRoute: () => AuthenticatedAdminToolsRoute,
+  } as any)
+const AuthenticatedAdminToolsUndianRoute =
+  AuthenticatedAdminToolsUndianRouteImport.update({
+    id: '/undian',
+    path: '/undian',
+    getParentRoute: () => AuthenticatedAdminToolsRoute,
+  } as any)
 const AuthenticatedAdminToolsVoteRoute =
   AuthenticatedAdminToolsVoteRouteImport.update({
     id: '/vote',
     path: '/vote',
+    getParentRoute: () => AuthenticatedAdminToolsRoute,
+  } as any)
+const AuthenticatedAdminToolsZoomRoute =
+  AuthenticatedAdminToolsZoomRouteImport.update({
+    id: '/zoom',
+    path: '/zoom',
     getParentRoute: () => AuthenticatedAdminToolsRoute,
   } as any)
 const ApiPublicCompanionDeleteEventRoute =
@@ -328,6 +410,11 @@ const ApiPublicGoogleDriveCallbackRoute =
     path: '/api/public/google-drive/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicZoomCallbackRoute = ApiPublicZoomCallbackRouteImport.update({
+  id: '/api/public/zoom/callback',
+  path: '/api/public/zoom/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminToolsAbsensiIndexRoute =
   AuthenticatedAdminToolsAbsensiIndexRouteImport.update({
     id: '/',
@@ -340,6 +427,30 @@ const AuthenticatedAdminToolsAbsensiIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminToolsAbsensiRoute,
   } as any)
+const AuthenticatedAdminToolsNominasiIndexRoute =
+  AuthenticatedAdminToolsNominasiIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminToolsNominasiRoute,
+  } as any)
+const AuthenticatedAdminToolsNominasiIdRoute =
+  AuthenticatedAdminToolsNominasiIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminToolsNominasiRoute,
+  } as any)
+const AuthenticatedAdminToolsUndianIndexRoute =
+  AuthenticatedAdminToolsUndianIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminToolsUndianRoute,
+  } as any)
+const AuthenticatedAdminToolsUndianIdRoute =
+  AuthenticatedAdminToolsUndianIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminToolsUndianRoute,
+  } as any)
 const AuthenticatedAdminToolsVoteIndexRoute =
   AuthenticatedAdminToolsVoteIndexRouteImport.update({
     id: '/',
@@ -351,6 +462,18 @@ const AuthenticatedAdminToolsVoteIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminToolsVoteRoute,
+  } as any)
+const AuthenticatedAdminToolsZoomIndexRoute =
+  AuthenticatedAdminToolsZoomIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminToolsZoomRoute,
+  } as any)
+const AuthenticatedAdminToolsNominasiPapanIdRoute =
+  AuthenticatedAdminToolsNominasiPapanIdRouteImport.update({
+    id: '/papan/$id',
+    path: '/papan/$id',
+    getParentRoute: () => AuthenticatedAdminToolsNominasiRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -366,11 +489,16 @@ export interface FileRoutesByFullPath {
   '/detail/$key': typeof DetailKeyRoute
   '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
+  '/vote-show/$slug': typeof VoteShowSlugRoute
   '/vote/$slug': typeof VoteSlugRoute
+  '/admin/agenda': typeof AuthenticatedAdminAgendaRoute
+  '/admin/ai-brain': typeof AuthenticatedAdminAiBrainRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/buku-harian': typeof AuthenticatedAdminBukuHarianRoute
+  '/admin/carousel': typeof AuthenticatedAdminCarouselRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/drive': typeof AuthenticatedAdminDriveRoute
   '/admin/edc': typeof AuthenticatedAdminEdcRoute
@@ -378,21 +506,27 @@ export interface FileRoutesByFullPath {
   '/admin/ip': typeof AuthenticatedAdminIpRoute
   '/admin/jabatan': typeof AuthenticatedAdminJabatanRoute
   '/admin/jenis-perangkat': typeof AuthenticatedAdminJenisPerangkatRoute
+  '/admin/papan-informasi': typeof AuthenticatedAdminPapanInformasiRoute
   '/admin/pegawai': typeof AuthenticatedAdminPegawaiRoute
   '/admin/perangkat': typeof AuthenticatedAdminPerangkatRoute
   '/admin/plugin': typeof AuthenticatedAdminPluginRoute
   '/admin/project': typeof AuthenticatedAdminProjectRoute
   '/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/admin/qris': typeof AuthenticatedAdminQrisRoute
+  '/admin/slide-pekerja': typeof AuthenticatedAdminSlidePekerjaRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/admin/tools': typeof AuthenticatedAdminToolsRouteWithChildren
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
   '/admin/uker': typeof AuthenticatedAdminUkerRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/api/zoom/callback': typeof ApiZoomCallbackRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+  '/admin/tools/nominasi': typeof AuthenticatedAdminToolsNominasiRouteWithChildren
+  '/admin/tools/undian': typeof AuthenticatedAdminToolsUndianRouteWithChildren
   '/admin/tools/vote': typeof AuthenticatedAdminToolsVoteRouteWithChildren
+  '/admin/tools/zoom': typeof AuthenticatedAdminToolsZoomRouteWithChildren
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
@@ -400,12 +534,19 @@ export interface FileRoutesByFullPath {
   '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
   '/api/public/companion/upload-url': typeof ApiPublicCompanionUploadUrlRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
+  '/api/public/zoom/callback': typeof ApiPublicZoomCallbackRoute
   '/admin/event/': typeof AuthenticatedAdminEventIndexRoute
   '/admin/tools/': typeof AuthenticatedAdminToolsIndexRoute
   '/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
+  '/admin/tools/nominasi/$id': typeof AuthenticatedAdminToolsNominasiIdRoute
+  '/admin/tools/undian/$id': typeof AuthenticatedAdminToolsUndianIdRoute
   '/admin/tools/vote/$id': typeof AuthenticatedAdminToolsVoteIdRoute
   '/admin/tools/absensi/': typeof AuthenticatedAdminToolsAbsensiIndexRoute
+  '/admin/tools/nominasi/': typeof AuthenticatedAdminToolsNominasiIndexRoute
+  '/admin/tools/undian/': typeof AuthenticatedAdminToolsUndianIndexRoute
   '/admin/tools/vote/': typeof AuthenticatedAdminToolsVoteIndexRoute
+  '/admin/tools/zoom/': typeof AuthenticatedAdminToolsZoomIndexRoute
+  '/admin/tools/nominasi/papan/$id': typeof AuthenticatedAdminToolsNominasiPapanIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -420,11 +561,16 @@ export interface FileRoutesByTo {
   '/detail/$key': typeof DetailKeyRoute
   '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
+  '/vote-show/$slug': typeof VoteShowSlugRoute
   '/vote/$slug': typeof VoteSlugRoute
+  '/admin/agenda': typeof AuthenticatedAdminAgendaRoute
+  '/admin/ai-brain': typeof AuthenticatedAdminAiBrainRoute
   '/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/buku-harian': typeof AuthenticatedAdminBukuHarianRoute
+  '/admin/carousel': typeof AuthenticatedAdminCarouselRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/drive': typeof AuthenticatedAdminDriveRoute
   '/admin/edc': typeof AuthenticatedAdminEdcRoute
@@ -432,16 +578,19 @@ export interface FileRoutesByTo {
   '/admin/ip': typeof AuthenticatedAdminIpRoute
   '/admin/jabatan': typeof AuthenticatedAdminJabatanRoute
   '/admin/jenis-perangkat': typeof AuthenticatedAdminJenisPerangkatRoute
+  '/admin/papan-informasi': typeof AuthenticatedAdminPapanInformasiRoute
   '/admin/pegawai': typeof AuthenticatedAdminPegawaiRoute
   '/admin/perangkat': typeof AuthenticatedAdminPerangkatRoute
   '/admin/plugin': typeof AuthenticatedAdminPluginRoute
   '/admin/project': typeof AuthenticatedAdminProjectRoute
   '/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/admin/qris': typeof AuthenticatedAdminQrisRoute
+  '/admin/slide-pekerja': typeof AuthenticatedAdminSlidePekerjaRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
   '/admin/uker': typeof AuthenticatedAdminUkerRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/api/zoom/callback': typeof ApiZoomCallbackRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
@@ -451,12 +600,19 @@ export interface FileRoutesByTo {
   '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
   '/api/public/companion/upload-url': typeof ApiPublicCompanionUploadUrlRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
+  '/api/public/zoom/callback': typeof ApiPublicZoomCallbackRoute
   '/admin/event': typeof AuthenticatedAdminEventIndexRoute
   '/admin/tools': typeof AuthenticatedAdminToolsIndexRoute
   '/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
+  '/admin/tools/nominasi/$id': typeof AuthenticatedAdminToolsNominasiIdRoute
+  '/admin/tools/undian/$id': typeof AuthenticatedAdminToolsUndianIdRoute
   '/admin/tools/vote/$id': typeof AuthenticatedAdminToolsVoteIdRoute
   '/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiIndexRoute
+  '/admin/tools/nominasi': typeof AuthenticatedAdminToolsNominasiIndexRoute
+  '/admin/tools/undian': typeof AuthenticatedAdminToolsUndianIndexRoute
   '/admin/tools/vote': typeof AuthenticatedAdminToolsVoteIndexRoute
+  '/admin/tools/zoom': typeof AuthenticatedAdminToolsZoomIndexRoute
+  '/admin/tools/nominasi/papan/$id': typeof AuthenticatedAdminToolsNominasiPapanIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -473,11 +629,16 @@ export interface FileRoutesById {
   '/detail/$key': typeof DetailKeyRoute
   '/event/$id': typeof EventIdRoute
   '/project/$id': typeof ProjectIdRoute
+  '/vote-show/$slug': typeof VoteShowSlugRoute
   '/vote/$slug': typeof VoteSlugRoute
+  '/_authenticated/admin/agenda': typeof AuthenticatedAdminAgendaRoute
+  '/_authenticated/admin/ai-brain': typeof AuthenticatedAdminAiBrainRoute
   '/_authenticated/admin/akses': typeof AuthenticatedAdminAksesRoute
   '/_authenticated/admin/approval': typeof AuthenticatedAdminApprovalRoute
   '/_authenticated/admin/atm': typeof AuthenticatedAdminAtmRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/buku-harian': typeof AuthenticatedAdminBukuHarianRoute
+  '/_authenticated/admin/carousel': typeof AuthenticatedAdminCarouselRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/_authenticated/admin/drive': typeof AuthenticatedAdminDriveRoute
   '/_authenticated/admin/edc': typeof AuthenticatedAdminEdcRoute
@@ -485,21 +646,27 @@ export interface FileRoutesById {
   '/_authenticated/admin/ip': typeof AuthenticatedAdminIpRoute
   '/_authenticated/admin/jabatan': typeof AuthenticatedAdminJabatanRoute
   '/_authenticated/admin/jenis-perangkat': typeof AuthenticatedAdminJenisPerangkatRoute
+  '/_authenticated/admin/papan-informasi': typeof AuthenticatedAdminPapanInformasiRoute
   '/_authenticated/admin/pegawai': typeof AuthenticatedAdminPegawaiRoute
   '/_authenticated/admin/perangkat': typeof AuthenticatedAdminPerangkatRoute
   '/_authenticated/admin/plugin': typeof AuthenticatedAdminPluginRoute
   '/_authenticated/admin/project': typeof AuthenticatedAdminProjectRoute
   '/_authenticated/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/_authenticated/admin/qris': typeof AuthenticatedAdminQrisRoute
+  '/_authenticated/admin/slide-pekerja': typeof AuthenticatedAdminSlidePekerjaRoute
   '/_authenticated/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/_authenticated/admin/tools': typeof AuthenticatedAdminToolsRouteWithChildren
   '/_authenticated/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
   '/_authenticated/admin/uker': typeof AuthenticatedAdminUkerRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/api/zoom/callback': typeof ApiZoomCallbackRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/_authenticated/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+  '/_authenticated/admin/tools/nominasi': typeof AuthenticatedAdminToolsNominasiRouteWithChildren
+  '/_authenticated/admin/tools/undian': typeof AuthenticatedAdminToolsUndianRouteWithChildren
   '/_authenticated/admin/tools/vote': typeof AuthenticatedAdminToolsVoteRouteWithChildren
+  '/_authenticated/admin/tools/zoom': typeof AuthenticatedAdminToolsZoomRouteWithChildren
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
@@ -507,12 +674,19 @@ export interface FileRoutesById {
   '/api/public/companion/upload': typeof ApiPublicCompanionUploadRoute
   '/api/public/companion/upload-url': typeof ApiPublicCompanionUploadUrlRoute
   '/api/public/google-drive/callback': typeof ApiPublicGoogleDriveCallbackRoute
+  '/api/public/zoom/callback': typeof ApiPublicZoomCallbackRoute
   '/_authenticated/admin/event/': typeof AuthenticatedAdminEventIndexRoute
   '/_authenticated/admin/tools/': typeof AuthenticatedAdminToolsIndexRoute
   '/_authenticated/admin/tools/absensi/$id': typeof AuthenticatedAdminToolsAbsensiIdRoute
+  '/_authenticated/admin/tools/nominasi/$id': typeof AuthenticatedAdminToolsNominasiIdRoute
+  '/_authenticated/admin/tools/undian/$id': typeof AuthenticatedAdminToolsUndianIdRoute
   '/_authenticated/admin/tools/vote/$id': typeof AuthenticatedAdminToolsVoteIdRoute
   '/_authenticated/admin/tools/absensi/': typeof AuthenticatedAdminToolsAbsensiIndexRoute
+  '/_authenticated/admin/tools/nominasi/': typeof AuthenticatedAdminToolsNominasiIndexRoute
+  '/_authenticated/admin/tools/undian/': typeof AuthenticatedAdminToolsUndianIndexRoute
   '/_authenticated/admin/tools/vote/': typeof AuthenticatedAdminToolsVoteIndexRoute
+  '/_authenticated/admin/tools/zoom/': typeof AuthenticatedAdminToolsZoomIndexRoute
+  '/_authenticated/admin/tools/nominasi/papan/$id': typeof AuthenticatedAdminToolsNominasiPapanIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -529,11 +703,16 @@ export interface FileRouteTypes {
     | '/detail/$key'
     | '/event/$id'
     | '/project/$id'
+    | '/vote-show/$slug'
     | '/vote/$slug'
+    | '/admin/agenda'
+    | '/admin/ai-brain'
     | '/admin/akses'
     | '/admin/approval'
     | '/admin/atm'
     | '/admin/audit'
+    | '/admin/buku-harian'
+    | '/admin/carousel'
     | '/admin/crm'
     | '/admin/drive'
     | '/admin/edc'
@@ -541,21 +720,27 @@ export interface FileRouteTypes {
     | '/admin/ip'
     | '/admin/jabatan'
     | '/admin/jenis-perangkat'
+    | '/admin/papan-informasi'
     | '/admin/pegawai'
     | '/admin/perangkat'
     | '/admin/plugin'
     | '/admin/project'
     | '/admin/project-progress'
     | '/admin/qris'
+    | '/admin/slide-pekerja'
     | '/admin/tiket'
     | '/admin/tools'
     | '/admin/tutorial'
     | '/admin/uker'
     | '/admin/users'
+    | '/api/zoom/callback'
     | '/admin/'
     | '/admin/event/$id'
     | '/admin/tools/absensi'
+    | '/admin/tools/nominasi'
+    | '/admin/tools/undian'
     | '/admin/tools/vote'
+    | '/admin/tools/zoom'
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
@@ -563,12 +748,19 @@ export interface FileRouteTypes {
     | '/api/public/companion/upload'
     | '/api/public/companion/upload-url'
     | '/api/public/google-drive/callback'
+    | '/api/public/zoom/callback'
     | '/admin/event/'
     | '/admin/tools/'
     | '/admin/tools/absensi/$id'
+    | '/admin/tools/nominasi/$id'
+    | '/admin/tools/undian/$id'
     | '/admin/tools/vote/$id'
     | '/admin/tools/absensi/'
+    | '/admin/tools/nominasi/'
+    | '/admin/tools/undian/'
     | '/admin/tools/vote/'
+    | '/admin/tools/zoom/'
+    | '/admin/tools/nominasi/papan/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -583,11 +775,16 @@ export interface FileRouteTypes {
     | '/detail/$key'
     | '/event/$id'
     | '/project/$id'
+    | '/vote-show/$slug'
     | '/vote/$slug'
+    | '/admin/agenda'
+    | '/admin/ai-brain'
     | '/admin/akses'
     | '/admin/approval'
     | '/admin/atm'
     | '/admin/audit'
+    | '/admin/buku-harian'
+    | '/admin/carousel'
     | '/admin/crm'
     | '/admin/drive'
     | '/admin/edc'
@@ -595,16 +792,19 @@ export interface FileRouteTypes {
     | '/admin/ip'
     | '/admin/jabatan'
     | '/admin/jenis-perangkat'
+    | '/admin/papan-informasi'
     | '/admin/pegawai'
     | '/admin/perangkat'
     | '/admin/plugin'
     | '/admin/project'
     | '/admin/project-progress'
     | '/admin/qris'
+    | '/admin/slide-pekerja'
     | '/admin/tiket'
     | '/admin/tutorial'
     | '/admin/uker'
     | '/admin/users'
+    | '/api/zoom/callback'
     | '/admin'
     | '/admin/event/$id'
     | '/api/public/companion/delete-event'
@@ -614,12 +814,19 @@ export interface FileRouteTypes {
     | '/api/public/companion/upload'
     | '/api/public/companion/upload-url'
     | '/api/public/google-drive/callback'
+    | '/api/public/zoom/callback'
     | '/admin/event'
     | '/admin/tools'
     | '/admin/tools/absensi/$id'
+    | '/admin/tools/nominasi/$id'
+    | '/admin/tools/undian/$id'
     | '/admin/tools/vote/$id'
     | '/admin/tools/absensi'
+    | '/admin/tools/nominasi'
+    | '/admin/tools/undian'
     | '/admin/tools/vote'
+    | '/admin/tools/zoom'
+    | '/admin/tools/nominasi/papan/$id'
   id:
     | '__root__'
     | '/'
@@ -635,11 +842,16 @@ export interface FileRouteTypes {
     | '/detail/$key'
     | '/event/$id'
     | '/project/$id'
+    | '/vote-show/$slug'
     | '/vote/$slug'
+    | '/_authenticated/admin/agenda'
+    | '/_authenticated/admin/ai-brain'
     | '/_authenticated/admin/akses'
     | '/_authenticated/admin/approval'
     | '/_authenticated/admin/atm'
     | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/buku-harian'
+    | '/_authenticated/admin/carousel'
     | '/_authenticated/admin/crm'
     | '/_authenticated/admin/drive'
     | '/_authenticated/admin/edc'
@@ -647,21 +859,27 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/ip'
     | '/_authenticated/admin/jabatan'
     | '/_authenticated/admin/jenis-perangkat'
+    | '/_authenticated/admin/papan-informasi'
     | '/_authenticated/admin/pegawai'
     | '/_authenticated/admin/perangkat'
     | '/_authenticated/admin/plugin'
     | '/_authenticated/admin/project'
     | '/_authenticated/admin/project-progress'
     | '/_authenticated/admin/qris'
+    | '/_authenticated/admin/slide-pekerja'
     | '/_authenticated/admin/tiket'
     | '/_authenticated/admin/tools'
     | '/_authenticated/admin/tutorial'
     | '/_authenticated/admin/uker'
     | '/_authenticated/admin/users'
+    | '/api/zoom/callback'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/event/$id'
     | '/_authenticated/admin/tools/absensi'
+    | '/_authenticated/admin/tools/nominasi'
+    | '/_authenticated/admin/tools/undian'
     | '/_authenticated/admin/tools/vote'
+    | '/_authenticated/admin/tools/zoom'
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
@@ -669,12 +887,19 @@ export interface FileRouteTypes {
     | '/api/public/companion/upload'
     | '/api/public/companion/upload-url'
     | '/api/public/google-drive/callback'
+    | '/api/public/zoom/callback'
     | '/_authenticated/admin/event/'
     | '/_authenticated/admin/tools/'
     | '/_authenticated/admin/tools/absensi/$id'
+    | '/_authenticated/admin/tools/nominasi/$id'
+    | '/_authenticated/admin/tools/undian/$id'
     | '/_authenticated/admin/tools/vote/$id'
     | '/_authenticated/admin/tools/absensi/'
+    | '/_authenticated/admin/tools/nominasi/'
+    | '/_authenticated/admin/tools/undian/'
     | '/_authenticated/admin/tools/vote/'
+    | '/_authenticated/admin/tools/zoom/'
+    | '/_authenticated/admin/tools/nominasi/papan/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -691,7 +916,9 @@ export interface RootRouteChildren {
   DetailKeyRoute: typeof DetailKeyRoute
   EventIdRoute: typeof EventIdRoute
   ProjectIdRoute: typeof ProjectIdRoute
+  VoteShowSlugRoute: typeof VoteShowSlugRoute
   VoteSlugRoute: typeof VoteSlugRoute
+  ApiZoomCallbackRoute: typeof ApiZoomCallbackRoute
   ApiPublicCompanionDeleteEventRoute: typeof ApiPublicCompanionDeleteEventRoute
   ApiPublicCompanionDriveStatusRoute: typeof ApiPublicCompanionDriveStatusRoute
   ApiPublicCompanionFinalizeRoute: typeof ApiPublicCompanionFinalizeRoute
@@ -699,6 +926,7 @@ export interface RootRouteChildren {
   ApiPublicCompanionUploadRoute: typeof ApiPublicCompanionUploadRoute
   ApiPublicCompanionUploadUrlRoute: typeof ApiPublicCompanionUploadUrlRoute
   ApiPublicGoogleDriveCallbackRoute: typeof ApiPublicGoogleDriveCallbackRoute
+  ApiPublicZoomCallbackRoute: typeof ApiPublicZoomCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -794,6 +1022,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vote-show/$slug': {
+      id: '/vote-show/$slug'
+      path: '/vote-show/$slug'
+      fullPath: '/vote-show/$slug'
+      preLoaderRoute: typeof VoteShowSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vote/$slug': {
       id: '/vote/$slug'
       path: '/vote/$slug'
@@ -806,6 +1041,20 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/agenda': {
+      id: '/_authenticated/admin/agenda'
+      path: '/admin/agenda'
+      fullPath: '/admin/agenda'
+      preLoaderRoute: typeof AuthenticatedAdminAgendaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/ai-brain': {
+      id: '/_authenticated/admin/ai-brain'
+      path: '/admin/ai-brain'
+      fullPath: '/admin/ai-brain'
+      preLoaderRoute: typeof AuthenticatedAdminAiBrainRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/akses': {
@@ -834,6 +1083,20 @@ declare module '@tanstack/react-router' {
       path: '/admin/audit'
       fullPath: '/admin/audit'
       preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/buku-harian': {
+      id: '/_authenticated/admin/buku-harian'
+      path: '/admin/buku-harian'
+      fullPath: '/admin/buku-harian'
+      preLoaderRoute: typeof AuthenticatedAdminBukuHarianRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/carousel': {
+      id: '/_authenticated/admin/carousel'
+      path: '/admin/carousel'
+      fullPath: '/admin/carousel'
+      preLoaderRoute: typeof AuthenticatedAdminCarouselRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/crm': {
@@ -885,6 +1148,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminJenisPerangkatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/papan-informasi': {
+      id: '/_authenticated/admin/papan-informasi'
+      path: '/admin/papan-informasi'
+      fullPath: '/admin/papan-informasi'
+      preLoaderRoute: typeof AuthenticatedAdminPapanInformasiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/pegawai': {
       id: '/_authenticated/admin/pegawai'
       path: '/admin/pegawai'
@@ -927,6 +1197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminQrisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/slide-pekerja': {
+      id: '/_authenticated/admin/slide-pekerja'
+      path: '/admin/slide-pekerja'
+      fullPath: '/admin/slide-pekerja'
+      preLoaderRoute: typeof AuthenticatedAdminSlidePekerjaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/tiket': {
       id: '/_authenticated/admin/tiket'
       path: '/admin/tiket'
@@ -962,6 +1239,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/zoom/callback': {
+      id: '/api/zoom/callback'
+      path: '/api/zoom/callback'
+      fullPath: '/api/zoom/callback'
+      preLoaderRoute: typeof ApiZoomCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/event/': {
       id: '/_authenticated/admin/event/'
       path: '/admin/event'
@@ -990,11 +1274,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsAbsensiRouteImport
       parentRoute: typeof AuthenticatedAdminToolsRoute
     }
+    '/_authenticated/admin/tools/nominasi': {
+      id: '/_authenticated/admin/tools/nominasi'
+      path: '/nominasi'
+      fullPath: '/admin/tools/nominasi'
+      preLoaderRoute: typeof AuthenticatedAdminToolsNominasiRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsRoute
+    }
+    '/_authenticated/admin/tools/undian': {
+      id: '/_authenticated/admin/tools/undian'
+      path: '/undian'
+      fullPath: '/admin/tools/undian'
+      preLoaderRoute: typeof AuthenticatedAdminToolsUndianRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsRoute
+    }
     '/_authenticated/admin/tools/vote': {
       id: '/_authenticated/admin/tools/vote'
       path: '/vote'
       fullPath: '/admin/tools/vote'
       preLoaderRoute: typeof AuthenticatedAdminToolsVoteRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsRoute
+    }
+    '/_authenticated/admin/tools/zoom': {
+      id: '/_authenticated/admin/tools/zoom'
+      path: '/zoom'
+      fullPath: '/admin/tools/zoom'
+      preLoaderRoute: typeof AuthenticatedAdminToolsZoomRouteImport
       parentRoute: typeof AuthenticatedAdminToolsRoute
     }
     '/api/public/companion/delete-event': {
@@ -1046,6 +1351,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGoogleDriveCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/zoom/callback': {
+      id: '/api/public/zoom/callback'
+      path: '/api/public/zoom/callback'
+      fullPath: '/api/public/zoom/callback'
+      preLoaderRoute: typeof ApiPublicZoomCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/tools/absensi/': {
       id: '/_authenticated/admin/tools/absensi/'
       path: '/'
@@ -1060,6 +1372,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsAbsensiIdRouteImport
       parentRoute: typeof AuthenticatedAdminToolsAbsensiRoute
     }
+    '/_authenticated/admin/tools/nominasi/': {
+      id: '/_authenticated/admin/tools/nominasi/'
+      path: '/'
+      fullPath: '/admin/tools/nominasi/'
+      preLoaderRoute: typeof AuthenticatedAdminToolsNominasiIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsNominasiRoute
+    }
+    '/_authenticated/admin/tools/nominasi/$id': {
+      id: '/_authenticated/admin/tools/nominasi/$id'
+      path: '/$id'
+      fullPath: '/admin/tools/nominasi/$id'
+      preLoaderRoute: typeof AuthenticatedAdminToolsNominasiIdRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsNominasiRoute
+    }
+    '/_authenticated/admin/tools/undian/': {
+      id: '/_authenticated/admin/tools/undian/'
+      path: '/'
+      fullPath: '/admin/tools/undian/'
+      preLoaderRoute: typeof AuthenticatedAdminToolsUndianIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsUndianRoute
+    }
+    '/_authenticated/admin/tools/undian/$id': {
+      id: '/_authenticated/admin/tools/undian/$id'
+      path: '/$id'
+      fullPath: '/admin/tools/undian/$id'
+      preLoaderRoute: typeof AuthenticatedAdminToolsUndianIdRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsUndianRoute
+    }
     '/_authenticated/admin/tools/vote/': {
       id: '/_authenticated/admin/tools/vote/'
       path: '/'
@@ -1073,6 +1413,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/tools/vote/$id'
       preLoaderRoute: typeof AuthenticatedAdminToolsVoteIdRouteImport
       parentRoute: typeof AuthenticatedAdminToolsVoteRoute
+    }
+    '/_authenticated/admin/tools/zoom/': {
+      id: '/_authenticated/admin/tools/zoom/'
+      path: '/'
+      fullPath: '/admin/tools/zoom/'
+      preLoaderRoute: typeof AuthenticatedAdminToolsZoomIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsZoomRoute
+    }
+    '/_authenticated/admin/tools/nominasi/papan/$id': {
+      id: '/_authenticated/admin/tools/nominasi/papan/$id'
+      path: '/papan/$id'
+      fullPath: '/admin/tools/nominasi/papan/$id'
+      preLoaderRoute: typeof AuthenticatedAdminToolsNominasiPapanIdRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsNominasiRoute
     }
   }
 }
@@ -1095,6 +1449,44 @@ const AuthenticatedAdminToolsAbsensiRouteWithChildren =
     AuthenticatedAdminToolsAbsensiRouteChildren,
   )
 
+interface AuthenticatedAdminToolsNominasiRouteChildren {
+  AuthenticatedAdminToolsNominasiIdRoute: typeof AuthenticatedAdminToolsNominasiIdRoute
+  AuthenticatedAdminToolsNominasiIndexRoute: typeof AuthenticatedAdminToolsNominasiIndexRoute
+  AuthenticatedAdminToolsNominasiPapanIdRoute: typeof AuthenticatedAdminToolsNominasiPapanIdRoute
+}
+
+const AuthenticatedAdminToolsNominasiRouteChildren: AuthenticatedAdminToolsNominasiRouteChildren =
+  {
+    AuthenticatedAdminToolsNominasiIdRoute:
+      AuthenticatedAdminToolsNominasiIdRoute,
+    AuthenticatedAdminToolsNominasiIndexRoute:
+      AuthenticatedAdminToolsNominasiIndexRoute,
+    AuthenticatedAdminToolsNominasiPapanIdRoute:
+      AuthenticatedAdminToolsNominasiPapanIdRoute,
+  }
+
+const AuthenticatedAdminToolsNominasiRouteWithChildren =
+  AuthenticatedAdminToolsNominasiRoute._addFileChildren(
+    AuthenticatedAdminToolsNominasiRouteChildren,
+  )
+
+interface AuthenticatedAdminToolsUndianRouteChildren {
+  AuthenticatedAdminToolsUndianIdRoute: typeof AuthenticatedAdminToolsUndianIdRoute
+  AuthenticatedAdminToolsUndianIndexRoute: typeof AuthenticatedAdminToolsUndianIndexRoute
+}
+
+const AuthenticatedAdminToolsUndianRouteChildren: AuthenticatedAdminToolsUndianRouteChildren =
+  {
+    AuthenticatedAdminToolsUndianIdRoute: AuthenticatedAdminToolsUndianIdRoute,
+    AuthenticatedAdminToolsUndianIndexRoute:
+      AuthenticatedAdminToolsUndianIndexRoute,
+  }
+
+const AuthenticatedAdminToolsUndianRouteWithChildren =
+  AuthenticatedAdminToolsUndianRoute._addFileChildren(
+    AuthenticatedAdminToolsUndianRouteChildren,
+  )
+
 interface AuthenticatedAdminToolsVoteRouteChildren {
   AuthenticatedAdminToolsVoteIdRoute: typeof AuthenticatedAdminToolsVoteIdRoute
   AuthenticatedAdminToolsVoteIndexRoute: typeof AuthenticatedAdminToolsVoteIndexRoute
@@ -1112,9 +1504,27 @@ const AuthenticatedAdminToolsVoteRouteWithChildren =
     AuthenticatedAdminToolsVoteRouteChildren,
   )
 
+interface AuthenticatedAdminToolsZoomRouteChildren {
+  AuthenticatedAdminToolsZoomIndexRoute: typeof AuthenticatedAdminToolsZoomIndexRoute
+}
+
+const AuthenticatedAdminToolsZoomRouteChildren: AuthenticatedAdminToolsZoomRouteChildren =
+  {
+    AuthenticatedAdminToolsZoomIndexRoute:
+      AuthenticatedAdminToolsZoomIndexRoute,
+  }
+
+const AuthenticatedAdminToolsZoomRouteWithChildren =
+  AuthenticatedAdminToolsZoomRoute._addFileChildren(
+    AuthenticatedAdminToolsZoomRouteChildren,
+  )
+
 interface AuthenticatedAdminToolsRouteChildren {
   AuthenticatedAdminToolsAbsensiRoute: typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+  AuthenticatedAdminToolsNominasiRoute: typeof AuthenticatedAdminToolsNominasiRouteWithChildren
+  AuthenticatedAdminToolsUndianRoute: typeof AuthenticatedAdminToolsUndianRouteWithChildren
   AuthenticatedAdminToolsVoteRoute: typeof AuthenticatedAdminToolsVoteRouteWithChildren
+  AuthenticatedAdminToolsZoomRoute: typeof AuthenticatedAdminToolsZoomRouteWithChildren
   AuthenticatedAdminToolsIndexRoute: typeof AuthenticatedAdminToolsIndexRoute
 }
 
@@ -1122,8 +1532,14 @@ const AuthenticatedAdminToolsRouteChildren: AuthenticatedAdminToolsRouteChildren
   {
     AuthenticatedAdminToolsAbsensiRoute:
       AuthenticatedAdminToolsAbsensiRouteWithChildren,
+    AuthenticatedAdminToolsNominasiRoute:
+      AuthenticatedAdminToolsNominasiRouteWithChildren,
+    AuthenticatedAdminToolsUndianRoute:
+      AuthenticatedAdminToolsUndianRouteWithChildren,
     AuthenticatedAdminToolsVoteRoute:
       AuthenticatedAdminToolsVoteRouteWithChildren,
+    AuthenticatedAdminToolsZoomRoute:
+      AuthenticatedAdminToolsZoomRouteWithChildren,
     AuthenticatedAdminToolsIndexRoute: AuthenticatedAdminToolsIndexRoute,
   }
 
@@ -1133,10 +1549,14 @@ const AuthenticatedAdminToolsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminAgendaRoute: typeof AuthenticatedAdminAgendaRoute
+  AuthenticatedAdminAiBrainRoute: typeof AuthenticatedAdminAiBrainRoute
   AuthenticatedAdminAksesRoute: typeof AuthenticatedAdminAksesRoute
   AuthenticatedAdminApprovalRoute: typeof AuthenticatedAdminApprovalRoute
   AuthenticatedAdminAtmRoute: typeof AuthenticatedAdminAtmRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminBukuHarianRoute: typeof AuthenticatedAdminBukuHarianRoute
+  AuthenticatedAdminCarouselRoute: typeof AuthenticatedAdminCarouselRoute
   AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
   AuthenticatedAdminDriveRoute: typeof AuthenticatedAdminDriveRoute
   AuthenticatedAdminEdcRoute: typeof AuthenticatedAdminEdcRoute
@@ -1144,12 +1564,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminIpRoute: typeof AuthenticatedAdminIpRoute
   AuthenticatedAdminJabatanRoute: typeof AuthenticatedAdminJabatanRoute
   AuthenticatedAdminJenisPerangkatRoute: typeof AuthenticatedAdminJenisPerangkatRoute
+  AuthenticatedAdminPapanInformasiRoute: typeof AuthenticatedAdminPapanInformasiRoute
   AuthenticatedAdminPegawaiRoute: typeof AuthenticatedAdminPegawaiRoute
   AuthenticatedAdminPerangkatRoute: typeof AuthenticatedAdminPerangkatRoute
   AuthenticatedAdminPluginRoute: typeof AuthenticatedAdminPluginRoute
   AuthenticatedAdminProjectRoute: typeof AuthenticatedAdminProjectRoute
   AuthenticatedAdminProjectProgressRoute: typeof AuthenticatedAdminProjectProgressRoute
   AuthenticatedAdminQrisRoute: typeof AuthenticatedAdminQrisRoute
+  AuthenticatedAdminSlidePekerjaRoute: typeof AuthenticatedAdminSlidePekerjaRoute
   AuthenticatedAdminTiketRoute: typeof AuthenticatedAdminTiketRoute
   AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRouteWithChildren
   AuthenticatedAdminTutorialRoute: typeof AuthenticatedAdminTutorialRoute
@@ -1161,10 +1583,14 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminAgendaRoute: AuthenticatedAdminAgendaRoute,
+  AuthenticatedAdminAiBrainRoute: AuthenticatedAdminAiBrainRoute,
   AuthenticatedAdminAksesRoute: AuthenticatedAdminAksesRoute,
   AuthenticatedAdminApprovalRoute: AuthenticatedAdminApprovalRoute,
   AuthenticatedAdminAtmRoute: AuthenticatedAdminAtmRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+  AuthenticatedAdminBukuHarianRoute: AuthenticatedAdminBukuHarianRoute,
+  AuthenticatedAdminCarouselRoute: AuthenticatedAdminCarouselRoute,
   AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
   AuthenticatedAdminDriveRoute: AuthenticatedAdminDriveRoute,
   AuthenticatedAdminEdcRoute: AuthenticatedAdminEdcRoute,
@@ -1172,6 +1598,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminIpRoute: AuthenticatedAdminIpRoute,
   AuthenticatedAdminJabatanRoute: AuthenticatedAdminJabatanRoute,
   AuthenticatedAdminJenisPerangkatRoute: AuthenticatedAdminJenisPerangkatRoute,
+  AuthenticatedAdminPapanInformasiRoute: AuthenticatedAdminPapanInformasiRoute,
   AuthenticatedAdminPegawaiRoute: AuthenticatedAdminPegawaiRoute,
   AuthenticatedAdminPerangkatRoute: AuthenticatedAdminPerangkatRoute,
   AuthenticatedAdminPluginRoute: AuthenticatedAdminPluginRoute,
@@ -1179,6 +1606,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminProjectProgressRoute:
     AuthenticatedAdminProjectProgressRoute,
   AuthenticatedAdminQrisRoute: AuthenticatedAdminQrisRoute,
+  AuthenticatedAdminSlidePekerjaRoute: AuthenticatedAdminSlidePekerjaRoute,
   AuthenticatedAdminTiketRoute: AuthenticatedAdminTiketRoute,
   AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRouteWithChildren,
   AuthenticatedAdminTutorialRoute: AuthenticatedAdminTutorialRoute,
@@ -1206,7 +1634,9 @@ const rootRouteChildren: RootRouteChildren = {
   DetailKeyRoute: DetailKeyRoute,
   EventIdRoute: EventIdRoute,
   ProjectIdRoute: ProjectIdRoute,
+  VoteShowSlugRoute: VoteShowSlugRoute,
   VoteSlugRoute: VoteSlugRoute,
+  ApiZoomCallbackRoute: ApiZoomCallbackRoute,
   ApiPublicCompanionDeleteEventRoute: ApiPublicCompanionDeleteEventRoute,
   ApiPublicCompanionDriveStatusRoute: ApiPublicCompanionDriveStatusRoute,
   ApiPublicCompanionFinalizeRoute: ApiPublicCompanionFinalizeRoute,
@@ -1214,6 +1644,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCompanionUploadRoute: ApiPublicCompanionUploadRoute,
   ApiPublicCompanionUploadUrlRoute: ApiPublicCompanionUploadUrlRoute,
   ApiPublicGoogleDriveCallbackRoute: ApiPublicGoogleDriveCallbackRoute,
+  ApiPublicZoomCallbackRoute: ApiPublicZoomCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

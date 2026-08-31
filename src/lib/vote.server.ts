@@ -25,6 +25,8 @@ export function toVoteSettings(row: Row): VoteSettings {
     title: String(row["title"] ?? ""),
     subtitle: String(row["subtitle"] ?? ""),
     eyebrow: String(row["eyebrow"] ?? "Program Apresiasi"),
+    showcaseNote: String(row["showcase_note"] ?? "Dashboard pengumuman pemenang"),
+    location: String(row["location"] ?? ""),
     eventDate: String(row["event_date"] ?? ""),
     accent: String(row["accent"] ?? "#a855f7"),
     logo: row["logo"] ?? null,
@@ -125,6 +127,8 @@ export async function saveEvent(payload: SaveVotePayload, userId: string) {
     title: payload.title,
     subtitle: payload.subtitle,
     eyebrow: payload.eyebrow,
+    showcase_note: payload.showcaseNote,
+    location: payload.location,
     event_date: payload.eventDate,
     accent: payload.accent,
     logo: payload.logo,
@@ -133,15 +137,26 @@ export async function saveEvent(payload: SaveVotePayload, userId: string) {
     is_closed: payload.isClosed,
     updated_at: new Date().toISOString(),
   };
+  const missingCol = (msg: string) => /showcase_note|location/i.test(msg);
   if (payload.id) {
-    const { error } = await db.from("vote_events").update(row).eq("id", payload.id);
+    let { error } = await db.from("vote_events").update(row).eq("id", payload.id);
+    if (error && missingCol(error.message)) {
+      delete row["showcase_note"];
+      delete row["location"];
+      ({ error } = await db.from("vote_events").update(row).eq("id", payload.id));
+    }
     if (error) throw new Error(error.message);
     return payload.id;
   }
   row["created_by"] = userId;
-  const { data, error } = await db.from("vote_events").insert(row).select("id").maybeSingle();
-  if (error) throw new Error(error.message);
-  return String(data?.id);
+  let res = await db.from("vote_events").insert(row).select("id").maybeSingle();
+  if (res.error && missingCol(res.error.message)) {
+    delete row["showcase_note"];
+    delete row["location"];
+    res = await db.from("vote_events").insert(row).select("id").maybeSingle();
+  }
+  if (res.error) throw new Error(res.error.message);
+  return String(res.data?.id);
 }
 
 export async function deleteEvent(id: string) {
@@ -392,4 +407,79 @@ export async function publicEvent(slug: string) {
   if (!ev) return null;
   const nominees = await listNominees(ev.id);
   return { settings: ev, nominees };
+}
+
+/** Data publik untuk dashboard pengumuman pemenang. */
+export async function publicShowcase(slug: string) {
+  const ev = await getEventBySlug(slug);
+  if (!ev) return null;
+  const [nominees, results, stats] = await Promise.all([
+    listNominees(ev.id),
+    voteResults(ev.id),
+    voterStats(ev.id),
+  ]);
+  return { settings: ev, nominees, results, stats };
+}
+
+/* ---------------------- foto pekerja untuk nominasi ---------------------- */
+
+export type WorkerPhoto = { url: string; label: string };
+
+function driveThumbUrl(fileId: string, size = 800) {
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
+}
+
+/** Kumpulan foto milik satu pekerja: foto master wajah + foto event yang terdeteksi. */
+export async function workerPhotos(input: {
+  workerId?: string | undefined;
+  personalNumber?: string | undefined;
+}): Promise<WorkerPhoto[]> {
+  const db = await admin();
+  const pn = (input.personalNumber ?? "").trim();
+  let workerId = input.workerId ?? "";
+  if (!workerId && pn) {
+    const { data } = await db.from("employees").select("id").eq("personal_number", pn).maybeSingle();
+    workerId = data ? String((data as Row)["id"]) : "";
+  }
+  const out: WorkerPhoto[] = [];
+
+  let faceQuery = db.from("worker_faces").select("reference_photo_url,worker_id,personal_number");
+  faceQuery = workerId ? faceQuery.eq("worker_id", workerId) : faceQuery.eq("personal_number", pn);
+  const { data: faces } = await faceQuery;
+  for (const f of ((faces ?? []) as Row[])) {
+    const url = (f["reference_photo_url"] as string | null) ?? null;
+    if (url) out.push({ url, label: "Foto master wajah" });
+  }
+
+  if (workerId) {
+    const { data: photos } = await db
+      .from("event_photos")
+      .select("drive_file_id,file_name,processed_at")
+      .contains("matched_worker_ids", [workerId])
+      .order("processed_at", { ascending: false })
+      .limit(60);
+    const seen = new Set(out.map((o) => o.url));
+    for (const p of ((photos ?? []) as Row[])) {
+      const fid = String(p["drive_file_id"] ?? "");
+      if (!fid) continue;
+      const url = driveThumbUrl(fid);
+      if (seen.has(url)) continue; // hindari foto ganda di picker
+      seen.add(url);
+      out.push({ url, label: "Foto event" });
+    }
+  }
+  return out;
+}
+
+/** Unduh gambar di server lalu kembalikan sebagai data URL (hindari CORS saat crop). */
+export async function imageAsDataUrl(url: string) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Foto tidak bisa diambil.");
+  const type = res.headers.get("content-type") ?? "image/jpeg";
+  const buf = new Uint8Array(await res.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < buf.length; i += 8192) {
+    bin += String.fromCharCode(...buf.subarray(i, i + 8192));
+  }
+  return `data:${type};base64,${btoa(bin)}`;
 }

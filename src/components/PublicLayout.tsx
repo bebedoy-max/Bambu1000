@@ -18,7 +18,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-40 border-b border-border/60 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-[1280px] items-center gap-3 px-4 py-3 sm:px-6">
           <Link to="/" className="flex items-center gap-3">
             <img src={logoUrl} alt="Logo" className="h-14 w-auto object-contain" />
           </Link>
@@ -51,8 +51,8 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">{children}</main>
-      <footer className="mx-auto max-w-7xl px-4 pb-10 text-xs text-muted-foreground sm:px-6">
+      <main className="mx-auto max-w-[1280px] px-4 py-8 sm:px-6">{children}</main>
+      <footer className="mx-auto max-w-[1280px] px-4 pb-10 text-xs text-muted-foreground sm:px-6">
         <p>&copy; {new Date().getFullYear()} BRI Branch Office Pringsewu — AAFathers (Dev)</p>
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
           <Link

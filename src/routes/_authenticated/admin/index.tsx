@@ -1,13 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Banknote, Building2, CalendarDays, CreditCard, LifeBuoy, Users } from "lucide-react";
+import { Banknote, Building2, CalendarDays, CreditCard, Users } from "lucide-react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { AdminLayout } from "@/components/AdminLayout";
-import { StatCard } from "@/components/StatCard";
 import { ProjectSummary } from "@/components/ProjectSummary";
 import { EventSummary } from "@/components/EventSummary";
-import { useRoles } from "@/lib/roles";
+import { DiarySummary } from "@/components/DiarySummary";
+import { InfographicStats } from "@/components/home/InfographicStats";
+import { HomeCarousel } from "@/components/home/HomeCarousel";
+import { WorkerSlider } from "@/components/home/WorkerSlider";
+import { MarketPanel } from "@/components/home/MarketPanel";
+import { BankRatesPanel } from "@/components/home/BankRatesPanel";
+import { NewsPanel } from "@/components/home/NewsPanel";
+import { InfoBoard } from "@/components/home/InfoBoard";
+import { UpcomingEvents } from "@/components/home/UpcomingEvents";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -29,9 +36,8 @@ async function count(table: string) {
 }
 
 function Page() {
-  const { isItAdmin, isEventAdmin } = useRoles();
   const stats = useQuery({
-    queryKey: ["admin-stats", isItAdmin, isEventAdmin],
+    queryKey: ["admin-stats"],
     queryFn: async () => ({
       ukers: await count("ukers"),
       employees: await count("employees"),
@@ -39,70 +45,67 @@ function Page() {
       edc: await count("edc_machines"),
       projects: await count("projects"),
       events: await count("events"),
-      tickets: await count("it_tickets"),
     }),
   });
 
-  const s = stats.data;
+  const cards = [
+    { label: "Unit Kerja", value: stats.data?.ukers ?? "—", icon: Building2, hint: "Uker aktif terdaftar", detailKey: "uker" },
+    { label: "ATM/CRM", value: stats.data?.atm ?? "—", icon: Banknote, hint: "Termonitor", detailKey: "atm" },
+    { label: "Mesin EDC", value: stats.data?.edc ?? "—", icon: CreditCard, hint: "Merchant terpasang", detailKey: "edc" },
+    { label: "Pegawai", value: stats.data?.employees ?? "—", icon: Users, hint: "Seluruh unit kerja", detailKey: "pegawai" },
+    { label: "Project IT", value: stats.data?.projects ?? "—", icon: CalendarDays, hint: "Project berjalan", detailKey: "project" },
+    { label: "Event", value: stats.data?.events ?? "—", icon: CalendarDays, hint: "Acara & kegiatan", detailKey: "event" },
+  ];
+
+  const maxStat = Math.max(1, ...cards.map((c) => (typeof c.value === "number" ? c.value : 0)));
+  const infographics = cards.map((c) => ({
+    label: c.label,
+    value: c.value,
+    icon: c.icon,
+    detailKey: c.detailKey,
+    description: c.hint,
+    ratio: typeof c.value === "number" ? (c.value / maxStat) * 100 : 8,
+  }));
+
   return (
     <AdminLayout>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Unit Kerja"
-          value={s?.ukers ?? "—"}
-          icon={Building2}
-          hint="Uker aktif terdaftar"
-          detailKey="uker"
-        />
-        <StatCard
-          label="Mesin ATM/CRM"
-          value={s?.atm ?? "—"}
-          icon={Banknote}
-          hint="Termonitor"
-          detailKey="atm"
-        />
-        <StatCard
-          label="Mesin EDC"
-          value={s?.edc ?? "—"}
-          icon={CreditCard}
-          hint="Merchant terpasang"
-          detailKey="edc"
-        />
-        <StatCard
-          label="Pegawai"
-          value={s?.employees ?? "—"}
-          icon={Users}
-          hint="Seluruh unit kerja"
-          detailKey="pegawai"
-        />
-        <StatCard
-          label="Project IT"
-          value={s?.projects ?? "—"}
-          icon={CalendarDays}
-          hint="Project berjalan"
-          detailKey="project"
-        />
-        <StatCard
-          label="Event"
-          value={s?.events ?? "—"}
-          icon={CalendarDays}
-          hint="Acara & kegiatan"
-          detailKey="event"
-        />
-        <StatCard label="Tiket IT" value={s?.tickets ?? "—"} icon={LifeBuoy} />
+      <HomeCarousel />
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-12">
+        <div className="grid content-start gap-4 lg:col-span-3">
+          <InfographicStats items={infographics} />
+          <WorkerSlider />
+        </div>
+        <div className="grid content-start gap-4 lg:col-span-6">
+          <InfoBoard />
+          <NewsPanel />
+        </div>
+        <div className="grid content-start gap-4 lg:col-span-3">
+          <MarketPanel />
+          <BankRatesPanel />
+          <UpcomingEvents />
+        </div>
       </div>
-      <section className="mt-8">
-        <h2 className="event-title-glow mb-4 text-lg">Project IT</h2>
-        <ProjectSummary />
-      </section>
 
       <section className="mt-10 border-t border-border/60 pt-8">
         <h2 className="event-title-glow mb-1 text-lg">The Event's BRI BO Pringsewu</h2>
         <p className="mb-4 text-sm text-muted-foreground">
           Galery foto acara dan kegiatan BRI Branch Office Pringsewu.
         </p>
+        <EventSummary limit={6} />
+      </section>
 
-        <EventSummary />
+      <section className="mt-10 border-t border-border/60 pt-8">
+        <h2 className="event-title-glow mb-4 text-lg">Project IT</h2>
+        <ProjectSummary limit={4} />
+      </section>
+
+      <section className="mt-10 border-t border-border/60 pt-8">
+        <h2 className="event-title-glow mb-1 text-lg">Kegiatan Harian IT</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Catatan kegiatan harian petugas IT terbaru beserta foto kegiatannya.
+        </p>
+        <DiarySummary limit={6} />
       </section>
     </AdminLayout>
   );

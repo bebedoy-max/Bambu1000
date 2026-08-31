@@ -77,3 +77,24 @@ export const getPublicEventPhotoPage = createServerFn({ method: "POST" })
       };
     });
   });
+
+/** Jumlah foto per event untuk pengunjung publik (tabel event_photos tertutup RLS). */
+export const getPublicEventPhotoCounts = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Record<string, number>> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as unknown as { from: (t: string) => any };
+    const counts: Record<string, number> = {};
+    const PAGE = 1000;
+    for (let offset = 0; ; offset += PAGE) {
+      const { data, error } = await db
+        .from("event_photos")
+        .select("event_id")
+        .range(offset, offset + PAGE - 1);
+      if (error) throw new Error(error.message);
+      const rows = (data ?? []) as { event_id: string }[];
+      for (const r of rows) counts[r.event_id] = (counts[r.event_id] ?? 0) + 1;
+      if (rows.length < PAGE) break;
+    }
+    return counts;
+  },
+);

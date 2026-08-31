@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { AbsensiSettings } from "@/lib/absensi-ui";
+import type { AbsensiDisplay, AbsensiSettings } from "@/lib/absensi-ui";
 
 /** Publik: baca pengaturan satu absensi event lewat slug. */
 export const getAbsensiEvent = createServerFn({ method: "GET" })
@@ -110,4 +110,31 @@ export const removeAbsensiAdmin = createServerFn({ method: "POST" })
     await assertEventAdmin(context.userId, data.eventId);
     await removeEventAdmin(data.eventId, data.id);
     return { ok: true };
+  });
+
+/** Default tampilan absensi event baru. */
+export const getAbsensiDisplayDefaults = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { getDisplayDefaults } = await import("@/lib/absensi.server");
+    const defaults = (await getDisplayDefaults()) as Partial<AbsensiDisplay> | null;
+    return { defaults: defaults ?? null };
+  });
+
+export const saveAbsensiDisplayDefaults = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: AbsensiDisplay) => data)
+  .handler(async ({ data, context }) => {
+    const { assertCanCreate, saveDisplayDefaults } = await import("@/lib/absensi.server");
+    await assertCanCreate(context.userId);
+    await saveDisplayDefaults(data as unknown as Record<string, unknown>);
+    return { ok: true };
+  });
+
+/** Publik: saran nama pekerja untuk form absensi. */
+export const searchAbsensiEmployees = createServerFn({ method: "POST" })
+  .inputValidator((data: { term: string }) => data)
+  .handler(async ({ data }) => {
+    const { searchEmployeesByName } = await import("@/lib/absensi.server");
+    return searchEmployeesByName(data.term);
   });

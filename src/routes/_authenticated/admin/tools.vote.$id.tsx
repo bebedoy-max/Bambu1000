@@ -3,15 +3,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   Copy,
+  Crop,
   Download,
+  ImagePlus,
   Lock,
   Pause,
   Play,
   Plus,
   RotateCcw,
   Trash2,
+  Trophy,
   Unlock,
+  UserRound,
   Vote,
+
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminPage } from "@/components/AdminLayout";
@@ -35,8 +40,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { PhotoCropDialog } from "@/components/PhotoCropDialog";
 import { DatePickerField } from "@/components/DatePickerField";
-import { formatDateID } from "@/lib/absensi-ui";
+import { compressImage, formatDateID, pickImage } from "@/lib/absensi-ui";
 import {
   printVoteReport,
   rankNominees,
@@ -52,13 +58,17 @@ type VoteEmployee = {
   personalNumber: string | null;
   jabatan: string | null;
   uker: string | null;
+  foto?: string | null;
 };
+
 
 import {
   addVoteAdmin,
   deleteVoteNominee,
   getVoteAdminEvent,
+  fetchVoteImage,
   listVoteEmployees,
+  listVoteWorkerPhotos,
   removeVoteAdmin,
   resetVoteBallots,
   saveVoteEvent,
@@ -91,6 +101,7 @@ const emptyNominee = {
   jabatan: "",
   uker: "",
   personalNumber: "",
+  foto: "" as string,
 };
 
 function Page() {
@@ -102,6 +113,8 @@ function Page() {
   const [nomOpen, setNomOpen] = useState(false);
   const [nom, setNom] = useState(emptyNominee);
   const [adminEmail, setAdminEmail] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
   const q = useQuery({
     queryKey: ["vote-event", id],
@@ -112,6 +125,54 @@ function Page() {
     queryFn: () => listVoteEmployees(),
     staleTime: 300_000,
   });
+  /** Foto master wajah pekerja yang cocok dengan nominasi yang sedang diedit. */
+  const employeePhoto = useMemo(() => {
+    const list = (employees.data ?? []) as VoteEmployee[];
+    const pn = (nom.personalNumber || "").trim();
+    const name = (nom.nama || "").trim().toLowerCase();
+    const emp =
+      (pn ? list.find((e) => (e.personalNumber ?? "").trim() === pn) : undefined) ??
+      (name ? list.find((e) => e.nama.trim().toLowerCase() === name) : undefined);
+    return emp?.foto ?? "";
+  }, [employees.data, nom.personalNumber, nom.nama]);
+
+
+  /** Pekerja yang cocok dengan nominasi yang sedang diedit. */
+  const matchedEmployee = useMemo(() => {
+    const list = (employees.data ?? []) as VoteEmployee[];
+    const pn = (nom.personalNumber || "").trim();
+    const name = (nom.nama || "").trim().toLowerCase();
+    return (
+      (pn ? list.find((e) => (e.personalNumber ?? "").trim() === pn) : undefined) ??
+      (name ? list.find((e) => e.nama.trim().toLowerCase() === name) : undefined) ??
+      null
+    );
+  }, [employees.data, nom.personalNumber, nom.nama]);
+
+  const photos = useQuery({
+    queryKey: ["vote-worker-photos", matchedEmployee?.id ?? "", nom.personalNumber],
+    enabled: pickerOpen,
+    queryFn: () =>
+      listVoteWorkerPhotos({
+        data: {
+          workerId: matchedEmployee?.id,
+          personalNumber: (nom.personalNumber || "").trim() || undefined,
+        },
+      }),
+  });
+
+  /** Ambil foto pilihan (via server agar bebas CORS) lalu buka dialog crop. */
+  const usePhoto = async (url: string) => {
+    try {
+      const src = url.startsWith("data:")
+        ? url
+        : (await fetchVoteImage({ data: { url } })).dataUrl;
+      setPickerOpen(false);
+      setCropSrc(src);
+    } catch {
+      toast.error("Foto gagal dimuat.");
+    }
+  };
 
   const event = (draft ?? q.data?.event ?? null) as VoteSettings | null;
   const saved = q.data?.event as VoteSettings | undefined;
@@ -204,6 +265,7 @@ function Page() {
           jabatan: nom.jabatan || null,
           uker: nom.uker || null,
           personalNumber: nom.personalNumber || null,
+          foto: nom.foto || null,
           sortOrder: nominees.filter((n) => n.category === nom.category).length,
         },
       });
@@ -240,6 +302,12 @@ function Page() {
     toast.success("Link voting disalin");
   }
 
+  function copyShowcaseLink() {
+    if (!event) return;
+    void navigator.clipboard.writeText(`${window.location.origin}/vote-show/${event.slug}`);
+    toast.success("Link dashboard pemenang disalin");
+  }
+
   function setCategory(index: number, p: Partial<VoteCategory>) {
     if (!event) return;
     const cats = event.categories.map((c, i) => (i === index ? { ...c, ...p } : c));
@@ -272,6 +340,12 @@ function Page() {
             </Badge>
             <Button size="sm" variant="secondary" onClick={copyLink}>
               <Copy className="size-4" /> Salin link
+            </Button>
+            <Button size="sm" onClick={() => window.open(`/vote-show/${event.slug}`, "_blank")}>
+              <Trophy className="size-4" /> Dashboard Pemenang
+            </Button>
+            <Button size="sm" variant="ghost" onClick={copyShowcaseLink}>
+              <Copy className="size-4" /> Salin link dashboard
             </Button>
           </div>
         </div>
@@ -311,6 +385,21 @@ function Page() {
               <div>
                 <Label>Eyebrow</Label>
                 <Input value={event.eyebrow} onChange={(e) => patch({ eyebrow: e.target.value })} />
+              </div>
+              <div>
+                <Label>Label Dashboard Pemenang</Label>
+                <Input
+                  value={event.showcaseNote}
+                  onChange={(e) => patch({ showcaseNote: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Lokasi Acara</Label>
+                <Input
+                  value={event.location}
+                  onChange={(e) => patch({ location: e.target.value })}
+                  placeholder="BRI BO Pringsewu"
+                />
               </div>
               <div>
                 <Label>Tanggal</Label>
@@ -430,12 +519,21 @@ function Page() {
                     <div className="divide-y divide-border/60">
                       {list.map((n) => (
                         <div key={n.id} className="flex items-center justify-between gap-3 py-2">
-                          <div className="text-sm">
+                          <div className="flex items-center gap-3 text-sm">
+                            {n.foto ? (
+                              <img
+                                src={n.foto}
+                                alt={n.nama}
+                                className="size-9 rounded-full object-cover"
+                              />
+                            ) : null}
+                            <div>
                             <p className="font-medium">{n.nama}</p>
                             <p className="text-xs text-muted-foreground">
                               {[n.jabatan, n.uker, n.personalNumber].filter(Boolean).join(" · ") ||
                                 "-"}
                             </p>
+                            </div>
                           </div>
                           <div className="flex gap-1">
                             <Button
@@ -448,6 +546,7 @@ function Page() {
                                   nama: n.nama,
                                   jabatan: n.jabatan ?? "",
                                   uker: n.uker ?? "",
+                                  foto: n.foto ?? "",
                                   personalNumber: n.personalNumber ?? "",
                                 });
                                 setNomOpen(true);
@@ -635,6 +734,7 @@ function Page() {
                     jabatan: emp.jabatan ?? "",
                     uker: emp.uker ?? "",
                     personalNumber: emp.personalNumber ?? "",
+                    foto: n.foto || (emp.foto ?? ""),
                   }));
                 }}
               >
@@ -650,6 +750,70 @@ function Page() {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label>Foto Nominasi</Label>
+              <div className="flex flex-wrap items-center gap-3">
+                {nom.foto ? (
+                  <img
+                    src={nom.foto}
+                    alt="Foto nominasi"
+                    className="size-16 rounded-full border border-border object-cover"
+                  />
+                ) : (
+                  <span className="grid size-16 place-items-center rounded-full border border-dashed border-border text-xs text-muted-foreground">
+                    Foto
+                  </span>
+                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={async () => {
+                    const img = await pickImage();
+                    if (!img) return;
+                    const small = await compressImage(img, 480, 0.85);
+                    setNom((n) => ({ ...n, foto: small }));
+                  }}
+                >
+                  <ImagePlus className="size-4" /> {nom.foto ? "Ganti Foto" : "Unggah Foto"}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPickerOpen(true)}
+                >
+                  <UserRound className="size-4" /> Ambil dari Data Pekerja
+                </Button>
+                {nom.foto ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void usePhoto(nom.foto)}
+                  >
+                    <Crop className="size-4" /> Crop
+                  </Button>
+                ) : null}
+                {nom.foto ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setNom((n) => ({ ...n, foto: "" }))}
+                  >
+                    Hapus
+                  </Button>
+                ) : null}
+              </div>
+              {!employeePhoto && nom.personalNumber ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Pekerja ini belum punya foto master wajah di database.
+                </p>
+              ) : null}
+
+            </div>
+
             <div>
               <Label>Nama</Label>
               <Input value={nom.nama} onChange={(e) => setNom((n) => ({ ...n, nama: e.target.value }))} />
@@ -679,6 +843,65 @@ function Page() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Foto Pekerja di Database</DialogTitle>
+          </DialogHeader>
+          {photos.isLoading ? (
+            <p className="text-sm text-muted-foreground">Memuat foto...</p>
+          ) : (photos.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Belum ada foto untuk pekerja ini di database.
+            </p>
+          ) : (
+            <div className="grid max-h-[60vh] grid-cols-3 gap-3 overflow-y-auto sm:grid-cols-4">
+              {(photos.data ?? []).map((p, i) => (
+                <button
+                  key={`${p.url}-${i}`}
+                  type="button"
+                  className="group overflow-hidden rounded-md border border-border"
+                  onClick={() => void usePhoto(p.url)}
+                >
+                  <img
+                    src={p.url}
+                    alt={p.label}
+                    loading="lazy"
+                    decoding="async"
+                    className="transition group-hover:scale-105"
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      aspectRatio: "1 / 1",
+                      objectFit: "cover",
+                      objectPosition: "50% 20%",
+                    }}
+                  />
+                  <span className="block truncate p-1 text-[10px] text-muted-foreground">
+                    {p.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPickerOpen(false)}>
+              Tutup
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <PhotoCropDialog
+        open={!!cropSrc}
+        src={cropSrc}
+        onOpenChange={(v) => {
+          if (!v) setCropSrc(null);
+        }}
+        onDone={(url) => setNom((n) => ({ ...n, foto: url }))}
+      />
+
     </AdminPage>
   );
 }

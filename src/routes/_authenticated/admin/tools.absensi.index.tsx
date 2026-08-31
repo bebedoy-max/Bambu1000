@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarCheck, Copy, Plus } from "lucide-react";
+import { CalendarCheck, Copy, Palette, Plus, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { AdminPage } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  defaultUnitKerjaList,
+  absensiFieldLabels,
+  defaultAbsensiDisplay,
   formatDateID,
   slugify,
+  type AbsensiDisplay,
+  type AbsensiFields,
   type AbsensiSettings,
 } from "@/lib/absensi-ui";
-import { listAbsensiEvents, saveAbsensiEvent } from "@/lib/absensi.functions";
+import {
+  getAbsensiDisplayDefaults,
+  listAbsensiEvents,
+  saveAbsensiDisplayDefaults,
+  saveAbsensiEvent,
+} from "@/lib/absensi.functions";
 import { DatePickerField } from "@/components/DatePickerField";
+import { AbsensiDisplayEditor } from "@/components/AbsensiDisplayEditor";
+import { QrCodeDialog } from "@/components/QrCodeDialog";
 
 export const Route = createFileRoute("/_authenticated/admin/tools/absensi/")({
   head: () => ({
@@ -44,53 +54,88 @@ export const Route = createFileRoute("/_authenticated/admin/tools/absensi/")({
   component: Page,
 });
 
+const defaultFields: AbsensiFields = {
+  nama: true,
+  personalNumber: true,
+  unitKerja: true,
+  noTelp: true,
+  fotoSelfie: true,
+};
+
 function Page() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [qr, setQr] = useState<{
+    url: string;
+    title: string;
+    dateText: string;
+    locationText: string;
+  } | null>(null);
+  const [displayOpen, setDisplayOpen] = useState(false);
+  const [display, setDisplay] = useState<AbsensiDisplay>(defaultAbsensiDisplay);
+  const [savingDisplay, setSavingDisplay] = useState(false);
   const [form, setForm] = useState({
     eventName: "",
     officeName: "BRI BO Pringsewu",
     eventDate: new Date().toISOString().slice(0, 10),
   });
+  const [fields, setFields] = useState<AbsensiFields>(defaultFields);
 
   const q = useQuery({
     queryKey: ["absensi-events"],
     queryFn: () => listAbsensiEvents(),
   });
 
-  async function create() {
-    if (form.eventName.trim().length < 3) {
-      toast.error("Nama event minimal 3 karakter");
-      return;
+  const dq = useQuery({
+    queryKey: ["absensi-display-defaults"],
+    queryFn: () => getAbsensiDisplayDefaults(),
+  });
+
+  function openDisplay() {
+    setDisplay({ ...defaultAbsensiDisplay, ...((dq.data?.defaults ?? {}) as AbsensiDisplay) });
+    setDisplayOpen(true);
+  }
+
+  async function saveDisplay() {
+    setSavingDisplay(true);
+    try {
+      await saveAbsensiDisplayDefaults({ data: display });
+      toast.success("Default tampilan tersimpan");
+      setDisplayOpen(false);
+      void dq.refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Gagal menyimpan tampilan");
     }
+    setSavingDisplay(false);
+  }
+
+  function startCreate() {
+    setForm({
+      eventName: "",
+      officeName: "BRI BO Pringsewu",
+      eventDate: new Date().toISOString().slice(0, 10),
+    });
+    setFields(defaultFields);
+    setStep(1);
+    setOpen(true);
+  }
+
+  async function create() {
     setSaving(true);
     try {
+      const base = { ...defaultAbsensiDisplay, ...((dq.data?.defaults ?? {}) as AbsensiDisplay) };
       const slug = `${slugify(form.eventName)}-${Math.random().toString(36).slice(2, 7)}`;
       const res = await saveAbsensiEvent({
         data: {
+          ...base,
           slug,
           eventName: form.eventName.trim(),
           officeName: form.officeName.trim(),
           eventDate: form.eventDate,
-          logo: null,
-          logoLeft: null,
-          logoRight: null,
-          logoLeftSize: 136,
-          logoRightSize: 136,
-          logoLeftTop: 14,
-          logoRightTop: 14,
-          background: null,
-          cardBackground: null,
-          themeColor: "gold",
-          fields: {
-            nama: true,
-            personalNumber: true,
-            unitKerja: true,
-            noTelp: true,
-            fotoSelfie: true,
-          },
-          unitKerjaList: defaultUnitKerjaList,
+          fields,
+          unitKerjaList: [],
           isOpen: true,
         },
       });
@@ -102,8 +147,12 @@ function Page() {
     setSaving(false);
   }
 
+  function linkOf(slug: string) {
+    return `${typeof window === "undefined" ? "" : window.location.origin}/absensi/${slug}`;
+  }
+
   function copyLink(slug: string) {
-    void navigator.clipboard.writeText(`${window.location.origin}/absensi/${slug}`);
+    void navigator.clipboard.writeText(linkOf(slug));
     toast.success("Link absensi disalin");
   }
 
@@ -124,9 +173,14 @@ function Page() {
             </p>
           </div>
           {q.data?.panel ? (
-            <Button onClick={() => setOpen(true)}>
-              <Plus className="size-4" /> Absensi Event Baru
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={startCreate}>
+                <Plus className="size-4" /> Absensi Event Baru
+              </Button>
+              <Button variant="secondary" onClick={openDisplay}>
+                <Palette className="size-4" /> Tampilan
+              </Button>
+            </div>
           ) : null}
         </div>
 
@@ -141,13 +195,13 @@ function Page() {
             {events.map((ev) => (
               <div key={ev.id} className="glass-card space-y-3 p-5">
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="min-w-0">
                     <h2 className="font-semibold">{ev.eventName}</h2>
                     <p className="text-xs text-muted-foreground">
                       {ev.officeName} · {formatDateID(ev.eventDate)}
                     </p>
                   </div>
-                  <Badge variant={ev.isOpen ? "default" : "secondary"}>
+                  <Badge variant={ev.isOpen ? "default" : "secondary"} className="shrink-0">
                     {ev.isOpen ? "Dibuka" : "Ditutup"}
                   </Badge>
                 </div>
@@ -164,6 +218,20 @@ function Page() {
                   <Button size="sm" variant="secondary" onClick={() => copyLink(ev.slug)}>
                     <Copy className="size-4" /> Salin link
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() =>
+                      setQr({
+                        url: linkOf(ev.slug),
+                        title: ev.eventName,
+                        dateText: formatDateID(ev.eventDate),
+                        locationText: ev.officeName ?? "",
+                      })
+                    }
+                  >
+                    <QrCode className="size-4" /> Generate QR
+                  </Button>
                 </div>
               </div>
             ))}
@@ -174,42 +242,116 @@ function Page() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Absensi Event Baru</DialogTitle>
+            <DialogTitle>Absensi Event Baru · Langkah {step} dari 2</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label>Nama Event</Label>
-              <Input
-                value={form.eventName}
-                onChange={(e) => setForm((f) => ({ ...f, eventName: e.target.value }))}
-                placeholder="Contoh: Brilian Culture Fest"
-              />
+          {step === 1 ? (
+            <div className="space-y-3">
+              <div>
+                <Label>Nama Event</Label>
+                <Input
+                  value={form.eventName}
+                  onChange={(e) => setForm((f) => ({ ...f, eventName: e.target.value }))}
+                  placeholder="Contoh: Brilian Culture Fest"
+                />
+              </div>
+              <div>
+                <Label>Nama Kantor</Label>
+                <Input
+                  value={form.officeName}
+                  onChange={(e) => setForm((f) => ({ ...f, officeName: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Tanggal Event</Label>
+                <DatePickerField
+                  value={form.eventDate}
+                  onChange={(v) => setForm((f) => ({ ...f, eventDate: v }))}
+                />
+              </div>
             </div>
-            <div>
-              <Label>Nama Kantor</Label>
-              <Input
-                value={form.officeName}
-                onChange={(e) => setForm((f) => ({ ...f, officeName: e.target.value }))}
-              />
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Pilih data apa saja yang diisi peserta pada form absensi.
+              </p>
+              {(Object.keys(absensiFieldLabels) as (keyof AbsensiFields)[]).map((key) => (
+                <label key={key} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={!!fields[key]}
+                    onChange={() => setFields((f) => ({ ...f, [key]: !f[key] }))}
+                  />
+                  {absensiFieldLabels[key]}
+                </label>
+              ))}
             </div>
-            <div>
-              <Label>Tanggal Event</Label>
-              <DatePickerField
-                value={form.eventDate}
-                onChange={(v) => setForm((f) => ({ ...f, eventDate: v }))}
-              />
-            </div>
-          </div>
+          )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
+            {step === 1 ? (
+              <>
+                <Button variant="ghost" onClick={() => setOpen(false)}>
+                  Batal
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (form.eventName.trim().length < 3) {
+                      toast.error("Nama event minimal 3 karakter");
+                      return;
+                    }
+                    setStep(2);
+                  }}
+                >
+                  Lanjut
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => setStep(1)}>
+                  Kembali
+                </Button>
+                <Button onClick={create} disabled={saving}>
+                  {saving ? "Menyimpan..." : "Buat"}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={displayOpen} onOpenChange={setDisplayOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Default Tampilan Absensi Event Baru</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Pengaturan ini otomatis dipakai saat membuat absensi event baru. Tiap event tetap bisa
+            diubah sendiri lewat menu pengaturannya.
+          </p>
+          <AbsensiDisplayEditor
+            value={display}
+            onChange={(patch) => setDisplay((d) => ({ ...d, ...patch }))}
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDisplayOpen(false)}>
               Batal
             </Button>
-            <Button onClick={create} disabled={saving}>
-              {saving ? "Menyimpan..." : "Buat"}
+            <Button onClick={saveDisplay} disabled={savingDisplay}>
+              {savingDisplay ? "Menyimpan..." : "Simpan Default"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <QrCodeDialog
+        open={!!qr}
+        onOpenChange={(v) => !v && setQr(null)}
+        url={qr?.url ?? ""}
+        title={qr ? `QR Absensi — ${qr.title}` : "QR Code"}
+        fileName={qr ? `qr-absensi-${qr.title}` : "qr-code"}
+        eventName={qr?.title}
+        dateText={qr?.dateText}
+        locationText={qr?.locationText}
+      />
     </AdminPage>
   );
 }

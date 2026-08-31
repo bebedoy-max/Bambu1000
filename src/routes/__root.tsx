@@ -104,10 +104,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  // Injects the custom Supabase connection (URL + publishable key) from server
+  // secrets so the browser client uses the user's own Supabase project.
+  const publicConfig =
+    typeof window === "undefined" && typeof process !== "undefined"
+      ? { url: process.env['CUSTOM_SUPABASE_URL'], key: process.env['CUSTOM_SUPABASE_PUBLISHABLE_KEY'] }
+      : null;
+
   return (
     <html lang="id">
       <head>
         <HeadContent />
+        {publicConfig?.url && publicConfig?.key ? (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.__SUPABASE_CONFIG__=${JSON.stringify(publicConfig).replace(/</g, "\\u003c")}`,
+            }}
+          />
+        ) : null}
       </head>
       <body>
         {children}
@@ -116,6 +130,7 @@ function RootShell({ children }: { children: ReactNode }) {
     </html>
   );
 }
+
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();

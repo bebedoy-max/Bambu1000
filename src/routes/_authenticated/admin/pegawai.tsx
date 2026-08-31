@@ -3,6 +3,7 @@ import { AdminLayout, AccessDenied } from "@/components/AdminLayout";
 import { ResourceManager } from "@/components/ResourceManager";
 import { useRoles } from "@/lib/roles";
 import { WorkerFaceButton } from "@/components/WorkerFaceButton";
+import { WorkerProfilePhotoButton } from "@/components/WorkerProfilePhotoButton";
 
 export const Route = createFileRoute("/_authenticated/admin/pegawai")({
   head: () => ({
@@ -28,14 +29,23 @@ function Page() {
           description="Data pekerja per unit kerja."
           canWrite={r.isItAdmin}
           extraColumn={{
-            label: "Status Wajah",
+            label: "Foto & Wajah",
             render: (row) => (
-              <WorkerFaceButton
-                workerId={String(row["id"])}
-                personalNumber={String(row["personal_number"] ?? "")}
-                nama={String(row["nama"] ?? "")}
-                canWrite={r.isItAdmin}
-              />
+              <div className="flex flex-wrap items-center gap-2">
+                <WorkerProfilePhotoButton
+                  workerId={String(row["id"])}
+                  personalNumber={String(row["personal_number"] ?? "")}
+                  nama={String(row["nama"] ?? "")}
+                  photo={(row["n"] as string | null) ?? null}
+                  canWrite={r.isItAdmin}
+                />
+                <WorkerFaceButton
+                  workerId={String(row["id"])}
+                  personalNumber={String(row["personal_number"] ?? "")}
+                  nama={String(row["nama"] ?? "")}
+                  canWrite={r.isItAdmin}
+                />
+              </div>
             ),
           }}
           fields={[

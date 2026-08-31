@@ -95,18 +95,58 @@ export async function listEventsFor(userId: string) {
   return { panel, events, counts };
 }
 
+/** Daftar unit kerja diambil langsung dari database uker web app. */
+export async function listUnitKerja(): Promise<string[]> {
+  try {
+    const db = await admin();
+    const { data } = await db.from("ukers").select("nama_uker").order("nama_uker");
+    const names = (data ?? [])
+      .map((r: { nama_uker?: string | null }) => (r.nama_uker ?? "").trim())
+      .filter(Boolean) as string[];
+    return Array.from(new Set(names));
+  } catch {
+    return [];
+  }
+}
+
 export async function getEventById(id: string) {
   const db = await admin();
   const { data, error } = await db.from("absensi_events").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Absensi event tidak ditemukan.");
-  return toSettings(data);
+  const settings = toSettings(data);
+  return { ...settings, unitKerjaList: await listUnitKerja() };
 }
 
 export async function getEventBySlug(slug: string) {
   const db = await admin();
   const { data } = await db.from("absensi_events").select("*").eq("slug", slug).maybeSingle();
-  return data ? toSettings(data) : null;
+  if (!data) return null;
+  const settings = toSettings(data);
+  return { ...settings, unitKerjaList: await listUnitKerja() };
+}
+
+/** Default tampilan untuk absensi event baru. */
+export async function getDisplayDefaults(): Promise<Record<string, unknown> | null> {
+  try {
+    const db = await admin();
+    const { data } = await db
+      .from("absensi_display_defaults")
+      .select("data")
+      .eq("id", "default")
+      .maybeSingle();
+    return (data?.data as Record<string, unknown>) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveDisplayDefaults(payload: Record<string, unknown>) {
+  const db = await admin();
+  const { error } = await db
+    .from("absensi_display_defaults")
+    .upsert({ id: "default", data: payload, updated_at: new Date().toISOString() });
+  if (error) throw new Error(error.message);
 }
 
 export type SavePayload = Omit<AbsensiSettings, "id"> & { id?: string };
@@ -339,4 +379,26 @@ export async function removeEventAdmin(eventId: string, id: string) {
   const db = await admin();
   const { error } = await db.from("absensi_event_admins").delete().eq("id", id).eq("event_id", eventId);
   if (error) throw new Error(error.message);
+}
+
+/** Cari pekerja untuk saran nama pada form absensi publik (maks 5). */
+export async function searchEmployeesByName(term: string) {
+  const q = term.trim();
+  if (q.length < 2) return [];
+  try {
+    const db = await admin();
+    const { data } = await db
+      .from("employees")
+      .select("nama,personal_number,uker:ukers(nama_uker)")
+      .ilike("nama", `%${q}%`)
+      .order("nama", { ascending: true })
+      .limit(5);
+    return (data ?? []).map((r: Record<string, any>) => ({
+      nama: String(r["nama"] ?? ""),
+      personalNumber: r["personal_number"] ? String(r["personal_number"]) : "",
+      unitKerja: String(r["uker"]?.["nama_uker"] ?? ""),
+    }));
+  } catch {
+    return [];
+  }
 }

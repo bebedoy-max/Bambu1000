@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Search, Trash2, ListChecks } from "lucide-react";
+import { ImagePlus, Pencil, Plus, Search, Trash2, ListChecks } from "lucide-react";
 import { toast } from "sonner";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
@@ -31,6 +31,9 @@ import {
   projectParamSummary,
   type ProjectItem,
 } from "@/lib/projects";
+import { slideImageSrc } from "@/lib/carousel";
+import { useServerFn } from "@tanstack/react-start";
+import { uploadProjectImage } from "@/lib/project-photo.functions";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -43,6 +46,7 @@ type FormState = {
   custom: ProjectItem[];
   tanggal_mulai: string;
   deadline: string;
+  foto_url: string;
 };
 
 const emptyForm: FormState = {
@@ -52,6 +56,7 @@ const emptyForm: FormState = {
   custom: [],
   tanggal_mulai: "",
   deadline: "",
+  foto_url: "",
 };
 
 const fmt = (v: unknown) =>
@@ -65,6 +70,28 @@ export function ProjectManager({ canWrite }: { canWrite: boolean }) {
   const [editing, setEditing] = useState<Row | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [customOpen, setCustomOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const uploadFn = useServerFn(uploadProjectImage);
+
+  const toBase64 = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+      reader.onerror = () => reject(new Error("Gagal membaca file"));
+      reader.readAsDataURL(file);
+    });
+
+  const uploadImage = useMutation({
+    mutationFn: async (file: File) =>
+      uploadFn({
+        data: { fileName: file.name, mimeType: file.type, base64: await toBase64(file) },
+      }),
+    onSuccess: (res) => {
+      setForm((f) => ({ ...f, foto_url: res.id }));
+      toast.success("Gambar project terunggah");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const totals = useQuery({ queryKey: ["param-totals"], queryFn: fetchParamTotals });
 
@@ -93,6 +120,7 @@ export function ProjectManager({ canWrite }: { canWrite: boolean }) {
         custom_items: form.custom,
         tanggal_mulai: form.tanggal_mulai || null,
         deadline: form.deadline || null,
+        foto_url: form.foto_url.trim() || null,
       };
       if (editing) {
         const { error } = await db.from("projects").update(body).eq("id", editing["id"] as string);
@@ -152,6 +180,7 @@ export function ProjectManager({ canWrite }: { canWrite: boolean }) {
       custom: projectCustomItems(row),
       tanggal_mulai: row["tanggal_mulai"] ? String(row["tanggal_mulai"]).slice(0, 10) : "",
       deadline: row["deadline"] ? String(row["deadline"]).slice(0, 10) : "",
+      foto_url: String(row["foto_url"] ?? ""),
     });
     setOpen(true);
   }
@@ -285,6 +314,9 @@ export function ProjectManager({ canWrite }: { canWrite: boolean }) {
               />
             </div>
 
+
+
+
             <div className="grid gap-2">
               <Label>Parameter Pencapaian</Label>
               <Popover>
@@ -373,7 +405,57 @@ export function ProjectManager({ canWrite }: { canWrite: boolean }) {
                 />
               </div>
             </div>
+
+            <div className="grid gap-2">
+              <Label>Gambar Project</Label>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) uploadImage.mutate(file);
+                }}
+              />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploadImage.isPending}
+                >
+                  <ImagePlus className="size-4" />
+                  {uploadImage.isPending
+                    ? "Mengunggah…"
+                    : form.foto_url
+                      ? "Ganti Gambar"
+                      : "Unggah Gambar"}
+                </Button>
+                {form.foto_url ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setForm((f) => ({ ...f, foto_url: "" }))}
+                  >
+                    Hapus
+                  </Button>
+                ) : null}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Dipakai sebagai gambar slide project pada carousel dashboard.
+              </p>
+              {form.foto_url.trim() ? (
+                <img
+                  src={slideImageSrc(form.foto_url.trim(), 600)}
+                  alt="Pratinjau gambar project"
+                  className="h-32 w-full rounded-xl border border-border/60 object-cover"
+                />
+              ) : null}
+            </div>
           </div>
+
 
           <DialogFooter>
             <Button variant="secondary" onClick={() => setOpen(false)}>

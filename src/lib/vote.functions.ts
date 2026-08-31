@@ -179,11 +179,54 @@ export const listVoteEmployees = createServerFn({ method: "GET" })
       .from("employees")
       .select("id,nama,personal_number,jabatan:job_titles(nama_jabatan),uker:ukers(nama_uker)")
       .order("nama", { ascending: true });
-    return (data ?? []).map((r: Record<string, any>) => ({
-      id: String(r["id"]),
-      nama: String(r["nama"] ?? ""),
-      personalNumber: (r["personal_number"] as string | null) ?? null,
-      jabatan: (r["jabatan"]?.["nama_jabatan"] as string | null) ?? null,
-      uker: (r["uker"]?.["nama_uker"] as string | null) ?? null,
-    }));
+    // Foto master wajah pekerja (bila sudah diunggah) supaya bisa dipakai jadi foto nominasi.
+    const { data: faces } = await db
+      .from("worker_faces")
+      .select("worker_id,personal_number,reference_photo_url");
+    const byWorker = new Map<string, string>();
+    const byPn = new Map<string, string>();
+    for (const f of (faces ?? []) as Record<string, any>[]) {
+      const url = (f["reference_photo_url"] as string | null) ?? null;
+      if (!url) continue;
+      if (f["worker_id"]) byWorker.set(String(f["worker_id"]), url);
+      if (f["personal_number"]) byPn.set(String(f["personal_number"]), url);
+    }
+    return (data ?? []).map((r: Record<string, any>) => {
+      const pn = (r["personal_number"] as string | null) ?? null;
+      return {
+        id: String(r["id"]),
+        nama: String(r["nama"] ?? ""),
+        personalNumber: pn,
+        jabatan: (r["jabatan"]?.["nama_jabatan"] as string | null) ?? null,
+        uker: (r["uker"]?.["nama_uker"] as string | null) ?? null,
+        foto: byWorker.get(String(r["id"])) ?? (pn ? byPn.get(pn) ?? null : null),
+      };
+    });
+  });
+
+
+/** Dashboard pengumuman pemenang (publik, hanya baca). */
+export const getVoteShowcase = createServerFn({ method: "GET" })
+  .inputValidator((data: { slug: string }) => data)
+  .handler(async ({ data }) => {
+    const { publicShowcase } = await import("@/lib/vote.server");
+    return publicShowcase(data.slug);
+  });
+
+/** Semua foto pekerja di database (master wajah + foto event) untuk dipilih admin. */
+export const listVoteWorkerPhotos = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { workerId?: string | undefined; personalNumber?: string | undefined }) => data)
+  .handler(async ({ data }) => {
+    const { workerPhotos } = await import("@/lib/vote.server");
+    return workerPhotos(data);
+  });
+
+/** Ambil gambar (Drive/URL publik) sebagai data URL agar bisa di-crop tanpa masalah CORS. */
+export const fetchVoteImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { url: string }) => data)
+  .handler(async ({ data }) => {
+    const { imageAsDataUrl } = await import("@/lib/vote.server");
+    return { dataUrl: await imageAsDataUrl(data.url) };
   });

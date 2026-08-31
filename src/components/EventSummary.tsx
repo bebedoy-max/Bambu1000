@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CalendarDays, ImageOff } from "lucide-react";
-import { db, driveThumb } from "@/lib/face";
-import { getPublicEventPhotos } from "@/lib/public-events.functions";
+import { CalendarDays } from "lucide-react";
+import { db } from "@/lib/face";
+import { RotatingThumbGrid } from "@/components/RotatingThumbGrid";
+import {
+  getPublicEventPhotoCounts,
+  getPublicEventPhotoPage,
+} from "@/lib/public-events.functions";
 import { getEventLikes } from "@/lib/event-likes.functions";
 import { EventCardActions } from "@/components/EventCardActions";
 
@@ -15,10 +19,48 @@ type EventRow = {
   tanggal_mulai: string | null;
 };
 
-export type EventSummaryRow = EventRow & { photos: string[] };
+export type EventSummaryRow = EventRow & { photos: string[]; photoCount: number };
 
 const fmt = (d: string | null) =>
   d ? new Date(d).toLocaleDateString("id-ID", { dateStyle: "medium" }) : "—";
+
+const THUMBS_PER_EVENT = 12;
+
+/** Ambil foto & jumlah foto satu event; jatuh ke server function bila RLS menutup akses. */
+async function loadOneEvent(e: EventRow, fallbackCounts: Record<string, number>): Promise<EventSummaryRow> {
+  let photos: string[] = [];
+  let photoCount = 0;
+
+  const [{ data: rows }, { count }] = await Promise.all([
+    db
+      .from("event_photos")
+      .select("drive_file_id,processed_at")
+      .eq("event_id", e.id)
+      .order("processed_at", { ascending: false })
+      .limit(THUMBS_PER_EVENT),
+    db
+      .from("event_photos")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", e.id),
+  ]);
+
+  photos = ((rows ?? []) as { drive_file_id: string }[]).map((p) => p.drive_file_id);
+  photoCount = count ?? 0;
+
+  if (!photos.length) {
+    try {
+      const fallback = await getPublicEventPhotoPage({
+        data: { eventId: e.id, limit: THUMBS_PER_EVENT },
+      });
+      photos = fallback.map((p) => p.drive_file_id);
+    } catch {
+      /* biarkan kosong */
+    }
+  }
+  if (!photoCount) photoCount = fallbackCounts[e.id] ?? photos.length;
+
+  return { ...e, photos, photoCount };
+}
 
 async function loadEventSummary(): Promise<EventSummaryRow[]> {
   const { data, error } = await db
@@ -28,89 +70,16 @@ async function loadEventSummary(): Promise<EventSummaryRow[]> {
   if (error) throw error;
   const events = (data ?? []) as EventRow[];
   if (!events.length) return [];
-
-  const { data: photos } = await db
-    .from("event_photos")
-    .select("event_id,drive_file_id,processed_at")
-    .in(
-      "event_id",
-      events.map((e) => e.id),
-    )
-    .order("processed_at", { ascending: false })
-    .limit(600);
-
-  // Pengunjung publik tidak punya akses baca tabel foto event, jadi ambil
-  // lewat server function (hanya id file Drive) sebagai fallback.
-  let list = (photos ?? []) as { event_id: string; drive_file_id: string }[];
-  if (!list.length) {
-    try {
-      list = await getPublicEventPhotos();
-    } catch {
-      list = [];
-    }
+  let counts: Record<string, number> = {};
+  try {
+    counts = await getPublicEventPhotoCounts();
+  } catch {
+    counts = {};
   }
-
-  const map: Record<string, string[]> = {};
-  for (const p of list) {
-    (map[p.event_id] ??= []).push(p.drive_file_id);
-  }
-  return events.map((e) => ({ ...e, photos: map[e.id] ?? [] }));
+  return Promise.all(events.map((e) => loadOneEvent(e, counts)));
 }
 
-/** Thumbnail yang berganti-ganti secara acak dari koleksi foto event dengan crossfade. */
-function RotatingThumb({ ids, alt, delay }: { ids: string[]; alt: string; delay: number }) {
-  const [current, setCurrent] = useState(0);
-  const [next, setNext] = useState(0);
-  const [transitioning, setTransitioning] = useState(false);
 
-  useEffect(() => {
-    if (ids.length < 2) return;
-    const t = setInterval(() => {
-      const n = ids.length;
-      const newIdx = (current + 1 + Math.floor(Math.random() * (n - 1))) % n;
-      setNext(newIdx);
-      setTransitioning(true);
-      const commit = setTimeout(() => {
-        setCurrent(newIdx);
-        setTransitioning(false);
-      }, 3000);
-      return () => clearTimeout(commit);
-    }, 8000 + delay);
-    return () => clearInterval(t);
-  }, [ids, delay, current]);
-
-  if (!ids.length)
-    return (
-      <div className="grid aspect-square w-full place-items-center bg-secondary/60 text-muted-foreground">
-        <ImageOff className="size-4" />
-      </div>
-    );
-
-  const currentId = ids[current] ?? ids[0];
-  const nextId = ids[next] ?? currentId;
-  if (!currentId) return null;
-  const nextSrc = nextId ? driveThumb(nextId) : driveThumb(currentId);
-
-  return (
-    <div className="relative aspect-square w-full overflow-hidden">
-      <img
-        src={driveThumb(currentId)}
-        alt={alt}
-        loading="lazy"
-        className="absolute inset-0 aspect-square w-full object-cover transition-opacity duration-[3000ms] ease-in-out"
-        style={{ opacity: transitioning ? 0 : 1 }}
-      />
-      <img
-        src={nextSrc}
-        alt={alt}
-        loading="lazy"
-        className="absolute inset-0 aspect-square w-full object-cover transition-opacity duration-[3000ms] ease-in-out"
-        style={{ opacity: transitioning ? 1 : 0 }}
-      />
-    </div>
-  );
-
-}
 
 /**
  * Kluster kartu event berjalan: tiap kartu memuat grid thumbnail foto event
@@ -142,27 +111,13 @@ export function EventSummary({ limit }: { limit?: number }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {rows.map((e) => {
-        const slots = Math.min(4, Math.max(1, e.photos.length || 1));
         const card = (
           <>
-            <div
-              className={`grid gap-1 overflow-hidden rounded-xl border border-border/60 ${
-                slots > 1 ? "grid-cols-2" : "grid-cols-1"
-              }`}
-            >
-              {Array.from({ length: slots }, (_, slot) => (
-                <RotatingThumb
-                  key={slot}
-                  ids={e.photos.filter((_, i) => i % slots === slot)}
-                  alt={`Foto event ${e.nama_event}`}
-                  delay={slot * 700}
-                />
-              ))}
-            </div>
+            <RotatingThumbGrid photos={e.photos} alt={`Foto event ${e.nama_event}`} />
             <div className="mt-3">
               <h3 className="font-semibold">{e.nama_event}</h3>
               <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CalendarDays className="size-3.5" /> {fmt(e.tanggal_mulai)} · {e.photos.length} foto
+                <CalendarDays className="size-3.5" /> {fmt(e.tanggal_mulai)} · {e.photoCount} foto
               </p>
               {e.deskripsi ? (
                 <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{e.deskripsi}</p>
