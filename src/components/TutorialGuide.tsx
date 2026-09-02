@@ -103,19 +103,12 @@ export function TutorialGuide() {
         topicKey: topic.key,
         topicLabel: topic.label,
         topicGroup: topic.group,
-<<<<<<< HEAD
         konteks: topic.konteks ? `${konteks}\nTentang fitur ini: ${topic.konteks}` : konteks,
-=======
-        konteks,
->>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
       },
     });
   }
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
   async function generateOne(topic: TutorialTopic) {
     setBusy(topic.key);
     try {

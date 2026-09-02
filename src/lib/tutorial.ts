@@ -1,15 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
-<<<<<<< HEAD
 import { BookOpen, Home, type LucideIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { menuItems } from "@/lib/access";
 import { superItApps, superItTopicKey } from "@/lib/superit-apps";
-=======
-import { BookOpen, CalendarCheck2, Home, Trophy, Vote, Gift, type LucideIcon } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { menuItems } from "@/lib/access";
->>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -28,7 +22,6 @@ export type TutorialTopic = {
   label: string;
   icon: LucideIcon;
   group: string;
-<<<<<<< HEAD
   /** Konteks singkat fitur (dipakai saat membuat panduan otomatis). */
   konteks?: string;
 };
@@ -43,23 +36,6 @@ const umumTopics: TutorialTopic[] = [
  * Daftar topik panduan. Otomatis mengikuti daftar menu aplikasi dan seluruh
  * fitur pada menu SuperIT Apps, sehingga penambahan/pengurangan fitur langsung
  * muncul di halaman Tutorial tanpa perubahan kode.
-=======
-};
-
-/** Topik di luar menu sidebar (halaman publik & sub-aplikasi SuperIT Apps). */
-const extraTopics: TutorialTopic[] = [
-  { key: "umum", label: "Pengenalan Aplikasi", icon: BookOpen, group: "Umum" },
-  { key: "dashboard-publik", label: "Dashboard Publik", icon: Home, group: "Umum" },
-  { key: "tools-absensi", label: "SuperIT · Absensi", icon: CalendarCheck2, group: "SuperIT Apps" },
-  { key: "tools-vote", label: "SuperIT · Voting", icon: Vote, group: "SuperIT Apps" },
-  { key: "tools-nominasi", label: "SuperIT · Nominasi", icon: Trophy, group: "SuperIT Apps" },
-  { key: "tools-undian", label: "SuperIT · Undian", icon: Gift, group: "SuperIT Apps" },
-];
-
-/**
- * Daftar topik panduan. Otomatis mengikuti daftar menu aplikasi, sehingga menu
- * atau fitur baru langsung muncul di halaman Tutorial tanpa perubahan kode.
->>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
  */
 export function tutorialTopics(): TutorialTopic[] {
   const fromMenus: TutorialTopic[] = menuItems.map((m) => ({
@@ -68,7 +44,6 @@ export function tutorialTopics(): TutorialTopic[] {
     icon: m.icon,
     group: "Menu Aplikasi",
   }));
-<<<<<<< HEAD
   const fromApps: TutorialTopic[] = superItApps.map((a) => ({
     key: superItTopicKey(a.key),
     label: `SuperIT · ${a.label}`,
@@ -80,11 +55,6 @@ export function tutorialTopics(): TutorialTopic[] {
 }
 
 
-=======
-  return [...extraTopics.filter((t) => t.group === "Umum"), ...fromMenus, ...extraTopics.filter((t) => t.group !== "Umum")];
-}
-
->>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
 /** Kelompokkan topik berdasarkan grup, urutan grup mengikuti kemunculan. */
 export function groupTopics(topics: TutorialTopic[]) {
   const map = new Map<string, TutorialTopic[]>();
