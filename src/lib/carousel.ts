@@ -55,6 +55,7 @@ export async function loadCarouselConfig(): Promise<CarouselSourceConfig[]> {
   }
 }
 
+<<<<<<< HEAD
 /** Ekstrak ID file dari berbagai format tautan Google Drive. */
 export function extractDriveId(photo: string): string | null {
   const m =
@@ -76,6 +77,13 @@ export function slideImageFallback(photo: string): string | null {
   return id ? `https://lh3.googleusercontent.com/d/${id}=w1200` : null;
 }
 
+=======
+/** Sumber gambar slide: URL langsung atau ID file Google Drive. */
+export function slideImageSrc(photo: string, size = 1200) {
+  return /^(https?:|data:|blob:)/i.test(photo) ? photo : driveThumb(photo, size);
+}
+
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
 /** Acak urutan slide (Fisher–Yates). */
 export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];

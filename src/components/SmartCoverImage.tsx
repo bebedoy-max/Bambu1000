@@ -3,11 +3,18 @@ import type { ImageFocus } from "@/lib/image-focus.functions";
 type Props = {
   src: string;
   alt: string;
+<<<<<<< HEAD
   className?: string | undefined;
   loading?: "lazy" | "eager";
   /** Titik fokus hasil deteksi wajah di server (0..1). */
   focus?: ImageFocus | undefined;
   onError?: (() => void) | undefined;
+=======
+  className?: string;
+  loading?: "lazy" | "eager";
+  /** Titik fokus hasil deteksi wajah di server (0..1). */
+  focus?: ImageFocus | undefined;
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
 };
 
 const posOf = (f: ImageFocus) => `${Math.round(f.x * 100)}% ${Math.round(f.y * 100)}%`;
@@ -18,7 +25,11 @@ const posOf = (f: ImageFocus) => `${Math.round(f.x * 100)}% ${Math.round(f.y * 1
  *   pertama dan tidak pernah berubah setelah gambar tampil (tanpa pergeseran).
  * - Bila tidak ada wajah terdeteksi, gambar dibiarkan apa adanya (crop tengah).
  */
+<<<<<<< HEAD
 export function SmartCoverImage({ src, alt, className, loading = "lazy", focus, onError }: Props) {
+=======
+export function SmartCoverImage({ src, alt, className, loading = "lazy", focus }: Props) {
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
   const pos = focus?.face ? posOf(focus) : "50% 50%";
 
   return (
@@ -28,7 +39,10 @@ export function SmartCoverImage({ src, alt, className, loading = "lazy", focus, 
       className={className}
       loading={loading}
       decoding="async"
+<<<<<<< HEAD
       onError={onError}
+=======
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
       style={{ objectPosition: pos }}
     />
   );

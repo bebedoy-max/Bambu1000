@@ -6,12 +6,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { getPublicEventPhotos } from "@/lib/public-events.functions";
 import { loadDiaryPhotos } from "@/components/DiarySummary";
+<<<<<<< HEAD
 import { loadCarouselConfig, shuffle, slideImageSrc, slideImageFallback } from "@/lib/carousel";
+=======
+import { loadCarouselConfig, shuffle, slideImageSrc } from "@/lib/carousel";
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
 import { getImageFocus, type ImageFocusMap } from "@/lib/image-focus.functions";
 import { SmartCoverImage } from "@/components/SmartCoverImage";
 
 const db = supabase as unknown as SupabaseClient;
 
+<<<<<<< HEAD
 /** Gambar slide dengan fallback: URL utama → URL alternatif Drive → placeholder. */
 function SlideImage({
   photo,
@@ -50,6 +55,8 @@ function SlideImage({
   );
 }
 
+=======
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
 type Slide = {
   id: string;
   kind: "Event" | "Project IT" | "Buku Harian IT";
@@ -248,11 +255,20 @@ export function HomeCarousel() {
           style={{ opacity: i === idx ? 1 : 0, pointerEvents: i === idx ? "auto" : "none" }}
         >
           {photo ? (
+<<<<<<< HEAD
             <SlideImage
               photo={photo}
               focus={focusMap[photo]}
               alt={s.title}
               className="absolute inset-0 size-full object-cover"
+=======
+            <SmartCoverImage
+              src={slideImageSrc(photo, 1200)}
+              focus={focusMap[photo]}
+              alt={s.title}
+              className="absolute inset-0 size-full object-cover"
+              loading="lazy"
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
             />
           ) : (
             <div

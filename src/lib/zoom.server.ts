@@ -225,6 +225,7 @@ export async function deleteMeeting(id: string) {
   const row = data as ZoomMeetingRow | null;
   if (row?.zoom_meeting_id) {
     try {
+<<<<<<< HEAD
       await zoomApi(`/meetings/${row.zoom_meeting_id}?schedule_for_reminder=false`, {
         method: "DELETE",
       });
@@ -236,13 +237,21 @@ export async function deleteMeeting(id: string) {
         console.error("Zoom delete failed:", msg);
         throw new Error(`Gagal menghapus meeting di Zoom: ${msg}`);
       }
+=======
+      await zoomApi(`/meetings/${row.zoom_meeting_id}`, { method: "DELETE" });
+    } catch (e) {
+      console.error(e);
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
     }
   }
   const del = await db.from("zoom_meetings").delete().eq("id", id);
   if (del.error) throw new Error(del.error.message);
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
 export type ZoomMeetingRow = {
   id: string;
   zoom_meeting_id: string | null;

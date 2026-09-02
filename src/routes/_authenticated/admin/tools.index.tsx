@@ -1,9 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+<<<<<<< HEAD
 import { Sparkles } from "lucide-react";
 import { AdminPage } from "@/components/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { superItApps } from "@/lib/superit-apps";
 
+=======
+import { CalendarCheck, Gift, Sparkles, Trophy, Video, Vote } from "lucide-react";
+import { AdminPage } from "@/components/AdminLayout";
+import { Badge } from "@/components/ui/badge";
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
 
 export const Route = createFileRoute("/_authenticated/admin/tools/")({
   head: () => ({
@@ -25,8 +31,58 @@ export const Route = createFileRoute("/_authenticated/admin/tools/")({
   component: Page,
 });
 
+<<<<<<< HEAD
 const apps = superItApps;
 
+=======
+const apps = [
+  {
+    key: "absensi",
+    to: "/admin/tools/absensi",
+    label: "Absensi Event",
+    description:
+      "Buat absensi digital per event, atur field & tampilannya, bagikan linknya ke pekerja, lalu pantau datanya.",
+    icon: CalendarCheck,
+    ready: true,
+  },
+  {
+    key: "vote",
+    to: "/admin/tools/vote",
+    label: "Vote",
+    description:
+      "Buat vote event, atur kategori & nominasi dari Data Pekerja, bagikan linknya, lalu pantau rekap suaranya.",
+    icon: Vote,
+    ready: true,
+  },
+  {
+    key: "undian",
+    to: "/admin/tools/undian",
+    label: "Undian",
+    description:
+      "Undian doorprize acara: atur kategori, hadiah, dan peserta (bisa impor dari Data Pekerja), lalu kocok pemenangnya di panggung.",
+    icon: Gift,
+    ready: true,
+  },
+  {
+    key: "nomination",
+    to: "/admin/tools/nominasi",
+    label: "Nomination",
+    description:
+      "Papan apresiasi Best Performance: atur kategori & nominasi (bisa ambil dari Data Pekerja), lalu mainkan papan pengumumannya saat acara.",
+    icon: Trophy,
+    ready: true,
+  },
+  {
+    key: "zoom",
+    to: "/admin/tools/zoom",
+    label: "Zoom Meeting",
+    description:
+      "Buat jadwal Zoom Meeting langsung dari panel: atur topik, agenda, waktu, durasi, lalu bagikan tautan undangannya.",
+    icon: Video,
+    ready: true,
+  },
+];
+>>>>>>> 4782819744373dd7d40d8f0b5d8b50447eff2811
 
 function Page() {
   return (
