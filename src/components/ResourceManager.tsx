@@ -3,7 +3,7 @@ import { PageEditContext } from "@/components/AdminLayout";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearch } from "@tanstack/react-router";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Images } from "lucide-react";
 import { toast } from "sonner";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
@@ -26,6 +26,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { DatePickerField } from "@/components/DatePickerField";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { MapsLink } from "@/components/MapsLink";
+import { UkerProfileLink } from "@/components/UkerProfileLink";
+import { EmployeeProfileLink } from "@/components/EmployeeProfileLink";
+import { MachineProfileLink } from "@/components/MachineProfileLink";
+import { PhotoGallery } from "@/components/PhotoGallery";
+import type { PhotoEntity } from "@/lib/drive-entities";
 
 /** Normalisasi nilai dari DB ke format date picker. */
 function toPickerValue(raw: unknown, withTime: boolean) {
@@ -112,6 +118,8 @@ export type Field = {
   autoFill?: { fromField: string; column: string };
   /** Placeholder khusus. */
   placeholder?: string;
+  /** Nilai wajib unik pada tabel (dicek sebelum simpan). */
+  unique?: boolean;
 };
 
 /** Input teks manual + saran otomatis dari tabel relasi. */
@@ -200,7 +208,11 @@ export type ResourceManagerProps = {
   canWrite?: boolean;
   /** Column set to the current user id on insert (e.g. uploaded_by, created_by). */
   ownerColumn?: string;
+  /** Bila diisi, tiap data punya galeri foto Google Drive. */
+  photoEntity?: PhotoEntity;
   extraActions?: (row: Row) => React.ReactNode;
+  /** Kolom tambahan sebelum kolom aksi, mis. status index wajah. */
+  extraColumn?: { label: string; render: (row: Row) => React.ReactNode };
 };
 
 function emptyForm(fields: Field[]): Row {
@@ -222,7 +234,9 @@ export function ResourceManager({
   orderBy = "created_at",
   canWrite,
   ownerColumn,
+  photoEntity,
   extraActions,
+  extraColumn,
 }: ResourceManagerProps) {
   const confirmDialog = useConfirm();
   const mayEdit = useContext(PageEditContext);
@@ -231,6 +245,7 @@ export function ResourceManager({
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
+  const [photoRow, setPhotoRow] = useState<Row | null>(null);
   const [form, setForm] = useState<Row>(() => emptyForm(fields));
   const urlSearch = useSearch({ strict: false }) as { q?: string; focus?: string };
   const [q, setQ] = useState(urlSearch.q ?? "");
@@ -360,6 +375,17 @@ export function ResourceManager({
         } else if (f.type === "number") body[f.key] = Number(str);
         else body[f.key] = str;
       }
+      // Cegah data duplikat pada kolom unik (Personal Number, TID, Kode Uker, dst.)
+      for (const f of fields) {
+        if (!f.unique) continue;
+        const val = body[f.key];
+        if (val === null || val === undefined || val === "") continue;
+        let q = db.from(table).select("id", { count: "exact", head: true }).eq(f.key, val);
+        if (editing) q = q.neq("id", editing["id"] as string);
+        const { count, error: dupErr } = await q;
+        if (dupErr) throw dupErr;
+        if ((count ?? 0) > 0) throw new Error(`${f.label} "${val}" sudah terdaftar`);
+      }
       if (editing) {
         const { error } = await db.from(table).update(body).eq("id", editing["id"] as string);
         if (error) throw error;
@@ -378,7 +404,12 @@ export function ResourceManager({
       setEditing(null);
       void qc.invalidateQueries({ queryKey: [table] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      toast.error(
+        /duplicate key|already exists|unique/i.test(e.message)
+          ? "Data duplikat: nilai tersebut sudah terdaftar"
+          : e.message,
+      ),
   });
 
   const remove = useMutation({
@@ -395,6 +426,7 @@ export function ResourceManager({
 
   const tableFields = fields.filter((f) => !f.hideInTable);
   const formFields = fields.filter((f) => !f.hideInForm);
+  const totalCols = tableFields.length + 1 + (extraColumn ? 1 : 0);
 
   /** Teks yang tampil di sel — dipakai juga sebagai bahan pencarian. */
   function cellText(f: Field, row: Row): string {
@@ -445,8 +477,51 @@ export function ResourceManager({
     }
   }, [focusId, list.data]);
 
+  /** Nama entitas (uker/atm/edc/dst) untuk label "Foto <nama>" pada popup maps. */
+  function rowLabel(row: Row): string | undefined {
+    const pick = fields.find((f) =>
+      /nama|lokasi|merchant|judul|title/i.test(f.key),
+    );
+    if (pick) {
+      const t = cellText(pick, row).trim();
+      if (t) return t;
+    }
+    const firstText = fields.find(
+      (f) =>
+        !["id", "created_at", "updated_at"].includes(f.key) &&
+        !f.key.endsWith("_id") &&
+        f.type !== "boolean" &&
+        f.type !== "latlng",
+    );
+    if (firstText) {
+      const t = cellText(firstText, row).trim();
+      if (t) return t;
+    }
+    return undefined;
+  }
+
   function renderCell(f: Field, row: Row) {
     const v = row[f.key];
+    if (table === "ukers" && f.key === "nama_uker")
+      return (
+        <UkerProfileLink
+          ukerId={String(row["id"] ?? "")}
+          nama={String(v ?? "—")}
+          kode={row["kode_uker"] ? String(row["kode_uker"]) : undefined}
+          tipe={row["tipe"] as string | null}
+          deskripsi={row["deskripsi"] as string | null}
+        />
+      );
+    if (table === "employees" && f.key === "nama")
+      return <EmployeeProfileLink employeeId={String(row["id"] ?? "")} nama={String(v ?? "—")} />;
+    if ((table === "atm_machines" || table === "crm_machines") && f.key === "lokasi")
+      return (
+        <MachineProfileLink
+          machineId={String(row["id"] ?? "")}
+          lokasi={String(v ?? "—")}
+          jenis={table === "crm_machines" ? "CRM" : "ATM"}
+        />
+      );
     if (f.type === "boolean")
       return <Badge variant={v ? "default" : "secondary"}>{v ? "Aktif" : "Nonaktif"}</Badge>;
     if (f.type === "uker") return ukerLabel.get(v as string) ?? "—";
@@ -460,6 +535,15 @@ export function ResourceManager({
 
 
     if (v === null || v === undefined || v === "") return "—";
+    if (f.type === "latlng")
+      return (
+        <MapsLink
+          value={v}
+          name={rowLabel(row)}
+          photoEntity={photoEntity}
+          entityId={String(row["id"] ?? "")}
+        />
+      );
     if (f.type === "datetime") return new Date(String(v)).toLocaleString("id-ID");
     return String(v);
   }
@@ -504,24 +588,30 @@ export function ResourceManager({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border/60 text-left text-xs tracking-wide text-muted-foreground uppercase">
-              {tableFields.map((f) => (
-                <th key={f.key} className="px-4 py-3 font-medium whitespace-nowrap">
+              {tableFields.map((f, i) => (
+                <th
+                  key={f.key}
+                  className={`px-4 py-3 font-medium whitespace-nowrap ${i > 1 ? "hidden md:table-cell" : ""}`}
+                >
                   {f.label}
                 </th>
               ))}
+              {extraColumn ? (
+                <th className="px-4 py-3 font-medium whitespace-nowrap">{extraColumn.label}</th>
+              ) : null}
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {list.isLoading ? (
               <tr>
-                <td colSpan={tableFields.length + 1} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={totalCols} className="px-4 py-8 text-center text-muted-foreground">
                   Memuat data…
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={tableFields.length + 1} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={totalCols} className="px-4 py-8 text-center text-muted-foreground">
                   Belum ada data.
                 </td>
               </tr>
@@ -535,14 +625,30 @@ export function ResourceManager({
                   }`}
                 >
 
-                  {tableFields.map((f) => (
-                    <td key={f.key} className="px-4 py-3 whitespace-nowrap">
+                  {tableFields.map((f, i) => (
+                    <td
+                      key={f.key}
+                      className={`px-4 py-3 whitespace-nowrap ${i > 1 ? "hidden md:table-cell" : ""}`}
+                    >
                       {renderCell(f, row)}
                     </td>
                   ))}
+                  {extraColumn ? (
+                    <td className="px-4 py-3 whitespace-nowrap">{extraColumn.render(row)}</td>
+                  ) : null}
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1">
                       {extraActions?.(row)}
+                      {photoEntity ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label="Galeri foto"
+                          onClick={() => setPhotoRow(row)}
+                        >
+                          <Images className="size-4" />
+                        </Button>
+                      ) : null}
                       {canWrite ? (
                         <>
                           <Button
@@ -740,6 +846,22 @@ export function ResourceManager({
                 )}
               </div>
             ))}
+            {photoEntity ? (
+              editing ? (
+                <div className="border-t border-border/60 pt-4">
+                  <PhotoGallery
+                    entity={photoEntity}
+                    entityId={String(editing["id"] ?? "")}
+                    canEdit={!!canWrite}
+                    title="Galeri Foto"
+                  />
+                </div>
+              ) : (
+                <p className="border-t border-border/60 pt-4 text-xs text-muted-foreground">
+                  Simpan data terlebih dahulu untuk menambahkan foto.
+                </p>
+              )
+            ) : null}
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>
@@ -751,6 +873,24 @@ export function ResourceManager({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {photoEntity ? (
+        <Dialog open={!!photoRow} onOpenChange={(v) => !v && setPhotoRow(null)}>
+          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Galeri Foto — {title}</DialogTitle>
+            </DialogHeader>
+            {photoRow ? (
+              <PhotoGallery
+                entity={photoEntity}
+                entityId={String(photoRow["id"] ?? "")}
+                canEdit={!!canWrite}
+                title="Foto tersimpan di Google Drive"
+              />
+            ) : null}
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </div>
   );
 }

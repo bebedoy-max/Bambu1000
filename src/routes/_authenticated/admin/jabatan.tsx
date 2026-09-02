@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AdminLayout, AccessDenied } from "@/components/AdminLayout";
 import { ResourceManager } from "@/components/ResourceManager";
 import { useRoles } from "@/lib/roles";
-import { accessLevelLabels } from "@/lib/access";
+import { jobAccessLevelLabels } from "@/lib/access";
 
 
 export const Route = createFileRoute("/_authenticated/admin/jabatan")({
@@ -40,7 +40,7 @@ function Page() {
               key: "akses_level",
               label: "Akses Level",
               type: "select",
-              options: accessLevelLabels,
+              options: jobAccessLevelLabels,
               required: true,
             },
 

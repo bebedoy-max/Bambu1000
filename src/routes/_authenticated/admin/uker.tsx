@@ -26,6 +26,7 @@ function Page() {
           title="Unit Kerja"
           description="Data kode uker, tipe kantor, alamat, titik maps, dan IP address."
           canWrite={r.isItAdmin}
+          photoEntity="uker"
           fields={[
             {
               key: "kode_uker",
@@ -33,6 +34,7 @@ function Page() {
               type: "digits",
               digitsLength: 4,
               required: true,
+              unique: true,
               placeholder: "4 digit angka",
             },
             { key: "nama_uker", label: "Nama Uker", required: true },
@@ -44,6 +46,12 @@ function Page() {
               required: true,
             },
             { key: "alamat", label: "Alamat", type: "textarea", required: true },
+            {
+              key: "deskripsi",
+              label: "Deskripsi Profil Uker",
+              type: "textarea",
+              placeholder: "Deskripsi singkat profil unit kerja",
+            },
             {
               key: "titik_maps",
               label: "Titik Maps",

@@ -26,8 +26,9 @@ function Page() {
           title="Mesin ATM"
           description="Daftar mesin ATM beserta jadwal maintenance."
           canWrite={r.isItAdmin}
+          photoEntity="atm"
           fields={[
-            { key: "tid", label: "TID", type: "digits", required: true },
+            { key: "tid", label: "TID", type: "digits", required: true, unique: true },
             { key: "lokasi", label: "Lokasi", required: true },
             {
               key: "titik_maps",

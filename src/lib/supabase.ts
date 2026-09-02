@@ -24,6 +24,9 @@ function build(url: string, key: string): Client {
       storage: typeof window !== "undefined" ? localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
+      // Penukaran kode OAuth ditangani manual di /auth agar error terlihat.
+      detectSessionInUrl: false,
+      flowType: "pkce",
     },
   });
 }

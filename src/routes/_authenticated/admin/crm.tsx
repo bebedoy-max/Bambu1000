@@ -25,8 +25,9 @@ function Page() {
           title="Mesin CRM"
           description="Daftar mesin CRM beserta lokasi, IP address, dan tanggal live."
           canWrite={r.isItAdmin}
+          photoEntity="crm"
           fields={[
-            { key: "tid", label: "TID", type: "digits", required: true },
+            { key: "tid", label: "TID", type: "digits", required: true, unique: true },
             { key: "lokasi", label: "Lokasi", required: true },
             {
               key: "titik_maps",

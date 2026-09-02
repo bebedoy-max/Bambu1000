@@ -28,6 +28,8 @@ import {
   rejectUnregisteredAccount,
   PENDING_PN_KEY,
 } from "@/lib/registration";
+import { clearPostLogin, hasPostLogin, markPostLogin } from "@/lib/post-login";
+import { describeOAuthFailure, readOAuthReturn, stripOAuthParams } from "@/lib/oauth-return";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -70,10 +72,19 @@ function Auth() {
   const [tab, setTab] = useState("masuk");
   const [googleOpen, setGoogleOpen] = useState(false);
   const [googlePn, setGooglePn] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
   const done = useRef(false);
 
   /** Info akun tidak terdaftar lalu kembali ke dashboard umum. */
   async function showUnregistered() {
+    clearPostLogin();
     setSplash(null);
     await confirm({
       title: "Akun tidak terdaftar",
@@ -85,48 +96,140 @@ function Auth() {
     void navigate({ to: "/", replace: true });
   }
 
+  /** Registrasi Google gagal menghubungkan Personal Number: jelaskan alasannya. */
+  async function showClaimFailed(message: string) {
+    clearPostLogin();
+    setSplash(null);
+    await confirm({
+      title: "Registrasi belum berhasil",
+      description: `${message} Silakan periksa kembali Personal Number Anda lalu ulangi registrasi.`,
+      infoOnly: true,
+      confirmText: "Mengerti",
+    });
+    setTab("daftar");
+  }
+
   /** Dipanggil begitu sesi tersedia (login email maupun Google). */
   async function finish() {
     if (done.current) return;
     done.current = true;
     setSplash("Memverifikasi akun...");
-    await claimPendingPersonalNumber();
+    const claim = await claimPendingPersonalNumber();
 
     // Akun hanya boleh masuk bila Personal Number-nya ada di Data Pekerja.
     if (!(await isAccountRegistered())) {
       await rejectUnregisteredAccount();
       done.current = false;
-      await showUnregistered();
+      // Alur registrasi (ada Personal Number tertunda) tidak boleh dianggap
+      // sebagai "akun tidak terdaftar" — tampilkan penyebab sebenarnya.
+      if (claim.status === "failed") await showClaimFailed(claim.message);
+      else await showUnregistered();
       return;
     }
 
+    clearPostLogin();
     setSplash("Welcome to Super IT Zone...");
     await qc.invalidateQueries();
     await wait(1200);
     void navigate({ to: "/admin", replace: true });
   }
 
+  /** Menerjemahkan pesan error yang dikirim balik oleh penyedia OAuth. */
+  async function showOAuthError(raw: string) {
+    clearPostLogin();
+    setSplash(null);
+    await confirm({
+      title: "Registrasi Google gagal",
+      description: describeOAuthFailure(raw),
+      infoOnly: true,
+      confirmText: "Mengerti",
+    });
+    setTab("daftar");
+  }
+
   useEffect(() => {
     let mounted = true;
-    if (typeof window !== "undefined" && sessionStorage.getItem("unregistered_account")) {
-      sessionStorage.removeItem("unregistered_account");
-      void showUnregistered();
-      return;
-    }
+
+    void (async () => {
+      const ret = readOAuthReturn();
+
+      // 1) Google/Supabase mengembalikan error eksplisit.
+      if (ret?.error) {
+        stripOAuthParams();
+        await showOAuthError(ret.error);
+        return;
+      }
+
+      // 2) Kepulangan OAuth dengan authorization code: tukar jadi sesi di sini
+      //    agar setiap kegagalan bisa dijelaskan ke pengguna.
+      if (ret?.code) {
+        stripOAuthParams();
+        setSplash("Menyelesaikan login Google...");
+        const { data, error } = await supabase.auth.exchangeCodeForSession(ret.code);
+        if (!mounted) return;
+        if (error || !data.session) {
+          await showOAuthError(error?.message ?? "");
+          return;
+        }
+        void finish();
+        return;
+      }
+
+      // 3) Alur implicit (token pada hash).
+      if (ret?.accessToken && ret.refreshToken) {
+        stripOAuthParams();
+        setSplash("Menyelesaikan login Google...");
+        const { data, error } = await supabase.auth.setSession({
+          access_token: ret.accessToken,
+          refresh_token: ret.refreshToken,
+        });
+        if (!mounted) return;
+        if (error || !data.session) {
+          await showOAuthError(error?.message ?? "");
+          return;
+        }
+        void finish();
+        return;
+      }
+
+      if (typeof window !== "undefined" && sessionStorage.getItem("unregistered_account")) {
+        sessionStorage.removeItem("unregistered_account");
+        // Bila ada Personal Number tertunda, ini alur registrasi: jangan tampilkan
+        // pesan "akun tidak terdaftar", biarkan proses klaim berjalan.
+        if (!localStorage.getItem(PENDING_PN_KEY)) {
+          await showUnregistered();
+          return;
+        }
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      if (data.session) {
+        void finish();
+        return;
+      }
+      setSplash(null);
+      // Kembali dari Google tanpa sesi: beri tahu pengguna, jangan diam saja.
+      if (hasPostLogin()) {
+        clearPostLogin();
+        await showOAuthError(
+          "Sesi Google tidak terbentuk. Pastikan URL aplikasi ini terdaftar pada Redirect URLs " +
+            "di Supabase (Authentication → URL Configuration) dan provider Google aktif.",
+        );
+      }
+    })();
+
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session && mounted) void finish();
     });
-    void supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      if (data.session) void finish();
-      else setSplash(null);
-    });
+
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
 
   async function signIn() {
@@ -136,9 +239,11 @@ function Auth() {
       return;
     }
     setBusy(true);
+    markPostLogin();
     const { error } = await supabase.auth.signInWithPassword(p.data);
     setBusy(false);
     if (error) {
+      clearPostLogin();
       toast.error(error.message);
       return;
     }
@@ -146,6 +251,10 @@ function Auth() {
   }
 
   async function signUp() {
+    if (cooldown > 0) {
+      toast.error(`Tunggu ${cooldown} detik sebelum mencoba registrasi lagi.`);
+      return;
+    }
     const pnParsed = pnSchema.safeParse(pn);
     if (!pnParsed.success) {
       toast.error(pnParsed.error.issues[0]!.message);
@@ -163,33 +272,100 @@ function Auth() {
       toast.error(check.message);
       return;
     }
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       ...p.data,
       options: {
         emailRedirectTo: `${window.location.origin}/auth`,
         data: { personal_number: pnParsed.data },
       },
     });
-    setBusy(false);
     if (error) {
-      toast.error(error.message);
+      const msg = error.message || "";
+      const status = (error as { status?: number }).status;
+      const isRate =
+        status === 429 || /rate limit|too many requests|over_email_send_rate/i.test(msg);
+      if (isRate) {
+        // Akun kadang sudah terbentuk walau email konfirmasi gagal dikirim:
+        // coba login langsung sebelum menyerah.
+        localStorage.setItem(PENDING_PN_KEY, pnParsed.data);
+        const { error: signInErr } = await supabase.auth.signInWithPassword(p.data);
+        if (!signInErr) {
+          await claimPendingPersonalNumber();
+          setBusy(false);
+          void finish();
+          return;
+        }
+        setBusy(false);
+        const retryAfter = Number(
+          (error as { retryAfter?: number }).retryAfter ?? 60,
+        );
+        setCooldown(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 60);
+        toast.error(
+          "Batas pengiriman email registrasi tercapai. Coba lagi setelah hitung mundur selesai, " +
+            "atau gunakan tombol Masuk dengan Google agar tidak perlu email verifikasi.",
+        );
+        return;
+      }
+      setBusy(false);
+      if (/already registered|already exists|user_already/i.test(msg)) {
+        toast.error("Email ini sudah terdaftar. Silakan masuk.");
+      } else {
+        toast.error(msg);
+      }
       return;
     }
+
     localStorage.setItem(PENDING_PN_KEY, pnParsed.data);
+
+    // Bila konfirmasi email dimatikan, sesi langsung terbentuk:
+    // hubungkan Personal Number lalu terapkan level aksesnya.
+    if (signUpData.session) {
+      await claimPendingPersonalNumber();
+      setBusy(false);
+      void finish();
+      return;
+    }
+
+    // Tanpa sesi: login langsung agar level akses tersinkron tanpa menunggu email.
+    const { error: signInErr } = await supabase.auth.signInWithPassword(p.data);
+    setBusy(false);
+    if (!signInErr) {
+      await claimPendingPersonalNumber();
+      void finish();
+      return;
+    }
     toast.success("Registrasi berhasil. Silakan masuk dengan email & password Anda.");
+  }
+
+  /** Membuka halaman Google. Di dalam iframe preview, dipaksa ke tab teratas. */
+  async function startGoogle() {
+    markPostLogin();
+    setSplash("Menghubungkan ke Google...");
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth`,
+        skipBrowserRedirect: true,
+      },
+    });
+    if (error || !data?.url) {
+      clearPostLogin();
+      setSplash(null);
+      toast.error(error?.message || "Gagal masuk dengan Google");
+      return;
+    }
+    try {
+      // Google menolak dirender dalam iframe; arahkan jendela paling atas.
+      if (window.top && window.top !== window.self) window.top.location.href = data.url;
+      else window.location.href = data.url;
+    } catch {
+      window.open(data.url, "_blank", "noopener");
+    }
   }
 
   /** Login Google langsung tanpa verifikasi PN (khusus pengguna yang sudah terdaftar). */
   async function googleSignIn() {
-    setSplash("Menghubungkan ke Google...");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth` },
-    });
-    if (error) {
-      setSplash(null);
-      toast.error(error.message || "Gagal masuk dengan Google");
-    }
+    await startGoogle();
   }
 
   async function googleContinue() {
@@ -199,7 +375,7 @@ function Auth() {
       return;
     }
     setBusy(true);
-    const check = await checkPersonalNumber(parsed.data, { allowExisting: true });
+    const check = await checkPersonalNumber(parsed.data);
     setBusy(false);
     if (!check.ok) {
       toast.error(check.message);
@@ -207,15 +383,7 @@ function Auth() {
     }
     localStorage.setItem(PENDING_PN_KEY, parsed.data);
     setGoogleOpen(false);
-    setSplash("Menghubungkan ke Google...");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth` },
-    });
-    if (error) {
-      setSplash(null);
-      toast.error(error.message || "Gagal masuk dengan Google");
-    }
+    await startGoogle();
   }
 
   if (splash) return <AuthSplash label={splash} />;
@@ -310,9 +478,10 @@ function Auth() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button onClick={signUp} disabled={busy}>
-              Buat Akun
+            <Button onClick={signUp} disabled={busy || cooldown > 0}>
+              {cooldown > 0 ? `Coba lagi dalam ${cooldown}s` : "Buat Akun"}
             </Button>
+
           </TabsContent>
         </Tabs>
 

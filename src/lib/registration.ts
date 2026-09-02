@@ -30,13 +30,55 @@ export async function checkPersonalNumber(
   return { ok: true };
 }
 
-/** Menghubungkan akun yang baru login dengan Personal Number yang sudah diverifikasi. */
-export async function claimPendingPersonalNumber(): Promise<void> {
-  if (typeof window === "undefined") return;
+/**
+ * Menyesuaikan level akses akun dengan jabatan pada Data Pekerja
+ * (kuota Super Admin 1, Admin 10; kelebihan otomatis turun ke Manajemen).
+ */
+export async function syncAccessLevel(): Promise<void> {
+  try {
+    await db.rpc("sync_my_access_level");
+  } catch {
+    /* abaikan bila fungsi belum tersedia */
+  }
+}
+
+export type ClaimResult =
+  | { status: "none" }
+  | { status: "ok"; pn: string }
+  | { status: "failed"; pn: string; message: string };
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/**
+ * Menghubungkan akun yang baru login dengan Personal Number yang sudah diverifikasi.
+ * Dicoba beberapa kali karena profil pengguna baru (trigger) bisa terbentuk sesaat
+ * setelah sesi OAuth tersedia.
+ */
+export async function claimPendingPersonalNumber(): Promise<ClaimResult> {
+  if (typeof window === "undefined") return { status: "none" };
   const pn = localStorage.getItem(PENDING_PN_KEY);
-  if (!pn) return;
-  const { error } = await db.rpc("claim_personal_number", { p_pn: pn });
-  if (!error) localStorage.removeItem(PENDING_PN_KEY);
+  if (!pn) {
+    await syncAccessLevel();
+    return { status: "none" };
+  }
+
+  let message = "Gagal menghubungkan Personal Number dengan akun ini.";
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const { data, error } = await db.rpc("claim_personal_number", { p_pn: pn });
+    if (!error && data === true) {
+      localStorage.removeItem(PENDING_PN_KEY);
+      await syncAccessLevel();
+      return { status: "ok", pn };
+    }
+    if (error) message = error.message;
+    else
+      message =
+        "Personal Number ini sudah terhubung dengan akun lain, atau tidak ditemukan di Data Pekerja.";
+    await sleep(500);
+  }
+
+  await syncAccessLevel();
+  return { status: "failed", pn, message };
 }
 
 /**

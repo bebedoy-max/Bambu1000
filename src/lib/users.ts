@@ -29,6 +29,24 @@ export function isOnline(u: Pick<AdminUser, "last_online" | "is_blocked">) {
   return Date.now() - new Date(u.last_online).getTime() < ONLINE_WINDOW_MS;
 }
 
+/** Fallback: baca langsung dari tabel bila RPC admin_list_users tidak tersedia. */
+async function listUsersFallback(): Promise<AdminUser[]> {
+  const { data: profiles, error } = await db
+    .from("profiles")
+    .select(
+      "id,email,nama,username,is_active,is_blocked,last_online,last_activity,last_activity_at,created_at",
+    )
+    .order("last_online", { ascending: false, nullsFirst: false });
+  if (error) throw error;
+  const rows = (profiles ?? []) as Omit<AdminUser, "roles">[];
+  const { data: roleRows } = await db.from("user_roles").select("user_id,role");
+  const byUser = new Map<string, string[]>();
+  for (const r of (roleRows ?? []) as { user_id: string; role: string }[]) {
+    byUser.set(r.user_id, [...(byUser.get(r.user_id) ?? []), r.role]);
+  }
+  return rows.map((r) => ({ ...r, roles: byUser.get(r.id) ?? [] }));
+}
+
 export function useAdminUsers(enabled = true) {
   return useQuery({
     queryKey: ["admin_users"],
@@ -36,11 +54,12 @@ export function useAdminUsers(enabled = true) {
     refetchInterval: 30_000,
     queryFn: async () => {
       const { data, error } = await db.rpc("admin_list_users");
-      if (error) throw error;
+      if (error) return listUsersFallback();
       return (data ?? []) as AdminUser[];
     },
   });
 }
+
 
 export async function setBlocked(userId: string, blocked: boolean) {
   const { error } = await db.rpc("admin_set_blocked", {
@@ -90,34 +109,56 @@ export function usePresenceHeartbeat() {
   useEffect(() => {
     let stop = false;
     const label = activityLabel(path);
-    const ping = (withActivity: boolean) => {
+
+    const ping = async () => {
       if (stop || typeof document === "undefined" || document.hidden) return;
-      void db.rpc("touch_presence", { p_activity: withActivity ? label : null });
+      const { error } = await db.rpc("touch_presence", { p_activity: label });
+      if (!error) return;
+      // Fallback: tulis langsung ke profil sendiri (diizinkan RLS "profiles self update").
+      const { data } = await supabase.auth.getUser();
+      const id = data.user?.id;
+      if (!id) return;
+      const now = new Date().toISOString();
+      await db
+        .from("profiles")
+        .update({ last_online: now, last_activity: label, last_activity_at: now })
+        .eq("id", id);
     };
-    ping(true);
-    const id = setInterval(() => ping(false), 60_000);
+
+    void ping();
+    const id = setInterval(() => void ping(), 60_000);
+    const onVisible = () => void ping();
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       stop = true;
       clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [path]);
 }
+
 
 /** Apakah akun yang sedang login sudah diblokir admin. */
 export function useSelfBlocked() {
   return useQuery({
     queryKey: ["self_blocked"],
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    staleTime: 0,
+    gcTime: 0,
     queryFn: async () => {
       const { data } = await supabase.auth.getUser();
       const id = data.user?.id;
       if (!id) return false;
       const { data: row } = await db
         .from("profiles")
-        .select("is_blocked")
+        .select("is_blocked,is_active")
         .eq("id", id)
         .maybeSingle();
-      return Boolean((row as { is_blocked?: boolean } | null)?.is_blocked);
+      const p = (row ?? null) as { is_blocked?: boolean; is_active?: boolean } | null;
+      return Boolean(p?.is_blocked) || p?.is_active === false;
     },
   });
 }
+

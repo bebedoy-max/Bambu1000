@@ -9,6 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   accessLevels,
   menuItems,
+  PUBLIC_LEVEL,
+  PUBLIC_LEVEL_LABEL,
+  publicDefaults,
   usePageAccess,
   type AccessLevel,
   type PageAccessRow,
@@ -51,6 +54,28 @@ function Page() {
     return level === "admin" && canView(key, level);
   };
 
+  const canPublic = (key: string) => {
+    const rule = rows.find((r) => r.page_key === key && r.akses_level === PUBLIC_LEVEL);
+    if (rule) return rule.allowed;
+    return publicDefaults.includes(key);
+  };
+
+  const savePublic = useMutation({
+    mutationFn: async (v: { key: string; allowed: boolean }) => {
+      const { error } = await db
+        .from("page_access")
+        .upsert(
+          { page_key: v.key, akses_level: PUBLIC_LEVEL, allowed: v.allowed, can_edit: false },
+          { onConflict: "page_key,akses_level" },
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["page_access"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const save = useMutation({
     mutationFn: async (v: {
       key: string;
@@ -86,7 +111,9 @@ function Page() {
       <p className="mt-1 text-sm text-muted-foreground">
         Atur hak <span className="text-foreground">View</span> (lihat) dan{" "}
         <span className="text-foreground">Edit</span> (tambah/ubah/hapus) tiap level akses. Super
-        Admin selalu memiliki akses penuh.
+        Admin selalu memiliki akses penuh. Kolom{" "}
+        <span className="text-foreground">Pengunjung Umum</span> mengatur data yang boleh dibuka
+        dari dashboard umum tanpa login.
       </p>
 
       <div className="glass-card mt-6 overflow-x-auto p-1">
@@ -105,11 +132,20 @@ function Page() {
                   colSpan={2}
                   className={`bg-secondary/40 p-3 text-center font-semibold ${
                     idx > 0 ? "border-l border-border/60" : ""
-                  } ${idx === accessLevels.length - 1 ? "rounded-tr-xl" : ""}`}
+                  }`}
                 >
                   <span className="gradient-text">{l.label}</span>
                 </th>
               ))}
+              <th
+                rowSpan={2}
+                className="rounded-tr-xl border-l border-border/60 bg-secondary/40 p-3 text-center align-bottom font-semibold"
+              >
+                <span className="gradient-text">{PUBLIC_LEVEL_LABEL}</span>
+                <span className="mt-1 block text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                  View (tanpa login)
+                </span>
+              </th>
             </tr>
             <tr>
               {accessLevels.map((l, idx) => (
@@ -168,6 +204,15 @@ function Page() {
                     </Fragment>
                   );
                 })}
+                <td className="border-t border-l border-border/60 p-3 text-center transition-colors group-hover:bg-secondary/20">
+                  <Checkbox
+                    checked={canPublic(m.key)}
+                    disabled={savePublic.isPending}
+                    onCheckedChange={(c) =>
+                      savePublic.mutate({ key: m.key, allowed: c === true })
+                    }
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

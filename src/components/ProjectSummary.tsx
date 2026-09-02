@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link, useRouterState } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { projectParamSummary, resolveProjectItems } from "@/lib/projects";
@@ -63,6 +64,7 @@ const fmt = (d: string | null) =>
 
 export function ProjectSummary({ limit }: { limit?: number }) {
   const q = useProjectSummary();
+  const fromPath = useRouterState({ select: (st) => st.location.pathname });
   const rows = (q.data ?? []).slice(0, limit ?? 100);
 
   if (q.isLoading) return <p className="text-sm text-muted-foreground">Memuat project…</p>;
@@ -72,7 +74,15 @@ export function ProjectSummary({ limit }: { limit?: number }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {rows.map((p) => (
-        <article key={p.id} className="glass-card p-5">
+        <Link
+          key={p.id}
+          to="/project/$id"
+          params={{ id: p.id }}
+          search={{ from: fromPath }}
+          aria-label={`Lihat detail project ${p.nama}`}
+
+          className="glass-card block p-5 transition-transform duration-200 hover:-translate-y-0.5 hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        >
           <div className="flex items-start justify-between gap-3">
             <h3 className="font-semibold">{p.nama}</h3>
             <span className="text-2xl font-bold tabular-nums">{p.pct}%</span>
@@ -97,7 +107,7 @@ export function ProjectSummary({ limit }: { limit?: number }) {
               </dd>
             </div>
           </dl>
-        </article>
+        </Link>
       ))}
     </div>
   );

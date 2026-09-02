@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AdminLayout, AccessDenied } from "@/components/AdminLayout";
 import { ResourceManager } from "@/components/ResourceManager";
 import { useRoles } from "@/lib/roles";
+import { WorkerFaceButton } from "@/components/WorkerFaceButton";
+import { WorkerProfilePhotoButton } from "@/components/WorkerProfilePhotoButton";
 
 export const Route = createFileRoute("/_authenticated/admin/pegawai")({
   head: () => ({
@@ -26,6 +28,26 @@ function Page() {
           title="Data Pekerja"
           description="Data pekerja per unit kerja."
           canWrite={r.isItAdmin}
+          extraColumn={{
+            label: "Foto & Wajah",
+            render: (row) => (
+              <div className="flex flex-wrap items-center gap-2">
+                <WorkerProfilePhotoButton
+                  workerId={String(row["id"])}
+                  personalNumber={String(row["personal_number"] ?? "")}
+                  nama={String(row["nama"] ?? "")}
+                  photo={(row["n"] as string | null) ?? null}
+                  canWrite={r.isItAdmin}
+                />
+                <WorkerFaceButton
+                  workerId={String(row["id"])}
+                  personalNumber={String(row["personal_number"] ?? "")}
+                  nama={String(row["nama"] ?? "")}
+                  canWrite={r.isItAdmin}
+                />
+              </div>
+            ),
+          }}
           fields={[
             {
               key: "personal_number",
@@ -33,6 +55,7 @@ function Page() {
               type: "digits",
               digitsLength: 8,
               required: true,
+              unique: true,
               placeholder: "8 digit angka",
             },
             { key: "nama", label: "Nama Pekerja", required: true },
@@ -58,6 +81,13 @@ function Page() {
               type: "digits",
               required: true,
               placeholder: "hanya angka",
+            },
+            {
+              key: "profil",
+              label: "Deskripsi Profile",
+              type: "textarea",
+              hideInTable: true,
+              placeholder: "Deskripsi singkat profil pekerja",
             },
           ]}
         />

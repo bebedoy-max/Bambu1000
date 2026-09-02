@@ -25,6 +25,7 @@ function Page() {
           title="Data Perangkat IT"
           description="Daftar perangkat IT beserta pengguna, IP address, dan kondisinya."
           canWrite={r.isItAdmin}
+          photoEntity="perangkat"
           fields={[
             { key: "nama_perangkat", label: "Nama Perangkat", required: true },
             {

@@ -80,11 +80,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "BRI BO Pringsewu Dashboard" },
+      { name: "description", content: "Dashboard monitoring operasional, infrastruktur IT, dan event BRI BO Pringsewu." },
+      { name: "author", content: "BRI BO Pringsewu" },
+      { property: "og:title", content: "BRI BO Pringsewu Dashboard" },
+      { property: "og:description", content: "Monitoring operasional, infrastruktur IT, dan event BRI BO Pringsewu." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -95,6 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "preload", href: "/fonts/Nasalization-Rg.otf", as: "font", type: "font/otf", crossOrigin: "anonymous" },
     ],
   }),
   shellComponent: RootShell,
@@ -104,10 +105,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  // Injects the custom Supabase connection (URL + publishable key) from server
+  // secrets so the browser client uses the user's own Supabase project.
+  const publicConfig =
+    typeof window === "undefined" && typeof process !== "undefined"
+      ? { url: process.env['CUSTOM_SUPABASE_URL'], key: process.env['CUSTOM_SUPABASE_PUBLISHABLE_KEY'] }
+      : null;
+
   return (
-    <html lang="en">
+    <html lang="id">
       <head>
         <HeadContent />
+        {publicConfig?.url && publicConfig?.key ? (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.__SUPABASE_CONFIG__=${JSON.stringify(publicConfig).replace(/</g, "\\u003c")}`,
+            }}
+          />
+        ) : null}
       </head>
       <body>
         {children}
@@ -116,6 +131,7 @@ function RootShell({ children }: { children: ReactNode }) {
     </html>
   );
 }
+
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();

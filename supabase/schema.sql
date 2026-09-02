@@ -51,7 +51,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.is_event_admin()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role IN ('event_admin','superadmin'));
+  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role IN ('it_admin','event_admin','superadmin'));
 $$;
 
 DROP POLICY IF EXISTS "profiles self read" ON public.profiles;
@@ -190,6 +190,33 @@ CREATE POLICY "edc read" ON public.edc_machines FOR SELECT TO anon, authenticate
 CREATE POLICY "edc admin write" ON public.edc_machines FOR ALL TO authenticated USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
 DROP TRIGGER IF EXISTS edc_updated ON public.edc_machines;
 CREATE TRIGGER edc_updated BEFORE UPDATE ON public.edc_machines FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- QRIS MERCHANTS
+CREATE TABLE IF NOT EXISTS public.qris_merchants (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id text NOT NULL UNIQUE,
+  nama_merchant text NOT NULL,
+  alamat text,
+  tipe text,
+  bri_merchant text NOT NULL DEFAULT 'Ya',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+GRANT SELECT ON public.qris_merchants TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.qris_merchants TO authenticated;
+GRANT ALL ON public.qris_merchants TO service_role;
+
+ALTER TABLE public.qris_merchants ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "qris read" ON public.qris_merchants;
+DROP POLICY IF EXISTS "qris admin write" ON public.qris_merchants;
+CREATE POLICY "qris read" ON public.qris_merchants FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "qris admin write" ON public.qris_merchants FOR ALL TO authenticated
+  USING (public.is_it_admin()) WITH CHECK (public.is_it_admin());
+
+DROP TRIGGER IF EXISTS qris_updated ON public.qris_merchants;
+CREATE TRIGGER qris_updated BEFORE UPDATE ON public.qris_merchants
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- EVENTS
 CREATE TABLE IF NOT EXISTS public.events (
@@ -865,3 +892,319 @@ BEGIN
 END;
 $$;
 GRANT EXECUTE ON FUNCTION public.discard_unregistered_account() TO authenticated;
+
+-- ============================================================
+-- Level akses otomatis dari Data Pekerja + Kategori Jabatan
+-- Kuota: superadmin maksimal 1, admin (it_admin) maksimal 10
+-- (idempoten — aman dijalankan ulang di SQL Editor Supabase)
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.access_label_to_role(p_label text)
+RETURNS text LANGUAGE sql IMMUTABLE AS $$
+  SELECT CASE lower(btrim(coalesce(p_label, '')))
+    WHEN 'super admin' THEN 'it_admin'   -- Super Admin tidak boleh diberikan lewat jabatan
+    WHEN 'superadmin'  THEN 'it_admin'
+    WHEN 'admin'       THEN 'it_admin'
+    WHEN 'manajemen'   THEN 'event_admin'
+    ELSE 'employee'
+  END;
+$$;
+
+-- Kuota level akses
+CREATE OR REPLACE FUNCTION public.role_quota(p_role text)
+RETURNS int LANGUAGE sql IMMUTABLE AS $$
+  SELECT CASE p_role WHEN 'superadmin' THEN 1 WHEN 'it_admin' THEN 10 ELSE NULL END;
+$$;
+
+-- Terapkan level akses seorang user sesuai jabatan di Data Pekerja
+CREATE OR REPLACE FUNCTION public.sync_access_level(p_user uuid)
+RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  target text;
+  used int;
+  quota int;
+BEGIN
+  IF p_user IS NULL THEN RETURN NULL; END IF;
+
+  -- Superadmin yang sudah ada tidak pernah diturunkan
+  IF EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = p_user AND role = 'superadmin') THEN
+    RETURN 'superadmin';
+  END IF;
+
+  SELECT public.access_label_to_role(j.akses_level)
+    INTO target
+    FROM public.profiles p
+    JOIN public.employees e ON e.personal_number = p.personal_number
+    LEFT JOIN public.job_titles j ON j.id = e.jabatan_id
+   WHERE p.id = p_user
+   LIMIT 1;
+
+  IF target IS NULL THEN RETURN NULL; END IF;
+
+  -- Kuota admin: bila penuh, otomatis turun ke Manajemen
+  quota := public.role_quota(target);
+  IF quota IS NOT NULL THEN
+    SELECT count(*) INTO used FROM public.user_roles
+     WHERE role = target::app_role AND user_id <> p_user;
+    IF used >= quota THEN
+      target := CASE WHEN target = 'it_admin' THEN 'event_admin' ELSE 'employee' END;
+    END IF;
+  END IF;
+
+  DELETE FROM public.user_roles WHERE user_id = p_user AND role <> 'superadmin';
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (p_user, target::app_role)
+  ON CONFLICT DO NOTHING;
+
+  RETURN target;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.sync_access_level(uuid) TO authenticated, service_role;
+
+-- Versi untuk akun yang sedang login
+CREATE OR REPLACE FUNCTION public.sync_my_access_level()
+RETURNS text LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  SELECT public.sync_access_level(auth.uid());
+$$;
+GRANT EXECUTE ON FUNCTION public.sync_my_access_level() TO authenticated;
+
+-- Saat Personal Number di-claim, langsung terapkan level akses
+CREATE OR REPLACE FUNCTION public.claim_personal_number(p_pn text)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE emp_nama text;
+BEGIN
+  IF auth.uid() IS NULL THEN RETURN false; END IF;
+  SELECT e.nama INTO emp_nama FROM public.employees e WHERE e.personal_number = p_pn;
+  IF emp_nama IS NULL THEN RETURN false; END IF;
+  IF EXISTS (SELECT 1 FROM public.profiles p WHERE p.personal_number = p_pn AND p.id <> auth.uid()) THEN
+    RETURN false;
+  END IF;
+  UPDATE public.profiles
+     SET personal_number = p_pn,
+         nama = COALESCE(NULLIF(nama, ''), emp_nama),
+         status = 'approved'
+   WHERE id = auth.uid();
+  PERFORM public.sync_access_level(auth.uid());
+  RETURN true;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.claim_personal_number(text) TO authenticated;
+
+-- Super Admin tidak boleh dipakai di Kategori Jabatan
+UPDATE public.job_titles SET akses_level = 'Admin'
+ WHERE lower(btrim(coalesce(akses_level, ''))) IN ('super admin', 'superadmin');
+
+CREATE OR REPLACE FUNCTION public.job_titles_block_superadmin()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF lower(btrim(coalesce(NEW.akses_level, ''))) IN ('super admin', 'superadmin') THEN
+    NEW.akses_level := 'Admin';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS job_titles_no_superadmin ON public.job_titles;
+CREATE TRIGGER job_titles_no_superadmin BEFORE INSERT OR UPDATE ON public.job_titles
+FOR EACH ROW EXECUTE FUNCTION public.job_titles_block_superadmin();
+
+-- Penjaga kuota di level database
+CREATE OR REPLACE FUNCTION public.enforce_role_quota()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE used int; quota int;
+BEGIN
+  quota := public.role_quota(NEW.role::text);
+  IF quota IS NULL THEN RETURN NEW; END IF;
+  SELECT count(*) INTO used FROM public.user_roles
+   WHERE role = NEW.role AND user_id <> NEW.user_id;
+  IF used >= quota THEN
+    IF NEW.role::text = 'it_admin' THEN
+      NEW.role := 'event_admin'::app_role;   -- kuota admin penuh -> Manajemen
+      RETURN NEW;
+    END IF;
+    RAISE EXCEPTION 'Kuota % sudah penuh (maksimal %)', NEW.role, quota;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS user_roles_quota ON public.user_roles;
+CREATE TRIGGER user_roles_quota BEFORE INSERT OR UPDATE ON public.user_roles
+FOR EACH ROW EXECUTE FUNCTION public.enforce_role_quota();
+
+-- ============================================================
+-- Google Drive sebagai cloud storage aplikasi
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.drive_accounts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  label text NOT NULL,
+  client_id text NOT NULL,
+  client_secret text NOT NULL,
+  root_folder_name text NOT NULL DEFAULT 'SUPER IT DATA',
+  root_folder_id text,
+  refresh_token text,
+  account_email text,
+  is_active boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT ALL ON public.drive_accounts TO service_role;
+ALTER TABLE public.drive_accounts ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS public.entity_photos (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  entity_type text NOT NULL,
+  entity_id text NOT NULL,
+  drive_file_id text NOT NULL,
+  file_name text,
+  mime_type text,
+  view_url text,
+  thumbnail_url text,
+  account_id uuid REFERENCES public.drive_accounts(id) ON DELETE SET NULL,
+  uploaded_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS entity_photos_entity_idx ON public.entity_photos (entity_type, entity_id);
+GRANT SELECT ON public.entity_photos TO anon, authenticated;
+GRANT ALL ON public.entity_photos TO service_role;
+ALTER TABLE public.entity_photos ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS entity_photos_read ON public.entity_photos;
+CREATE POLICY entity_photos_read ON public.entity_photos FOR SELECT TO anon, authenticated USING (true);
+
+-- UKERS: deskripsi profil unit kerja (ditampilkan pada pop up profil uker)
+ALTER TABLE public.ukers ADD COLUMN IF NOT EXISTS deskripsi text;
+GRANT SELECT (deskripsi) ON public.ukers TO anon;
+
+-- Deskripsi profil pekerja (ditampilkan pada pop up detail pekerja)
+ALTER TABLE public.employees ADD COLUMN IF NOT EXISTS profil text;
+
+-- ============================================================
+-- FIX: "Database error saving new user" saat registrasi
+-- Trigger auth.users dibuat anti-gagal: kolom dipastikan ada dan
+-- setiap error di-log sebagai warning tanpa membatalkan signup.
+-- ============================================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS personal_number text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'pending';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS akses_level text;
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE first_user boolean; pn text; emp_nama text;
+BEGIN
+  BEGIN
+    pn := NULLIF(NEW.raw_user_meta_data->>'personal_number', '');
+    SELECT e.nama INTO emp_nama FROM public.employees e WHERE e.personal_number = pn LIMIT 1;
+
+    -- Personal Number tidak boleh dipakai dua akun
+    IF pn IS NOT NULL AND EXISTS (
+      SELECT 1 FROM public.profiles p WHERE p.personal_number = pn AND p.id <> NEW.id
+    ) THEN
+      pn := NULL;
+    END IF;
+
+    first_user := NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'superadmin');
+
+    INSERT INTO public.profiles (id, email, nama, username, status, personal_number)
+    VALUES (NEW.id, NEW.email,
+            COALESCE(NULLIF(NEW.raw_user_meta_data->>'nama',''), emp_nama, NEW.email),
+            split_part(COALESCE(NEW.email,''), '@', 1),
+            'approved',
+            pn)
+    ON CONFLICT (id) DO UPDATE
+      SET email = EXCLUDED.email,
+          personal_number = COALESCE(public.profiles.personal_number, EXCLUDED.personal_number);
+
+    IF first_user THEN
+      INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'superadmin') ON CONFLICT DO NOTHING;
+    ELSE
+      INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'employee') ON CONFLICT DO NOTHING;
+    END IF;
+  EXCEPTION WHEN OTHERS THEN
+    -- Jangan pernah menggagalkan pembuatan akun karena error di sisi aplikasi
+    RAISE WARNING 'handle_new_user gagal untuk %: %', NEW.id, SQLERRM;
+  END;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
+FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ============================================================
+-- FIX (registrasi): level akses otomatis + anti data duplikat
+-- ============================================================
+
+-- 1) Data unik: Personal Number, TID mesin, Kode Uker
+DELETE FROM public.employees a USING public.employees b
+ WHERE a.ctid > b.ctid AND a.personal_number = b.personal_number;
+CREATE UNIQUE INDEX IF NOT EXISTS employees_personal_number_key
+  ON public.employees (personal_number) WHERE personal_number IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS atm_machines_tid_key
+  ON public.atm_machines (tid) WHERE tid IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS crm_machines_tid_key
+  ON public.crm_machines (tid) WHERE tid IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS edc_machines_tid_key
+  ON public.edc_machines (tid) WHERE tid IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS ukers_kode_uker_key
+  ON public.ukers (kode_uker);
+
+-- 2) Level akses langsung menyesuaikan jabatan Data Pekerja saat akun dibuat
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE first_user boolean; pn text; emp_nama text;
+BEGIN
+  BEGIN
+    pn := NULLIF(NEW.raw_user_meta_data->>'personal_number', '');
+    SELECT e.nama INTO emp_nama FROM public.employees e WHERE e.personal_number = pn LIMIT 1;
+
+    IF pn IS NOT NULL AND EXISTS (
+      SELECT 1 FROM public.profiles p WHERE p.personal_number = pn AND p.id <> NEW.id
+    ) THEN
+      pn := NULL;
+    END IF;
+
+    first_user := NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'superadmin');
+
+    INSERT INTO public.profiles (id, email, nama, username, status, personal_number)
+    VALUES (NEW.id, NEW.email,
+            COALESCE(NULLIF(NEW.raw_user_meta_data->>'nama',''), emp_nama, NEW.email),
+            split_part(COALESCE(NEW.email,''), '@', 1),
+            'approved',
+            pn)
+    ON CONFLICT (id) DO UPDATE
+      SET email = EXCLUDED.email,
+          personal_number = COALESCE(public.profiles.personal_number, EXCLUDED.personal_number);
+
+    IF first_user THEN
+      INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'superadmin') ON CONFLICT DO NOTHING;
+    ELSE
+      INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'employee') ON CONFLICT DO NOTHING;
+      -- Sesuaikan dengan level akses jabatan pada Data Pekerja
+      IF pn IS NOT NULL THEN
+        PERFORM public.sync_access_level(NEW.id);
+      END IF;
+    END IF;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'handle_new_user gagal untuk %: %', NEW.id, SQLERRM;
+  END;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
+FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 3) Saat jabatan pekerja berubah, level akses akunnya ikut menyesuaikan
+CREATE OR REPLACE FUNCTION public.employees_sync_access()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE uid uuid;
+BEGIN
+  SELECT p.id INTO uid FROM public.profiles p WHERE p.personal_number = NEW.personal_number LIMIT 1;
+  IF uid IS NOT NULL THEN PERFORM public.sync_access_level(uid); END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS employees_sync_access_trg ON public.employees;
+CREATE TRIGGER employees_sync_access_trg AFTER INSERT OR UPDATE OF jabatan_id, personal_number
+ON public.employees FOR EACH ROW EXECUTE FUNCTION public.employees_sync_access();
