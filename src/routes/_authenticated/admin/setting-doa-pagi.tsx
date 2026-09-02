@@ -69,7 +69,26 @@ function Page() {
   );
 
   const [form, setForm] = useState<Form | null>(null);
-  const [pick, setPick] = useState("");
+  const [jabatanFilter, setJabatanFilter] = useState("");
+
+  /** Pekerja hanya dari unit kerja yang sedang dipilih admin. */
+  const ukerEmployees = useMemo(
+    () => employees.filter((e) => e.ukerId === activeUkerId),
+    [employees, activeUkerId],
+  );
+
+  const jabatanOptions = useMemo(
+    () =>
+      Array.from(new Set(ukerEmployees.map((e) => e.jabatan))).sort((a, b) => a.localeCompare(b)),
+    [ukerEmployees],
+  );
+
+  const visibleEmployees = useMemo(
+    () => ukerEmployees.filter((e) => !jabatanFilter || e.jabatan === jabatanFilter),
+    [ukerEmployees, jabatanFilter],
+  );
+
+
 
   const save = useMutation({
     mutationFn: (f: Form) => saveDoaPagiSection({ data: f }),
@@ -132,7 +151,9 @@ function Page() {
                   onChange={(e) => {
                     setUkerId(e.target.value);
                     setForm(null);
+                    setJabatanFilter("");
                   }}
+
                   className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 >
                   {ukers.map((u) => (
@@ -200,57 +221,98 @@ function Page() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Daftar Pekerja</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {form.pekerja.length ? (
-                      form.pekerja.map((p) => (
-                        <Badge key={p} variant="secondary" className="gap-1">
-                          {p}
-                          <button
-                            type="button"
-                            aria-label={`Hapus ${p}`}
-                            onClick={() =>
-                              setForm({ ...form, pekerja: form.pekerja.filter((x) => x !== p) })
-                            }
-                          >
-                            <X className="size-3" />
-                          </button>
-                        </Badge>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Belum ada pekerja dipilih.</p>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-end gap-2">
-                    <div className="min-w-56 flex-1">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <div>
+                      <Label htmlFor="filter-jabatan">Pilih Pekerja (Filter Jabatan)</Label>
                       <select
-                        value={pick}
-                        onChange={(e) => setPick(e.target.value)}
-                        className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        id="filter-jabatan"
+                        value={jabatanFilter}
+                        onChange={(e) => setJabatanFilter(e.target.value)}
+                        className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                       >
-                        <option value="">— pilih pekerja —</option>
-                        {employees
-                          .filter((e) => !form.pekerja.includes(e))
-                          .map((e) => (
-                            <option key={e} value={e}>
-                              {e}
-                            </option>
-                          ))}
+                        <option value="">Semua jabatan</option>
+                        {jabatanOptions.map((j) => (
+                          <option key={j} value={j}>
+                            {j}
+                          </option>
+                        ))}
                       </select>
                     </div>
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        if (!pick) return;
-                        setForm({ ...form, pekerja: [...form.pekerja, pick] });
-                        setPick("");
-                      }}
-                    >
-                      <Plus className="size-4" /> Tambah
-                    </Button>
+
+                    <div className="max-h-72 space-y-1 overflow-y-auto rounded-md border border-input p-2">
+                      {visibleEmployees.length ? (
+                        visibleEmployees.map((emp) => {
+                          const checked = form.pekerja.includes(emp.nama);
+                          return (
+                            <label
+                              key={`${emp.nama}-${emp.jabatan}`}
+                              className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted/50"
+                            >
+                              <input
+                                type="checkbox"
+                                className="size-4 accent-primary"
+                                checked={checked}
+                                onChange={(e) =>
+                                  setForm({
+                                    ...form,
+                                    pekerja: e.target.checked
+                                      ? [...form.pekerja, emp.nama]
+                                      : form.pekerja.filter((x) => x !== emp.nama),
+                                  })
+                                }
+                              />
+                              <span className="flex-1">{emp.nama}</span>
+                              <span className="text-xs text-muted-foreground">{emp.jabatan}</span>
+                            </label>
+                          );
+                        })
+                      ) : (
+                        <p className="px-2 py-1.5 text-sm text-muted-foreground">
+                          Belum ada data pekerja pada unit kerja ini.
+                        </p>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Hanya pegawai unit kerja <strong>{activeUker?.nama ?? "-"}</strong>.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Pekerja Terdaftar di Bagian Ini ({form.pekerja.length})</Label>
+                    <div className="max-h-[21.5rem] space-y-1 overflow-y-auto rounded-md border border-input p-2">
+                      {form.pekerja.length ? (
+                        form.pekerja.map((p, i) => (
+                          <div
+                            key={p}
+                            className="flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted/50"
+                          >
+                            <Badge variant="secondary" className="min-w-7 justify-center">
+                              {i + 1}
+                            </Badge>
+                            <span className="flex-1">{p}</span>
+                            <button
+                              type="button"
+                              aria-label={`Hapus ${p}`}
+                              className="text-muted-foreground hover:text-destructive"
+                              onClick={() =>
+                                setForm({ ...form, pekerja: form.pekerja.filter((x) => x !== p) })
+                              }
+                            >
+                              <X className="size-4" />
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="px-2 py-1.5 text-sm text-muted-foreground">
+                          Belum ada pekerja dipilih. Ceklis pekerja di sebelah kiri.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+
 
                 <Button onClick={submit} disabled={save.isPending}>
                   {save.isPending ? (

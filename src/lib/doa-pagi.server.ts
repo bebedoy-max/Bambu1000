@@ -47,16 +47,39 @@ export async function listUkers(): Promise<{ id: string; nama: string }[]> {
 }
 
 /** Daftar pekerja untuk dipilih pada pengaturan bagian. */
-export async function listEmployees(ukerId?: string | null): Promise<string[]> {
+export async function listEmployees(
+  ukerId?: string | null,
+): Promise<{ nama: string; jabatan: string; ukerId: string | null }[]> {
   const db = await admin();
-  let q = db.from("employees").select("nama,uker_id").order("nama", { ascending: true });
-  if (ukerId) q = q.eq("uker_id", ukerId);
-  const { data } = await q;
-  const names = (data ?? [])
-    .map((r: Record<string, any>) => String(r["nama"] ?? "").trim())
-    .filter(Boolean) as string[];
-  return Array.from(new Set(names));
+  const [{ data: titles }, empRes] = await Promise.all([
+    db.from("job_titles").select("id,nama_jabatan"),
+    (() => {
+      let q = db.from("employees").select("nama,jabatan_id,uker_id").order("nama", { ascending: true }).limit(2000);
+      if (ukerId) q = q.eq("uker_id", ukerId);
+      return q;
+    })(),
+  ]);
+  const titleMap = new Map<string, string>(
+    ((titles ?? []) as Record<string, any>[]).map((t) => [
+      String(t["id"]),
+      String(t["nama_jabatan"] ?? ""),
+    ]),
+  );
+  const seen = new Set<string>();
+  const out: { nama: string; jabatan: string; ukerId: string | null }[] = [];
+  for (const r of ((empRes as any)?.data ?? []) as Record<string, any>[]) {
+    const nama = String(r["nama"] ?? "").trim();
+    const uid = r["uker_id"] ? String(r["uker_id"]) : null;
+    const key = `${uid ?? "-"}|${nama}`;
+    if (!nama || seen.has(key)) continue;
+    seen.add(key);
+    const jab = titleMap.get(String(r["jabatan_id"] ?? "")) ?? "";
+    out.push({ nama, jabatan: jab.trim() || "Tanpa Jabatan", ukerId: uid });
+  }
+  return out;
 }
+
+
 
 export async function listSections(ukerId?: string | null): Promise<DoaPagiSection[]> {
   const db = await admin();

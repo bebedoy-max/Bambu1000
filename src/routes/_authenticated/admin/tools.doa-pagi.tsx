@@ -7,6 +7,7 @@ import logoBo from "@/assets/doa/b1000.png";
 import logoBri from "@/assets/doa/bri.png";
 import logoDanantara from "@/assets/doa/danantara.png";
 import iconCeklis from "@/assets/doa/ceklis.png";
+import iconCircle from "@/assets/doa/circle.png";
 import iconSilang from "@/assets/doa/silang.png";
 import {
   QRIS_KOSONG,
@@ -94,15 +95,23 @@ function UkerDialog({ onPick }: { onPick: (u: { id: string; nama: string }) => v
   );
 }
 
-function DayMark({ ok }: { ok: boolean }) {
+/**
+ * Penanda harian: kosong (bulat putih) sampai ada absen pada hari itu,
+ * lalu ceklis bila QRIS terisi, silang bila hari sudah lewat tanpa QRIS.
+ */
+function DayMark({ state }: { state: "ok" | "no" | "empty" }) {
+  const src = state === "ok" ? iconCeklis : state === "no" ? iconSilang : iconCircle;
+  const alt =
+    state === "ok" ? "Hadir" : state === "no" ? "Tidak absen QRIS" : "Belum ada absensi";
   return (
     <img
-      src={ok ? iconCeklis : iconSilang}
-      alt={ok ? "Hadir" : "Tidak absen QRIS"}
+      src={src}
+      alt={alt}
       className="size-8 shrink-0 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)] sm:size-9"
     />
   );
 }
+
 
 type Draft = Record<string, { qris: string; kehadiran: string }>;
 
@@ -173,8 +182,16 @@ function SectionScreen({
                 <div className="doa-days">
                   {dates.map((d) => {
                     const rec = draft[recordKey(section.id, nama, d)];
-                    return <DayMark key={d} ok={isQrisFilled(rec?.qris)} />;
+                    // Hari ini tetap bulat putih sampai admin absen QRIS;
+                    // silang hanya muncul bila QRIS diisi "Kosong" secara eksplisit.
+                    const state = isQrisFilled(rec?.qris)
+                      ? "ok"
+                      : d < today || rec?.qris === QRIS_KOSONG
+                        ? "no"
+                        : "empty";
+                    return <DayMark key={d} state={state} />;
                   })}
+
                 </div>
                 <div className="doa-pill doa-input-wrap">
                   <input
