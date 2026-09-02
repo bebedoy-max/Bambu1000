@@ -6,7 +6,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { getPublicEventPhotos } from "@/lib/public-events.functions";
 import { loadDiaryPhotos } from "@/components/DiarySummary";
+<<<<<<< HEAD
 import { loadCarouselConfig, shuffle, slideImageSrc, slideImageSources } from "@/lib/carousel";
+=======
+import { loadCarouselConfig, shuffle, slideImageSrc, slideImageFallback } from "@/lib/carousel";
+>>>>>>> d6a5cd0e397a42e65892a36e78703277079dfc19
 import { getImageFocus, type ImageFocusMap } from "@/lib/image-focus.functions";
 import { SmartCoverImage } from "@/components/SmartCoverImage";
 
@@ -27,8 +31,13 @@ function SlideImage({
   const [attempt, setAttempt] = useState(0);
   useEffect(() => setAttempt(0), [photo]);
 
+<<<<<<< HEAD
   const sources = slideImageSources(photo, 1200);
   const src = sources[attempt] ?? null;
+=======
+  const fallback = slideImageFallback(photo);
+  const src = attempt === 0 ? slideImageSrc(photo, 1200) : attempt === 1 ? fallback : null;
+>>>>>>> d6a5cd0e397a42e65892a36e78703277079dfc19
 
   if (!src) {
     return (

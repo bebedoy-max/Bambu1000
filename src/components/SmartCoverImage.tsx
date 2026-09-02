@@ -28,7 +28,10 @@ export function SmartCoverImage({ src, alt, className, loading = "lazy", focus, 
       className={className}
       loading={loading}
       decoding="async"
+<<<<<<< HEAD
       referrerPolicy="no-referrer"
+=======
+>>>>>>> d6a5cd0e397a42e65892a36e78703277079dfc19
       onError={onError}
       style={{ objectPosition: pos }}
     />

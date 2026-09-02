@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { CalendarCheck, Gift, Sunrise, Trophy, Video, Vote, type LucideIcon } from "lucide-react";
+=======
+import { CalendarCheck, Gift, Trophy, Video, Vote, type LucideIcon } from "lucide-react";
+>>>>>>> d6a5cd0e397a42e65892a36e78703277079dfc19
 
 /**
  * Registry tunggal untuk seluruh fitur di menu SuperIT Apps.
@@ -26,6 +30,7 @@ export const superItApps: SuperItApp[] = [
     ready: true,
   },
   {
+<<<<<<< HEAD
     key: "doa-pagi",
     to: "/admin/tools/doa-pagi",
     label: "Absensi, Doa & Briefing Pagi",
@@ -35,6 +40,8 @@ export const superItApps: SuperItApp[] = [
     ready: true,
   },
   {
+=======
+>>>>>>> d6a5cd0e397a42e65892a36e78703277079dfc19
     key: "vote",
     to: "/admin/tools/vote",
     label: "Vote",
