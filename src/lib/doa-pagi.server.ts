@@ -1,5 +1,6 @@
 /** Helper server-only untuk Absensi, Doa & Briefing Pagi. */
-import type { DoaPagiRecord, DoaPagiSection } from "@/lib/doa-pagi-ui";
+import { normalizeDoaLogos } from "@/lib/doa-pagi-ui";
+import type { DoaLogoSettings, DoaPagiRecord, DoaPagiSection } from "@/lib/doa-pagi-ui";
 
 type Db = { from: (t: string) => any };
 
@@ -183,4 +184,24 @@ export async function searchQrisMerchants(
     nama: String(r["nama_merchant"] ?? ""),
     storeId: String(r["store_id"] ?? ""),
   }));
+}
+
+/** Pengaturan logo header tampilan absensi. */
+export async function getLogoSettings(): Promise<DoaLogoSettings> {
+  const db = await admin();
+  const { data } = await db
+    .from("doa_pagi_logos")
+    .select("data")
+    .eq("id", "default")
+    .maybeSingle();
+  return normalizeDoaLogos((data as { data?: unknown } | null)?.data);
+}
+
+export async function saveLogoSettings(value: DoaLogoSettings) {
+  const db = await admin();
+  const { error } = await db.from("doa_pagi_logos").upsert(
+    { id: "default", data: normalizeDoaLogos(value), updated_at: new Date().toISOString() },
+    { onConflict: "id" },
+  );
+  if (error) throw new Error(error.message);
 }

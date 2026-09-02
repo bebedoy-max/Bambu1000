@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Building2, Loader2, X } from "lucide-react";
@@ -19,11 +19,15 @@ import {
   weekdayLabels,
   weekdayNames,
   workWeekDates,
+  defaultDoaLogos,
+  type DoaLogo,
+  type DoaLogoSettings,
   type DoaPagiRecord,
   type DoaPagiSection,
 } from "@/lib/doa-pagi-ui";
 import {
   getDoaPagiBoard,
+  getDoaPagiLogos,
   listDoaPagiUkers,
   saveDoaPagiRecord,
   searchDoaPagiQris,
@@ -113,6 +117,15 @@ function DayMark({ state }: { state: "ok" | "no" | "empty" }) {
 }
 
 
+/** Ukuran & pergeseran logo sesuai pengaturan admin. */
+function logoStyle(l: DoaLogo): CSSProperties {
+  return {
+    height: `${l.height}px`,
+    maxHeight: `${l.height}px`,
+    transform: `translate(${l.x}px, ${l.y}px)`,
+  };
+}
+
 type Draft = Record<string, { qris: string; kehadiran: string }>;
 
 function SectionScreen({
@@ -126,8 +139,10 @@ function SectionScreen({
   inputIndexOf,
   registerInput,
   focusNext,
+  logos,
 }: {
   section: DoaPagiSection;
+  logos: DoaLogoSettings;
   dates: string[];
   today: string;
   draft: Draft;
@@ -141,11 +156,26 @@ function SectionScreen({
   return (
     <section className="doa-screen">
       <header className="doa-head">
-        <img src={logoBo} alt="Branch Office Pringsewu" className="doa-head-logo" />
+        <img
+          src={logos.bo.url ?? logoBo}
+          alt="Branch Office Pringsewu"
+          className="doa-head-logo"
+          style={logoStyle(logos.bo)}
+        />
         <h2 className="doa-title">BAGIAN {section.nama.toUpperCase()}</h2>
         <div className="doa-head-right">
-          <img src={logoDanantara} alt="Danantara Indonesia" className="doa-head-brand" />
-          <img src={logoBri} alt="Bank Rakyat Indonesia" className="doa-head-brand" />
+          <img
+            src={logos.danantara.url ?? logoDanantara}
+            alt="Danantara Indonesia"
+            className="doa-head-brand"
+            style={logoStyle(logos.danantara)}
+          />
+          <img
+            src={logos.bri.url ?? logoBri}
+            alt="Bank Rakyat Indonesia"
+            className="doa-head-brand"
+            style={logoStyle(logos.bri)}
+          />
         </div>
       </header>
 
@@ -250,6 +280,13 @@ function Page() {
     queryFn: () => getDoaPagiBoard({ data: { ukerId: uker!.id, dates } }),
   });
 
+  const logoQuery = useQuery({
+    queryKey: ["doa-pagi", "logos"],
+    queryFn: () => getDoaPagiLogos(),
+  });
+  const logos: DoaLogoSettings = logoQuery.data?.logos ?? defaultDoaLogos;
+
+
   const [draft, setDraft] = useState<Draft>({});
   const [term, setTerm] = useState("");
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
@@ -352,6 +389,7 @@ function Page() {
       ) : sections.length ? (
         sections.map((s) => (
           <SectionScreen
+            logos={logos}
             key={s.id}
             section={s}
             dates={dates}

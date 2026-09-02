@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { DoaPagiSection } from "@/lib/doa-pagi-ui";
+import type { DoaLogoSettings, DoaPagiSection } from "@/lib/doa-pagi-ui";
 
 /** Daftar unit kerja untuk popup pilihan. */
 export const listDoaPagiUkers = createServerFn({ method: "GET" })
@@ -87,5 +87,24 @@ export const deleteDoaPagiSection = createServerFn({ method: "POST" })
     const { assertAdmin, deleteSection } = await import("@/lib/doa-pagi.server");
     await assertAdmin(context.userId);
     await deleteSection(data.id);
+    return { ok: true };
+  });
+
+/** Pengaturan logo header (dibaca tampilan absensi). */
+export const getDoaPagiLogos = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { getLogoSettings } = await import("@/lib/doa-pagi.server");
+    return { logos: await getLogoSettings() };
+  });
+
+/** Simpan pengaturan logo (khusus admin). */
+export const saveDoaPagiLogos = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { logos: DoaLogoSettings }) => data)
+  .handler(async ({ data, context }) => {
+    const { assertAdmin, saveLogoSettings } = await import("@/lib/doa-pagi.server");
+    await assertAdmin(context.userId);
+    await saveLogoSettings(data.logos);
     return { ok: true };
   });

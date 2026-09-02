@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, Save, Sunrise, Trash2, X } from "lucide-react";
+import { Image as ImageIcon, Loader2, Plus, Save, Sunrise, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminPage } from "@/components/AdminLayout";
@@ -10,12 +10,168 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import type { DoaPagiSection } from "@/lib/doa-pagi-ui";
+import {
+  defaultDoaLogos,
+  doaLogoLabels,
+  normalizeDoaLogos,
+  type DoaLogoKey,
+  type DoaLogoSettings,
+  type DoaPagiSection,
+} from "@/lib/doa-pagi-ui";
 import {
   deleteDoaPagiSection,
+  getDoaPagiLogos,
   getDoaPagiSettings,
+  saveDoaPagiLogos,
   saveDoaPagiSection,
 } from "@/lib/doa-pagi.functions";
+import logoBo from "@/assets/doa/b1000.png";
+import logoBri from "@/assets/doa/bri.png";
+import logoDanantara from "@/assets/doa/danantara.png";
+
+const fallbackLogo: Record<DoaLogoKey, string> = {
+  bo: logoBo,
+  danantara: logoDanantara,
+  bri: logoBri,
+};
+
+/** Editor logo header tampilan absensi: ganti gambar, ukuran, dan posisi. */
+function LogoSettings() {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["doa-pagi", "logos"], queryFn: () => getDoaPagiLogos() });
+  const [draft, setDraft] = useState<DoaLogoSettings | null>(null);
+  const logos = draft ?? q.data?.logos ?? defaultDoaLogos;
+
+  const save = useMutation({
+    mutationFn: (value: DoaLogoSettings) => saveDoaPagiLogos({ data: { logos: value } }),
+    onSuccess: async () => {
+      toast.success("Pengaturan logo tersimpan.");
+      setDraft(null);
+      await qc.invalidateQueries({ queryKey: ["doa-pagi", "logos"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function patch(key: DoaLogoKey, part: Partial<DoaLogoSettings[DoaLogoKey]>) {
+    setDraft(normalizeDoaLogos({ ...logos, [key]: { ...logos[key], ...part } }));
+  }
+
+  function pickFile(key: DoaLogoKey, file: File | null) {
+    if (!file) return;
+    if (file.size > 400_000) {
+      toast.error("Ukuran gambar maksimal 400 KB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => patch(key, { url: String(reader.result) });
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <div className="glass-card space-y-4 p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 font-semibold">
+            <ImageIcon className="size-4" /> Logo Tampilan Absensi
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Ganti gambar, atur ukuran, dan geser posisi logo BRI, Danantara, serta BO Pringsewu.
+          </p>
+        </div>
+        <Button onClick={() => save.mutate(logos)} disabled={save.isPending}>
+          {save.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+          Simpan Logo
+        </Button>
+      </div>
+
+      {q.isLoading ? (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" /> Memuat pengaturan logo…
+        </p>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {(Object.keys(doaLogoLabels) as DoaLogoKey[]).map((key) => {
+            const l = logos[key];
+            return (
+              <div key={key} className="space-y-3 rounded-xl border border-input p-3">
+                <p className="text-sm font-medium">{doaLogoLabels[key]}</p>
+                <div className="flex h-24 items-center justify-center overflow-hidden rounded-lg bg-[#1b1558]">
+                  <img
+                    src={l.url ?? fallbackLogo[key]}
+                    alt={doaLogoLabels[key]}
+                    className="object-contain"
+                    style={{
+                      height: `${l.height}px`,
+                      maxHeight: `${l.height}px`,
+                      transform: `translate(${l.x}px, ${l.y}px)`,
+                    }}
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    className="h-9 flex-1 text-xs"
+                    onChange={(e) => pickFile(key, e.target.files?.[0] ?? null)}
+                  />
+                  {l.url ? (
+                    <Button variant="ghost" size="sm" onClick={() => patch(key, { url: null })}>
+                      Reset
+                    </Button>
+                  ) : null}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-xs" htmlFor={`h-${key}`}>
+                      Tinggi (px)
+                    </Label>
+                    <Input
+                      id={`h-${key}`}
+                      type="number"
+                      min={12}
+                      max={220}
+                      value={l.height}
+                      onChange={(e) => patch(key, { height: Number(e.target.value) || 12 })}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs" htmlFor={`x-${key}`}>
+                      Geser X
+                    </Label>
+                    <Input
+                      id={`x-${key}`}
+                      type="number"
+                      min={-300}
+                      max={300}
+                      value={l.x}
+                      onChange={(e) => patch(key, { x: Number(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs" htmlFor={`y-${key}`}>
+                      Geser Y
+                    </Label>
+                    <Input
+                      id={`y-${key}`}
+                      type="number"
+                      min={-300}
+                      max={300}
+                      value={l.y}
+                      onChange={(e) => patch(key, { y: Number(e.target.value) || 0 })}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Nilai X negatif menggeser ke kiri, Y negatif ke atas.
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/admin/setting-doa-pagi")({
   head: () => ({
@@ -135,6 +291,8 @@ function Page() {
             pekerja yang tampil pada layar absensi.
           </p>
         </div>
+
+        <LogoSettings />
 
         {q.isLoading ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">

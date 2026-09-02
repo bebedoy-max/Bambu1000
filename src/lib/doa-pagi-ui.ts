@@ -99,3 +99,49 @@ export function isQrisFilled(qris: string | null | undefined) {
 export function recordKey(sectionId: string, pekerja: string, tanggal: string) {
   return `${sectionId}|${pekerja}|${tanggal}`;
 }
+
+/** Pengaturan tampilan satu logo pada header absensi. */
+export type DoaLogo = {
+  /** URL/data URL gambar pengganti; null memakai logo bawaan. */
+  url: string | null;
+  /** Tinggi logo dalam piksel. */
+  height: number;
+  /** Geser horizontal (px, negatif = ke kiri). */
+  x: number;
+  /** Geser vertikal (px, negatif = ke atas). */
+  y: number;
+};
+
+export type DoaLogoKey = "bo" | "danantara" | "bri";
+
+export type DoaLogoSettings = Record<DoaLogoKey, DoaLogo>;
+
+export const doaLogoLabels: Record<DoaLogoKey, string> = {
+  bo: "Logo BO Pringsewu",
+  danantara: "Logo Danantara",
+  bri: "Logo BRI",
+};
+
+export const defaultDoaLogos: DoaLogoSettings = {
+  bo: { url: null, height: 52, x: 0, y: 0 },
+  danantara: { url: null, height: 40, x: 0, y: 0 },
+  bri: { url: null, height: 40, x: 0, y: 0 },
+};
+
+/** Normalisasi data dari database agar selalu lengkap. */
+export function normalizeDoaLogos(raw: unknown): DoaLogoSettings {
+  const src = (raw ?? {}) as Partial<Record<DoaLogoKey, Partial<DoaLogo>>>;
+  const keys: DoaLogoKey[] = ["bo", "danantara", "bri"];
+  const out = {} as DoaLogoSettings;
+  for (const k of keys) {
+    const d = defaultDoaLogos[k];
+    const v = src[k] ?? {};
+    out[k] = {
+      url: typeof v.url === "string" && v.url.trim() ? v.url : null,
+      height: Number.isFinite(Number(v.height)) ? Number(v.height) : d.height,
+      x: Number.isFinite(Number(v.x)) ? Number(v.x) : d.x,
+      y: Number.isFinite(Number(v.y)) ? Number(v.y) : d.y,
+    };
+  }
+  return out;
+}
