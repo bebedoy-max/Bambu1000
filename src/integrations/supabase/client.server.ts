@@ -32,20 +32,26 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 function createSupabaseAdminClient() {
   const SUPABASE_URL =
+    process.env['VITE_SUPABASE_URL'] ||
+    process.env['SUPABASE_URL'] ||
     process.env['CUSTOM_SUPABASE_URL'] ||
     process.env['APP_SUPABASE_URL'] ||
     FALLBACK_SUPABASE_URL;
-  const SERVICE_ROLE_KEY = process.env['CUSTOM_SUPABASE_SERVICE_ROLE_KEY'] || process.env['APP_SUPABASE_SERVICE_ROLE_KEY'];
+  const SERVICE_ROLE_KEY =
+    process.env['SUPABASE_SERVICE_ROLE_KEY'] ||
+    process.env['CUSTOM_SUPABASE_SERVICE_ROLE_KEY'] ||
+    process.env['APP_SUPABASE_SERVICE_ROLE_KEY'];
 
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
     const missing = [
-      ...(!SUPABASE_URL ? ['CUSTOM_SUPABASE_URL'] : []),
-      ...(!SERVICE_ROLE_KEY ? ['CUSTOM_SUPABASE_SERVICE_ROLE_KEY'] : []),
+      ...(!SUPABASE_URL ? ['VITE_SUPABASE_URL'] : []),
+      ...(!SERVICE_ROLE_KEY ? ['SUPABASE_SERVICE_ROLE_KEY'] : []),
     ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Add the custom Supabase secrets.`;
+    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Add secrets di Lovable.`;
     console.error(`[Supabase] ${message}`);
     throw new Error(message);
   }
+
 
   return createClient<Database>(SUPABASE_URL, SERVICE_ROLE_KEY, {
     global: {

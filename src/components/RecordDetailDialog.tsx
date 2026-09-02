@@ -10,6 +10,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { MapsLink } from "@/components/MapsLink";
 import type { SearchRef } from "@/lib/search-registry";
+import { parseContent } from "@/lib/tutorial";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -32,6 +33,52 @@ function formatValue(key: string, value: unknown): string {
     return new Date(str).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
   }
   return str;
+}
+
+function isStructuredText(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  return /(?:^|\s)#{1,6}\s+|(?:^|\s)[-*•]\s+|(?:^|\s)\d+[.)]\s+/.test(value);
+}
+
+function StructuredText({ value }: { value: string }) {
+  const blocks = parseContent(value);
+
+  return (
+    <div className="space-y-3 font-normal leading-6">
+      {blocks.map((block, index) => {
+        if (block.type === "heading") {
+          return (
+            <h3 key={index} className="pt-2 text-base font-bold text-foreground first:pt-0">
+              {block.text}
+            </h3>
+          );
+        }
+        if (block.type === "bullets") {
+          return (
+            <ul key={index} className="list-disc space-y-1.5 pl-5 marker:text-primary">
+              {block.items.map((item, itemIndex) => (
+                <li key={itemIndex} className="pl-1">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        if (block.type === "steps") {
+          return (
+            <ol key={index} className="list-decimal space-y-1.5 pl-5 marker:font-semibold marker:text-primary">
+              {block.items.map((item, itemIndex) => (
+                <li key={itemIndex} className="pl-1">
+                  {item}
+                </li>
+              ))}
+            </ol>
+          );
+        }
+        return <p key={index}>{block.text}</p>;
+      })}
+    </div>
+  );
 }
 
 /**
@@ -110,20 +157,32 @@ export function RecordDetailDialog({
           <p className="text-sm text-muted-foreground">Data tidak ditemukan.</p>
         ) : (
           <dl className="space-y-2">
-            {entries.map(([k, v]) => (
-              <div key={k} className="grid grid-cols-[10rem_1fr] items-start gap-2 text-sm">
-                <dt className="text-muted-foreground">{prettify(k)}</dt>
-                <dd className="font-medium break-words">
-                  {k === "titik_maps" && typeof v === "string" && v ? (
-                    <MapsLink value={v} />
-                  ) : k.endsWith("_id") ? (
-                    refLabels[k]
-                  ) : (
-                    formatValue(k, v)
-                  )}
-                </dd>
-              </div>
-            ))}
+            {entries.map(([k, v]) => {
+              const structured = isStructuredText(v);
+              return (
+                <div
+                  key={k}
+                  className={
+                    structured
+                      ? "space-y-2 border-t border-border pt-3 text-sm first:border-t-0 first:pt-0"
+                      : "grid grid-cols-[minmax(7rem,10rem)_1fr] items-start gap-2 text-sm"
+                  }
+                >
+                  <dt className="text-muted-foreground">{prettify(k)}</dt>
+                  <dd className="font-medium break-words">
+                    {k === "titik_maps" && typeof v === "string" && v ? (
+                      <MapsLink value={v} />
+                    ) : k.endsWith("_id") ? (
+                      refLabels[k]
+                    ) : structured ? (
+                      <StructuredText value={v} />
+                    ) : (
+                      formatValue(k, v)
+                    )}
+                  </dd>
+                </div>
+              );
+            })}
           </dl>
         )}
       </DialogContent>

@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { BookOpen, CalendarCheck2, Home, Trophy, Vote, Gift, type LucideIcon } from "lucide-react";
+import { BookOpen, Home, type LucideIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { menuItems } from "@/lib/access";
+import { superItApps, superItTopicKey } from "@/lib/superit-apps";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -21,21 +22,20 @@ export type TutorialTopic = {
   label: string;
   icon: LucideIcon;
   group: string;
+  /** Konteks singkat fitur (dipakai saat membuat panduan otomatis). */
+  konteks?: string;
 };
 
-/** Topik di luar menu sidebar (halaman publik & sub-aplikasi SuperIT Apps). */
-const extraTopics: TutorialTopic[] = [
+/** Topik umum di luar menu sidebar (halaman publik). */
+const umumTopics: TutorialTopic[] = [
   { key: "umum", label: "Pengenalan Aplikasi", icon: BookOpen, group: "Umum" },
   { key: "dashboard-publik", label: "Dashboard Publik", icon: Home, group: "Umum" },
-  { key: "tools-absensi", label: "SuperIT · Absensi", icon: CalendarCheck2, group: "SuperIT Apps" },
-  { key: "tools-vote", label: "SuperIT · Voting", icon: Vote, group: "SuperIT Apps" },
-  { key: "tools-nominasi", label: "SuperIT · Nominasi", icon: Trophy, group: "SuperIT Apps" },
-  { key: "tools-undian", label: "SuperIT · Undian", icon: Gift, group: "SuperIT Apps" },
 ];
 
 /**
- * Daftar topik panduan. Otomatis mengikuti daftar menu aplikasi, sehingga menu
- * atau fitur baru langsung muncul di halaman Tutorial tanpa perubahan kode.
+ * Daftar topik panduan. Otomatis mengikuti daftar menu aplikasi dan seluruh
+ * fitur pada menu SuperIT Apps, sehingga penambahan/pengurangan fitur langsung
+ * muncul di halaman Tutorial tanpa perubahan kode.
  */
 export function tutorialTopics(): TutorialTopic[] {
   const fromMenus: TutorialTopic[] = menuItems.map((m) => ({
@@ -44,8 +44,16 @@ export function tutorialTopics(): TutorialTopic[] {
     icon: m.icon,
     group: "Menu Aplikasi",
   }));
-  return [...extraTopics.filter((t) => t.group === "Umum"), ...fromMenus, ...extraTopics.filter((t) => t.group !== "Umum")];
+  const fromApps: TutorialTopic[] = superItApps.map((a) => ({
+    key: superItTopicKey(a.key),
+    label: `SuperIT · ${a.label}`,
+    icon: a.icon,
+    group: "SuperIT Apps",
+    konteks: a.description,
+  }));
+  return [...umumTopics, ...fromMenus, ...fromApps];
 }
+
 
 /** Kelompokkan topik berdasarkan grup, urutan grup mengikuti kemunculan. */
 export function groupTopics(topics: TutorialTopic[]) {
@@ -116,6 +124,19 @@ export type ContentBlock =
   | { type: "steps"; items: string[] }
   | { type: "paragraph"; text: string };
 
+/**
+ * Rapikan markdown yang tersimpan tanpa line break. Konten hasil generator
+ * kadang berbentuk "Paragraf ## Judul - poin 1. langkah" dalam satu baris.
+ */
+function normalizeContent(raw: string): string {
+  return raw
+    .replace(/\s+(#{1,6})\s+/g, "\n$1 ")
+    .replace(/\s+([-*•])\s+/g, "\n$1 ")
+    .replace(/\s+(\d+[.)])\s+/g, "\n$1 ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /** Parser ringan: '## judul', '- poin', '1. langkah', sisanya paragraf. */
 export function parseContent(raw: string): ContentBlock[] {
   const blocks: ContentBlock[] = [];
@@ -127,7 +148,7 @@ export function parseContent(raw: string): ContentBlock[] {
     bullets = [];
     steps = [];
   };
-  for (const line of raw.split(/\r?\n/)) {
+  for (const line of normalizeContent(raw).split(/\r?\n/)) {
     const t = line.trim();
     if (!t) {
       flush();

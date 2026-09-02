@@ -6,11 +6,49 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { getPublicEventPhotos } from "@/lib/public-events.functions";
 import { loadDiaryPhotos } from "@/components/DiarySummary";
-import { loadCarouselConfig, shuffle, slideImageSrc } from "@/lib/carousel";
+import { loadCarouselConfig, shuffle, slideImageSrc, slideImageSources } from "@/lib/carousel";
 import { getImageFocus, type ImageFocusMap } from "@/lib/image-focus.functions";
 import { SmartCoverImage } from "@/components/SmartCoverImage";
 
 const db = supabase as unknown as SupabaseClient;
+
+/** Gambar slide dengan fallback: URL utama → URL alternatif Drive → placeholder. */
+function SlideImage({
+  photo,
+  focus,
+  alt,
+  className,
+}: {
+  photo: string;
+  focus: ImageFocusMap[string] | undefined;
+  alt: string;
+  className?: string;
+}) {
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => setAttempt(0), [photo]);
+
+  const sources = slideImageSources(photo, 1200);
+  const src = sources[attempt] ?? null;
+
+  if (!src) {
+    return (
+      <div
+        className="absolute inset-0"
+        style={{ backgroundImage: "var(--gradient-stat)", opacity: 0.35 }}
+      />
+    );
+  }
+  return (
+    <SmartCoverImage
+      src={src}
+      focus={focus}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      onError={() => setAttempt((a) => a + 1)}
+    />
+  );
+}
 
 type Slide = {
   id: string;
@@ -55,11 +93,14 @@ async function loadSlides(): Promise<CarouselData> {
         .order("processed_at", { ascending: false })
         .limit(400);
       photos = (data ?? []) as typeof photos;
-      if (!photos.length) {
+      // Sebagian event bisa saja tidak terbaca lewat RLS; lengkapi dari sumber publik.
+      const covered = new Set(photos.map((p) => p.event_id));
+      if (evRows.some((e) => !covered.has(e.id))) {
         try {
-          photos = await getPublicEventPhotos();
+          const extra = await getPublicEventPhotos();
+          photos = [...photos, ...extra.filter((p) => !covered.has(p.event_id))];
         } catch {
-          photos = [];
+          /* abaikan */
         }
       }
     }
@@ -143,7 +184,15 @@ async function loadSlides(): Promise<CarouselData> {
     }
   }
 
-  const ordered = shuffle(slides).map((s) => ({
+  const withPhotos = slides
+    .map((s) => ({
+      ...s,
+      photos: s.photos.filter((p) => typeof p === "string" && p.trim().length > 0),
+    }))
+    // Slide tanpa foto tidak ditampilkan agar carousel tidak pernah kosong gambar.
+    .filter((s) => s.photos.length > 0);
+
+  const ordered = shuffle(withPhotos).map((s) => ({
     ...s,
     photos: s.photos.slice(0, MAX_PHOTOS_PER_SLIDE),
   }));
@@ -210,12 +259,11 @@ export function HomeCarousel() {
           style={{ opacity: i === idx ? 1 : 0, pointerEvents: i === idx ? "auto" : "none" }}
         >
           {photo ? (
-            <SmartCoverImage
-              src={slideImageSrc(photo, 1200)}
+            <SlideImage
+              photo={photo}
               focus={focusMap[photo]}
               alt={s.title}
               className="absolute inset-0 size-full object-cover"
-              loading="lazy"
             />
           ) : (
             <div

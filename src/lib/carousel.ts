@@ -55,9 +55,38 @@ export async function loadCarouselConfig(): Promise<CarouselSourceConfig[]> {
   }
 }
 
-/** Sumber gambar slide: URL langsung atau ID file Google Drive. */
+/** Ekstrak ID file dari berbagai format tautan Google Drive. */
+export function extractDriveId(photo: string): string | null {
+  const m =
+    photo.match(/drive\.google\.com\/(?:file\/d\/|open\?[^ ]*?\bid=|uc\?[^ ]*?\bid=)([\w-]+)/i) ??
+    photo.match(/lh3\.googleusercontent\.com\/d\/([\w-]+)/i);
+  return m?.[1] ?? null;
+}
+
+/** Sumber gambar slide: URL langsung, tautan Google Drive, atau ID file Drive. */
 export function slideImageSrc(photo: string, size = 1200) {
+  const id = extractDriveId(photo);
+  if (id) return driveThumb(id, size);
   return /^(https?:|data:|blob:)/i.test(photo) ? photo : driveThumb(photo, size);
+}
+
+/** Semua kandidat URL gambar, dicoba berurutan bila yang sebelumnya gagal. */
+export function slideImageSources(photo: string, size = 1200): string[] {
+  const raw = photo.trim();
+  if (!raw) return [];
+  const id = extractDriveId(raw) ?? (/^(https?:|data:|blob:)/i.test(raw) ? null : raw);
+  if (!id) return [raw];
+  return [
+    driveThumb(id, size),
+    `https://lh3.googleusercontent.com/d/${id}=w${size}`,
+    `https://drive.google.com/uc?export=view&id=${id}`,
+    driveThumb(id, 400),
+  ];
+}
+
+/** URL alternatif bila thumbnail Drive gagal dimuat (mis. kena rate limit). */
+export function slideImageFallback(photo: string): string | null {
+  return slideImageSources(photo)[1] ?? null;
 }
 
 /** Acak urutan slide (Fisher–Yates). */

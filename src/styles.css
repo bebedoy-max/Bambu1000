@@ -2,6 +2,15 @@
 @source "../src";
 @import "tw-animate-css";
 
+/* Font Nasalization (Typodermic Fonts) — dihosting sendiri di /public/fonts agar tetap ter-load di hosting mana pun. */
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/Nasalization-Rg.otf") format("opentype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /*
@@ -62,7 +71,7 @@
 }
 
 @theme inline {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Nasalization", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
@@ -1155,3 +1164,191 @@
   50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0), 0 0 22px rgba(16, 185, 129, 0.75); }
 }
 .ticket-done-pulse { animation: ticket-done-pulse 1.8s ease-in-out infinite; }
+
+/* ===== Absensi, Doa & Briefing Pagi — tampilan layar penuh per bagian ===== */
+.doa-root {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  background: #100f3a;
+}
+
+.doa-close {
+  position: fixed;
+  right: 1rem;
+  top: 1rem;
+  z-index: 50;
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  background: rgb(0 0 0 / 0.35);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+
+.doa-screen {
+  display: flex;
+  min-height: 100vh;
+  scroll-snap-align: start;
+  flex-direction: column;
+  background: radial-gradient(120% 80% at 50% 0%, #241f6b 0%, #17124a 45%, #0a0728 100%);
+  color: #fff;
+}
+
+.doa-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(180deg, #241d70 0%, #1b1558 100%);
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.doa-head-logo {
+  height: 3.25rem;
+  width: auto;
+  object-fit: contain;
+}
+
+.doa-head-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.doa-head-brand {
+  height: 2.25rem;
+  width: auto;
+  object-fit: contain;
+}
+
+.doa-title {
+  text-align: center;
+  font-size: clamp(1.5rem, 3.4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  background: linear-gradient(180deg, #fff7cf 0%, #ffcf4a 45%, #b8730a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 4px 12px rgb(0 0 0 / 0.45);
+}
+
+.doa-note {
+  padding: 0.5rem 1.25rem 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: rgb(255 255 255 / 0.7);
+}
+
+.doa-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem 2rem;
+}
+
+.doa-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) auto minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.doa-row-head {
+  padding-bottom: 0.25rem;
+}
+
+.doa-col-label {
+  text-align: center;
+  font-size: clamp(0.95rem, 1.5vw, 1.5rem);
+  font-weight: 700;
+  background: linear-gradient(180deg, #fff3b0 0%, #ffd166 40%, #ff6fae 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.doa-days {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+  justify-items: center;
+}
+
+.doa-day-chip {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid #8fa6ff;
+  background: linear-gradient(180deg, #4a3fbf 0%, #2a1f8a 100%);
+  font-weight: 800;
+  color: #fff;
+}
+
+.doa-pill {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border-radius: 9999px;
+  border: 2px solid #6c8bff;
+  background: linear-gradient(180deg, #3a2a9b 0%, #2b1c74 100%);
+  padding: 0 1rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.15);
+}
+
+.doa-name {
+  font-size: clamp(0.8rem, 1.1vw, 1.05rem);
+  font-weight: 600;
+}
+
+.doa-input-wrap {
+  padding: 0 0.5rem 0 1rem;
+}
+
+.doa-input,
+.doa-select {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: clamp(0.8rem, 1.1vw, 1.05rem);
+  outline: none;
+}
+
+.doa-input::placeholder {
+  color: rgb(255 255 255 / 0.5);
+}
+
+.doa-select option {
+  color: #111;
+}
+
+.doa-empty {
+  padding: 2rem 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: rgb(255 255 255 / 0.7);
+}
+
+@media (max-width: 640px) {
+  .doa-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.35rem;
+  }
+  .doa-row-head {
+    display: none;
+  }
+}

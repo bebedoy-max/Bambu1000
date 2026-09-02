@@ -38,6 +38,16 @@ function Page() {
               required: true,
             },
             { key: "alamat", label: "Alamat", type: "textarea", required: true },
+            {
+              key: "koordinat",
+              label: "Longitude, Latitude",
+              placeholder: "Contoh: 104.5655289, -5.30274868",
+            },
+            {
+              key: "no_telp",
+              label: "Nomor Telepon",
+              placeholder: "Contoh: 0812-3456-7890",
+            },
             { key: "keterangan", label: "Keterangan", type: "textarea" },
           ]}
         />
