@@ -70,7 +70,6 @@ export function slideImageSrc(photo: string, size = 1200) {
   return /^(https?:|data:|blob:)/i.test(photo) ? photo : driveThumb(photo, size);
 }
 
-<<<<<<< HEAD
 /** Semua kandidat URL gambar, dicoba berurutan bila yang sebelumnya gagal. */
 export function slideImageSources(photo: string, size = 1200): string[] {
   const raw = photo.trim();
@@ -88,12 +87,6 @@ export function slideImageSources(photo: string, size = 1200): string[] {
 /** URL alternatif bila thumbnail Drive gagal dimuat (mis. kena rate limit). */
 export function slideImageFallback(photo: string): string | null {
   return slideImageSources(photo)[1] ?? null;
-=======
-/** URL alternatif bila thumbnail Drive gagal dimuat (mis. kena rate limit). */
-export function slideImageFallback(photo: string): string | null {
-  const id = extractDriveId(photo) ?? (/^(https?:|data:|blob:)/i.test(photo) ? null : photo);
-  return id ? `https://lh3.googleusercontent.com/d/${id}=w1200` : null;
->>>>>>> d6a5cd0e397a42e65892a36e78703277079dfc19
 }
 
 /** Acak urutan slide (Fisher–Yates). */
