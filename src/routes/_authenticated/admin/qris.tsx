@@ -32,6 +32,8 @@ function Page() {
             title="Merchant QRIS"
             description="Data merchant QRIS BO Pringsewu hasil unggahan file."
             canWrite={r.isItAdmin}
+            pageSize={100}
+
             fields={[
               { key: "store_id", label: "STORE ID", type: "digits", required: true, unique: true },
               { key: "nama_merchant", label: "Nama Merchant", required: true },

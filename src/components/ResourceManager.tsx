@@ -213,7 +213,13 @@ export type ResourceManagerProps = {
   extraActions?: (row: Row) => React.ReactNode;
   /** Kolom tambahan sebelum kolom aksi, mis. status index wajah. */
   extraColumn?: { label: string; render: (row: Row) => React.ReactNode };
+  /**
+   * Bila diisi, data diambil per halaman langsung dari database (cocok untuk
+   * tabel puluhan ribu baris) dan pencarian dilakukan di sisi server.
+   */
+  pageSize?: number;
 };
+
 
 function emptyForm(fields: Field[]): Row {
   const out: Row = {};
@@ -237,6 +243,7 @@ export function ResourceManager({
   photoEntity,
   extraActions,
   extraColumn,
+  pageSize,
 }: ResourceManagerProps) {
   const confirmDialog = useConfirm();
   const mayEdit = useContext(PageEditContext);
@@ -249,6 +256,7 @@ export function ResourceManager({
   const [form, setForm] = useState<Row>(() => emptyForm(fields));
   const urlSearch = useSearch({ strict: false }) as { q?: string; focus?: string };
   const [q, setQ] = useState(urlSearch.q ?? "");
+  const [page, setPage] = useState(0);
   const focusId = urlSearch.focus;
   const focusRef = useRef<HTMLTableRowElement | null>(null);
 
@@ -256,20 +264,61 @@ export function ResourceManager({
     if (urlSearch.q !== undefined) setQ(urlSearch.q);
   }, [urlSearch.q]);
 
+  /** Kata kunci pencarian server-side ditunda agar tidak query tiap ketikan. */
+  const [debouncedQ, setDebouncedQ] = useState(q);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q), 300);
+    return () => clearTimeout(t);
+  }, [q]);
+  useEffect(() => setPage(0), [debouncedQ]);
 
   const needsUkers = fields.some((f) => f.type === "uker");
 
+  /** Kolom teks biasa yang bisa dicari langsung di database. */
+  const searchColumns = useMemo(
+    () =>
+      fields
+        .filter(
+          (f) =>
+            !f.type ||
+            f.type === "text" ||
+            f.type === "textarea" ||
+            f.type === "digits" ||
+            f.type === "select",
+        )
+        .map((f) => f.key),
+    [fields],
+  );
+
+  const paged = typeof pageSize === "number" && pageSize > 0;
+
   const list = useQuery({
-    queryKey: [table, orderBy],
+    queryKey: paged ? [table, orderBy, "page", page, pageSize, debouncedQ] : [table, orderBy],
     queryFn: async () => {
+      if (paged) {
+        const term = debouncedQ.trim();
+        let query = db.from(table).select("*", { count: "exact" });
+        if (term && searchColumns.length) {
+          const esc = term.replace(/[%,()]/g, " ").trim();
+          query = query.or(searchColumns.map((c) => `${c}.ilike.%${esc}%`).join(","));
+        }
+        const from = page * pageSize!;
+        const { data, error, count } = await query
+          .order(orderBy, { ascending: false })
+          .range(from, from + pageSize! - 1);
+        if (error) throw error;
+        return { rows: (data ?? []) as Row[], count: count ?? 0 };
+      }
       const { data, error } = await db
         .from(table)
         .select("*")
         .order(orderBy, { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Row[];
+      return { rows: (data ?? []) as Row[], count: (data ?? []).length };
     },
+    placeholderData: (prev) => prev,
   });
+
 
   const ukers = useQuery({
     queryKey: ["ukers-options"],
@@ -465,11 +514,17 @@ export function ResourceManager({
   }
 
   const terms = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const rows = (list.data ?? []).filter((r) => {
-    if (terms.length === 0) return true;
-    const hay = rowHaystack(r);
-    return terms.every((t) => hay.includes(t));
-  });
+  const allRows: Row[] = list.data?.rows ?? [];
+  const totalCount = list.data?.count ?? allRows.length;
+  const rows = paged
+    ? allRows
+    : allRows.filter((r) => {
+        if (terms.length === 0) return true;
+        const hay = rowHaystack(r);
+        return terms.every((t) => hay.includes(t));
+      });
+  const pageCount = paged ? Math.max(1, Math.ceil(totalCount / pageSize!)) : 1;
+
 
   useEffect(() => {
     if (focusId && focusRef.current) {
@@ -695,6 +750,39 @@ export function ResourceManager({
           </tbody>
         </table>
       </div>
+
+      {paged ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+          <p className="text-muted-foreground">
+            {totalCount === 0
+              ? "Tidak ada data"
+              : `Menampilkan ${page * pageSize! + 1}–${Math.min((page + 1) * pageSize!, totalCount)} dari ${totalCount.toLocaleString("id-ID")} data`}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 0 || list.isFetching}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+            >
+              Sebelumnya
+            </Button>
+            <span className="text-muted-foreground">
+              Halaman {page + 1} / {pageCount}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page + 1 >= pageCount || list.isFetching}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Berikutnya
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
