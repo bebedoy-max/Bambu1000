@@ -1,12 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
-<<<<<<< HEAD
 import { Building2, Loader2, Save, X } from "lucide-react";
 import { toast } from "sonner";
-=======
-import { Building2, Loader2, X } from "lucide-react";
->>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
 
 import logoBo from "@/assets/doa/b1000.png";
 import logoBri from "@/assets/doa/bri.png";
@@ -35,10 +31,7 @@ import {
   getDoaPagiLogos,
   listDoaPagiUkers,
   saveDoaPagiRecord,
-<<<<<<< HEAD
   saveDoaPagiRecords,
-=======
->>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
   searchDoaPagiQris,
 } from "@/lib/doa-pagi.functions";
 
@@ -162,12 +155,9 @@ function SectionScreen({
   registerInput: (idx: number, el: HTMLInputElement | null) => void;
   focusNext: (idx: number) => void;
 }) {
-<<<<<<< HEAD
   // Bagian dengan satu pekerja (mis. Pemimpin Cabang) ditampilkan besar & center.
   const isLeader = /pemimpin\s+cabang/i.test(section.nama);
   const solo = section.pekerja.length === 1;
-=======
->>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
   return (
     <section className="doa-screen">
       <header className="doa-head">
@@ -177,13 +167,9 @@ function SectionScreen({
           className="doa-head-logo"
           style={logoStyle(logos.bo)}
         />
-<<<<<<< HEAD
         <h2 className="doa-title">
           {isLeader ? section.nama.toUpperCase() : `BAGIAN ${section.nama.toUpperCase()}`}
         </h2>
-=======
-        <h2 className="doa-title">BAGIAN {section.nama.toUpperCase()}</h2>
->>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
         <div className="doa-head-right">
           <img
             src={logos.danantara.url ?? logoDanantara}
@@ -208,13 +194,8 @@ function SectionScreen({
         </p>
       ) : null}
 
-<<<<<<< HEAD
       <div className={`doa-body${solo ? " doa-body-solo" : ""}`}>
         <div className={`doa-row doa-row-head${solo ? " doa-row-solo" : ""}`}>
-=======
-      <div className="doa-body">
-        <div className="doa-row doa-row-head">
->>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
           <span className="doa-col-label">Nama Pekerja</span>
           <div className="doa-days">
             {weekdayLabels.map((d, i) => (
@@ -233,14 +214,9 @@ function SectionScreen({
             const cell = draft[key] ?? { qris: "", kehadiran: "Belum Hadir" };
             const idx = inputIndexOf(section.id, row);
             return (
-<<<<<<< HEAD
               <div key={nama} className={`doa-row${solo ? " doa-row-solo" : ""}`}>
                 <div className="doa-pill doa-name">{nama}</div>
 
-=======
-              <div key={nama} className="doa-row">
-                <div className="doa-pill doa-name">{nama}</div>
->>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
                 <div className="doa-days">
                   {dates.map((d) => {
                     const rec = draft[recordKey(section.id, nama, d)];
@@ -350,7 +326,6 @@ function Page() {
       saveDoaPagiRecord({ data: { ...v, tanggal: today } }),
   });
 
-<<<<<<< HEAD
   /** Simpan seluruh absensi hari ini ke database. */
   const saveAll = useMutation({
     mutationFn: () => {
@@ -373,8 +348,6 @@ function Page() {
   });
 
 
-=======
->>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
   const suggest = useQuery({
     queryKey: ["doa-pagi", "qris", term],
     enabled: term.trim().length >= 2,
@@ -483,7 +456,6 @@ function Page() {
           </p>
         </div>
       )}
-<<<<<<< HEAD
 
       {sections.length ? (
         <div className="doa-save-bar">
@@ -507,8 +479,5 @@ function Page() {
       ) : null}
     </div>
 
-=======
-    </div>
->>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
   );
 }

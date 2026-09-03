@@ -108,7 +108,6 @@ export const saveDoaPagiLogos = createServerFn({ method: "POST" })
     await saveLogoSettings(data.logos);
     return { ok: true };
   });
-<<<<<<< HEAD
 
 /** Simpan seluruh absensi pada tampilan (tombol Simpan Absensi). */
 export const saveDoaPagiRecords = createServerFn({ method: "POST" })
@@ -138,5 +137,3 @@ export const getDoaPagiReport = createServerFn({ method: "POST" })
     const { listRecordsRange } = await import("@/lib/doa-pagi.server");
     return listRecordsRange(data.ukerId, data.from, data.to);
   });
-=======
->>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5

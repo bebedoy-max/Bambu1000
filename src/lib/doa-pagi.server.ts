@@ -205,7 +205,6 @@ export async function saveLogoSettings(value: DoaLogoSettings) {
   );
   if (error) throw new Error(error.message);
 }
-<<<<<<< HEAD
 
 /** Simpan banyak sel absensi sekaligus (tombol simpan tampilan absensi). */
 export async function upsertRecords(
@@ -264,5 +263,3 @@ export async function listRecordsRange(
   }));
   return { sections, records };
 }
-=======
->>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
