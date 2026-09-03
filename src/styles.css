@@ -1358,6 +1358,7 @@
     display: none;
   }
 }
+<<<<<<< HEAD
 
 /* Bagian dengan satu pekerja (mis. Pemimpin Cabang): besar & center. */
 .doa-body-solo {
@@ -1421,3 +1422,5 @@
 .doa-save-btn:disabled {
   opacity: 0.6;
 }
+=======
+>>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5

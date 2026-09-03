@@ -13,11 +13,15 @@ import { Badge } from "@/components/ui/badge";
 import {
   defaultDoaLogos,
   doaLogoLabels,
+<<<<<<< HEAD
   isQrisFilled,
   normalizeDoaLogos,
   recordKey,
   toIsoDate,
   workWeekDates,
+=======
+  normalizeDoaLogos,
+>>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
   type DoaLogoKey,
   type DoaLogoSettings,
   type DoaPagiSection,
@@ -25,7 +29,10 @@ import {
 import {
   deleteDoaPagiSection,
   getDoaPagiLogos,
+<<<<<<< HEAD
   getDoaPagiReport,
+=======
+>>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
   getDoaPagiSettings,
   saveDoaPagiLogos,
   saveDoaPagiSection,
@@ -178,6 +185,7 @@ function LogoSettings() {
   );
 }
 
+<<<<<<< HEAD
 type Periode = "harian" | "mingguan" | "bulanan";
 
 function rangeOf(periode: Periode, anchor: string): { from: string; to: string } {
@@ -349,6 +357,8 @@ function ReportPanel({ ukers }: { ukers: { id: string; nama: string }[] }) {
   );
 }
 
+=======
+>>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
 export const Route = createFileRoute("/_authenticated/admin/setting-doa-pagi")({
   head: () => ({
     meta: [
@@ -400,7 +410,10 @@ function Page() {
     [q.data, activeUkerId],
   );
 
+<<<<<<< HEAD
   const [tab, setTab] = useState<"setting" | "laporan">("setting");
+=======
+>>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
   const [form, setForm] = useState<Form | null>(null);
   const [jabatanFilter, setJabatanFilter] = useState("");
 
@@ -469,6 +482,7 @@ function Page() {
           </p>
         </div>
 
+<<<<<<< HEAD
         <div className="inline-flex rounded-full border border-input bg-muted/40 p-1">
           {(["setting", "laporan"] as const).map((t) => (
             <button
@@ -490,6 +504,8 @@ function Page() {
           <ReportPanel ukers={ukers} />
         ) : (
         <>
+=======
+>>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
         <LogoSettings />
 
         {q.isLoading ? (
@@ -724,8 +740,11 @@ function Page() {
             </div>
           </>
         )}
+<<<<<<< HEAD
         </>
         )}
+=======
+>>>>>>> f3c68df9b5b9185a3f0ef2ac26fa193ea3c49ac5
       </div>
     </AdminPage>
   );
