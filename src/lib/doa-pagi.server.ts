@@ -239,7 +239,6 @@ export async function listRecordsRange(
   ukerId: string,
   from: string,
   to: string,
-<<<<<<< HEAD
 ): Promise<{
   sections: DoaPagiSection[];
   records: DoaPagiRecord[];
@@ -247,11 +246,6 @@ export async function listRecordsRange(
 }> {
   const [sections, employees] = await Promise.all([listSections(ukerId), listEmployees(ukerId)]);
   if (!sections.length) return { sections, records: [], employees };
-=======
-): Promise<{ sections: DoaPagiSection[]; records: DoaPagiRecord[] }> {
-  const sections = await listSections(ukerId);
-  if (!sections.length) return { sections, records: [] };
->>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
   const db = await admin();
   const { data, error } = await db
     .from("doa_pagi_absensi")
@@ -271,9 +265,5 @@ export async function listRecordsRange(
     qris: String(r["qris"] ?? ""),
     kehadiran: String(r["kehadiran"] ?? "Hadir"),
   }));
-<<<<<<< HEAD
   return { sections, records, employees };
-=======
-  return { sections, records };
->>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
 }

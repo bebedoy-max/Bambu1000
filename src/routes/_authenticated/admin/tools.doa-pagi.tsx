@@ -155,12 +155,8 @@ function SectionScreen({
   registerInput: (idx: number, el: HTMLInputElement | null) => void;
   focusNext: (idx: number) => void;
 }) {
-<<<<<<< HEAD
   // Bagian dengan satu pekerja (mis. Pemimpin Cabang) ditampilkan selebar
   // bagian lain, namun dengan tinggi baris lebih besar karena ruang luas.
-=======
-  // Bagian dengan satu pekerja (mis. Pemimpin Cabang) ditampilkan besar & center.
->>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
   const isLeader = /pemimpin\s+cabang/i.test(section.nama);
   const solo = section.pekerja.length === 1;
   return (
@@ -222,10 +218,7 @@ function SectionScreen({
             return (
               <div key={nama} className={`doa-row${solo ? " doa-row-solo" : ""}`}>
                 <div className="doa-pill doa-name">{nama}</div>
-<<<<<<< HEAD
                 <div className="doa-pill doa-jabatan">{jabatanOf(nama)}</div>
-=======
->>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
 
                 <div className="doa-days">
                   {dates.map((d) => {
@@ -405,7 +398,6 @@ function Page() {
       );
       return saveDoaPagiRecords({ data: { rows } });
     },
-<<<<<<< HEAD
     onSuccess: (r) => {
       toast.success(`Absensi tersimpan (${r.saved} baris).`);
       // Bersihkan tampilan lalu kunci absensi untuk hari ini.
@@ -414,9 +406,6 @@ function Page() {
       setLocked(true);
       if (lockKey) window.localStorage.setItem(lockKey, "1");
     },
-=======
-    onSuccess: (r) => toast.success(`Absensi tersimpan (${r.saved} baris).`),
->>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -554,7 +543,6 @@ function Page() {
         </div>
       )}
 
-<<<<<<< HEAD
       {askSave ? (
         <SaveDialog
           ukerNama={uker.nama}
@@ -563,29 +551,7 @@ function Page() {
           onYes={() => saveAll.mutate()}
           onNo={() => setAskSave(false)}
         />
-=======
-      {sections.length ? (
-        <div className="doa-save-bar">
-          <p className="text-sm text-white/70">
-            Simpan seluruh absensi {uker.nama} tanggal {today} ke database.
-          </p>
-          <button
-            type="button"
-            className="doa-save-btn"
-            onClick={() => saveAll.mutate()}
-            disabled={saveAll.isPending}
-          >
-            {saveAll.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Save className="size-4" />
-            )}
-            Simpan Absensi
-          </button>
-        </div>
->>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
       ) : null}
     </div>
-
   );
 }
