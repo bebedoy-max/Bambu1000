@@ -1366,6 +1366,7 @@
   }
 }
 
+<<<<<<< HEAD
 /* Bagian dengan satu pekerja (mis. Pemimpin Cabang):
    lebar kolom sama dengan bagian lain, hanya tinggi baris lebih besar. */
 .doa-body-solo {
@@ -1380,14 +1381,36 @@
 
 .doa-row-solo .doa-pill {
   min-height: 4.5rem;
+=======
+/* Bagian dengan satu pekerja (mis. Pemimpin Cabang): besar & center. */
+.doa-body-solo {
+  justify-content: center;
+  align-items: center;
+}
+
+.doa-row-solo {
+  width: min(100%, 68rem);
+  grid-template-columns: minmax(0, 1.4fr) auto minmax(0, 1.2fr) minmax(0, 0.9fr);
+  gap: 1rem;
+}
+
+.doa-row-solo .doa-pill {
+  min-height: 3.75rem;
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
   border-width: 3px;
 }
 
 .doa-row-solo .doa-name,
+<<<<<<< HEAD
 .doa-row-solo .doa-jabatan,
 .doa-row-solo .doa-input,
 .doa-row-solo .doa-select {
   font-size: clamp(0.95rem, 1.4vw, 1.35rem);
+=======
+.doa-row-solo .doa-input,
+.doa-row-solo .doa-select {
+  font-size: clamp(1rem, 1.6vw, 1.5rem);
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
 }
 
 .doa-row-solo .doa-day-chip {
@@ -1397,6 +1420,7 @@
 }
 
 .doa-row-solo.doa-row-head .doa-col-label {
+<<<<<<< HEAD
   font-size: clamp(0.95rem, 1.5vw, 1.5rem);
 }
 
@@ -1420,6 +1444,9 @@
 .doa-row-solo .doa-mark {
   width: 3rem;
   height: 3rem;
+=======
+  font-size: clamp(1.05rem, 1.8vw, 1.7rem);
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
 }
 
 .doa-save-bar {
@@ -1451,6 +1478,7 @@
 .doa-save-btn:disabled {
   opacity: 0.6;
 }
+<<<<<<< HEAD
 
 /* Popup konfirmasi simpan absensi doa pagi */
 .doa-modal-backdrop {
@@ -1501,3 +1529,5 @@
   background: transparent;
   border-color: rgb(255 255 255 / 0.35);
 }
+=======
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088

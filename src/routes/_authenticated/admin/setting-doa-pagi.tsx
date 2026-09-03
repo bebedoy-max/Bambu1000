@@ -15,8 +15,14 @@ import {
   doaLogoLabels,
   isQrisFilled,
   normalizeDoaLogos,
+<<<<<<< HEAD
   toIsoDate,
 
+=======
+  recordKey,
+  toIsoDate,
+  workWeekDates,
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
   type DoaLogoKey,
   type DoaLogoSettings,
   type DoaPagiSection,
@@ -177,6 +183,7 @@ function LogoSettings() {
   );
 }
 
+<<<<<<< HEAD
 const monthNames = [
   "Januari",
   "Februari",
@@ -225,6 +232,29 @@ function ReportPanel({ ukers }: { ukers: { id: string; nama: string }[] }) {
     if (customFrom && customTo) return { from: customFrom, to: customTo };
     return monthRange(bulan);
   }, [bulan, customFrom, customTo]);
+=======
+type Periode = "harian" | "mingguan" | "bulanan";
+
+function rangeOf(periode: Periode, anchor: string): { from: string; to: string } {
+  const d = new Date(`${anchor}T00:00:00`);
+  if (periode === "harian") return { from: anchor, to: anchor };
+  if (periode === "mingguan") {
+    const week = workWeekDates(d);
+    return { from: week[0]!, to: week[week.length - 1]! };
+  }
+  const first = new Date(d.getFullYear(), d.getMonth(), 1);
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  return { from: toIsoDate(first), to: toIsoDate(last) };
+}
+
+/** Laporan riwayat absensi per pekerja pada unit kerja terpilih. */
+function ReportPanel({ ukers }: { ukers: { id: string; nama: string }[] }) {
+  const [ukerId, setUkerId] = useState("");
+  const [periode, setPeriode] = useState<Periode>("mingguan");
+  const [anchor, setAnchor] = useState(toIsoDate(new Date()));
+  const activeUkerId = ukerId || ukers[0]?.id || "";
+  const { from, to } = useMemo(() => rangeOf(periode, anchor), [periode, anchor]);
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
 
   const q = useQuery({
     queryKey: ["doa-pagi", "report", activeUkerId, from, to],
@@ -232,6 +262,7 @@ function ReportPanel({ ukers }: { ukers: { id: string; nama: string }[] }) {
     queryFn: () => getDoaPagiReport({ data: { ukerId: activeUkerId, from, to } }),
   });
 
+<<<<<<< HEAD
   const sections = q.data?.sections ?? [];
   const employees = q.data?.employees ?? [];
   const jabatanMap = useMemo(() => {
@@ -431,22 +462,47 @@ function ReportPanel({ ukers }: { ukers: { id: string; nama: string }[] }) {
     else downloadCsv();
   }
 
+=======
+  const days = useMemo(() => {
+    const out: string[] = [];
+    const start = new Date(`${from}T00:00:00`);
+    const end = new Date(`${to}T00:00:00`);
+    for (const d = start; d <= end; d.setDate(d.getDate() + 1)) out.push(toIsoDate(d));
+    return out;
+  }, [from, to]);
+
+  const sections = q.data?.sections ?? [];
+  const byKey = useMemo(() => {
+    const m = new Map<string, { qris: string; kehadiran: string }>();
+    for (const r of q.data?.records ?? [])
+      m.set(recordKey(r.sectionId, r.pekerja, r.tanggal), { qris: r.qris, kehadiran: r.kehadiran });
+    return m;
+  }, [q.data]);
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
 
   return (
     <div className="space-y-4">
       <div className="glass-card flex flex-wrap items-end gap-3 p-4">
         <div className="min-w-52 flex-1">
+<<<<<<< HEAD
           <Label
             htmlFor="rep-uker"
             className="pl-4 text-xs font-bold uppercase tracking-wide"
           >
             Unit Kerja
           </Label>
+=======
+          <Label htmlFor="rep-uker">Unit Kerja</Label>
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
           <select
             id="rep-uker"
             value={activeUkerId}
             onChange={(e) => setUkerId(e.target.value)}
+<<<<<<< HEAD
             className="mt-1 h-10 w-full rounded-full border border-input bg-background px-4 text-sm"
+=======
+            className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
           >
             {ukers.map((u) => (
               <option key={u.id} value={u.id}>
@@ -455,6 +511,7 @@ function ReportPanel({ ukers }: { ukers: { id: string; nama: string }[] }) {
             ))}
           </select>
         </div>
+<<<<<<< HEAD
         <div className="min-w-44">
           <Label
             htmlFor="rep-bulan"
@@ -577,11 +634,121 @@ function ReportPanel({ ukers }: { ukers: { id: string; nama: string }[] }) {
           <p className="text-sm text-muted-foreground">Belum ada data absensi pada periode ini.</p>
         )}
       </div>
+=======
+        <div>
+          <Label htmlFor="rep-periode">Periode</Label>
+          <select
+            id="rep-periode"
+            value={periode}
+            onChange={(e) => setPeriode(e.target.value as Periode)}
+            className="mt-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="harian">Harian</option>
+            <option value="mingguan">Mingguan</option>
+            <option value="bulanan">Bulanan</option>
+          </select>
+        </div>
+        <div>
+          <Label htmlFor="rep-tanggal">Tanggal Acuan</Label>
+          <Input
+            id="rep-tanggal"
+            type="date"
+            value={anchor}
+            onChange={(e) => setAnchor(e.target.value || toIsoDate(new Date()))}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Rentang: {from} s/d {to}
+        </p>
+      </div>
+
+      {q.isLoading ? (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" /> Memuat laporan…
+        </p>
+      ) : sections.length ? (
+        sections.map((s) => (
+          <div key={s.id} className="glass-card space-y-3 p-4">
+            <h3 className="font-semibold">
+              {s.urutan}. {s.nama}
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[36rem] text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-muted-foreground">
+                    <th className="py-2 pr-3">Nama Pekerja</th>
+                    {days.map((d) => (
+                      <th key={d} className="px-1 py-2 text-center">
+                        {d.slice(8)}
+                      </th>
+                    ))}
+                    <th className="px-2 py-2 text-center">Hadir</th>
+                    <th className="px-2 py-2 text-center">Tidak</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {s.pekerja.length ? (
+                    s.pekerja.map((p) => {
+                      let hadir = 0;
+                      let tidak = 0;
+                      const cells = days.map((d) => {
+                        const rec = byKey.get(recordKey(s.id, p, d));
+                        const ok = isQrisFilled(rec?.qris);
+                        if (ok) hadir += 1;
+                        else if (rec) tidak += 1;
+                        return { d, ok, rec };
+                      });
+                      return (
+                        <tr key={p} className="border-t border-border/50">
+                          <td className="py-2 pr-3 font-medium">{p}</td>
+                          {cells.map((c) => (
+                            <td
+                              key={c.d}
+                              className="px-1 py-2 text-center"
+                              title={c.rec ? `${c.rec.kehadiran} — QRIS: ${c.rec.qris || "-"}` : "Belum ada data"}
+                            >
+                              {c.ok ? (
+                                <span className="text-emerald-500">✓</span>
+                              ) : c.rec ? (
+                                <span className="text-destructive">✕</span>
+                              ) : (
+                                <span className="text-muted-foreground">·</span>
+                              )}
+                            </td>
+                          ))}
+                          <td className="px-2 py-2 text-center font-semibold text-emerald-500">
+                            {hadir}
+                          </td>
+                          <td className="px-2 py-2 text-center font-semibold text-destructive">
+                            {tidak}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td className="py-2 text-muted-foreground" colSpan={days.length + 3}>
+                        Belum ada pekerja pada bagian ini.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className="text-sm text-muted-foreground">Belum ada bagian untuk unit kerja ini.</p>
+      )}
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
     </div>
   );
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 09e826ee069f2c98d06d158ad2c08cdc33b7a088
 export const Route = createFileRoute("/_authenticated/admin/setting-doa-pagi")({
   head: () => ({
     meta: [
