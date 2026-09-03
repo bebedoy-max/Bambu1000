@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Building2, Loader2, X } from "lucide-react";
+import { Building2, Loader2, Save, X } from "lucide-react";
+import { toast } from "sonner";
 
 import logoBo from "@/assets/doa/b1000.png";
 import logoBri from "@/assets/doa/bri.png";
@@ -30,6 +31,7 @@ import {
   getDoaPagiLogos,
   listDoaPagiUkers,
   saveDoaPagiRecord,
+  saveDoaPagiRecords,
   searchDoaPagiQris,
 } from "@/lib/doa-pagi.functions";
 
@@ -108,11 +110,9 @@ function DayMark({ state }: { state: "ok" | "no" | "empty" }) {
   const alt =
     state === "ok" ? "Hadir" : state === "no" ? "Tidak absen QRIS" : "Belum ada absensi";
   return (
-    <img
-      src={src}
-      alt={alt}
-      className="size-8 shrink-0 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)] sm:size-9"
-    />
+    <span className="doa-mark" data-state={state}>
+      <img src={src} alt={alt} />
+    </span>
   );
 }
 
@@ -133,6 +133,7 @@ function SectionScreen({
   dates,
   today,
   draft,
+  jabatanOf,
   onChangeQris,
   onChangeKehadiran,
   onCommit,
@@ -146,6 +147,7 @@ function SectionScreen({
   dates: string[];
   today: string;
   draft: Draft;
+  jabatanOf: (nama: string) => string;
   onChangeQris: (pekerja: string, value: string) => void;
   onChangeKehadiran: (pekerja: string, value: string) => void;
   onCommit: (pekerja: string) => void;
@@ -153,6 +155,10 @@ function SectionScreen({
   registerInput: (idx: number, el: HTMLInputElement | null) => void;
   focusNext: (idx: number) => void;
 }) {
+  // Bagian dengan satu pekerja (mis. Pemimpin Cabang) ditampilkan selebar
+  // bagian lain, namun dengan tinggi baris lebih besar karena ruang luas.
+  const isLeader = /pemimpin\s+cabang/i.test(section.nama);
+  const solo = section.pekerja.length === 1;
   return (
     <section className="doa-screen">
       <header className="doa-head">
@@ -162,7 +168,9 @@ function SectionScreen({
           className="doa-head-logo"
           style={logoStyle(logos.bo)}
         />
-        <h2 className="doa-title">BAGIAN {section.nama.toUpperCase()}</h2>
+        <h2 className="doa-title">
+          {isLeader ? section.nama.toUpperCase() : `BAGIAN ${section.nama.toUpperCase()}`}
+        </h2>
         <div className="doa-head-right">
           <img
             src={logos.danantara.url ?? logoDanantara}
@@ -187,9 +195,10 @@ function SectionScreen({
         </p>
       ) : null}
 
-      <div className="doa-body">
-        <div className="doa-row doa-row-head">
+      <div className={`doa-body${solo ? " doa-body-solo" : ""}`}>
+        <div className={`doa-row doa-row-head${solo ? " doa-row-solo" : ""}`}>
           <span className="doa-col-label">Nama Pekerja</span>
+          <span className="doa-col-label">Jabatan</span>
           <div className="doa-days">
             {weekdayLabels.map((d, i) => (
               <span key={i} className="doa-day-chip" title={weekdayNames[i]}>
@@ -207,8 +216,10 @@ function SectionScreen({
             const cell = draft[key] ?? { qris: "", kehadiran: "Belum Hadir" };
             const idx = inputIndexOf(section.id, row);
             return (
-              <div key={nama} className="doa-row">
+              <div key={nama} className={`doa-row${solo ? " doa-row-solo" : ""}`}>
                 <div className="doa-pill doa-name">{nama}</div>
+                <div className="doa-pill doa-jabatan">{jabatanOf(nama)}</div>
+
                 <div className="doa-days">
                   {dates.map((d) => {
                     const rec = draft[recordKey(section.id, nama, d)];
@@ -266,6 +277,41 @@ function SectionScreen({
   );
 }
 
+/** Popup konfirmasi setelah admin menekan Enter di baris absen terakhir. */
+function SaveDialog({
+  ukerNama,
+  tanggal,
+  pending,
+  onYes,
+  onNo,
+}: {
+  ukerNama: string;
+  tanggal: string;
+  pending: boolean;
+  onYes: () => void;
+  onNo: () => void;
+}) {
+  return (
+    <div className="doa-modal-backdrop">
+      <div className="doa-modal">
+        <p className="doa-modal-title">Simpan Absensi</p>
+        <p className="doa-modal-sub">
+          {ukerNama} {tanggal}
+        </p>
+        <div className="doa-modal-actions">
+          <button type="button" className="doa-save-btn" onClick={onYes} disabled={pending}>
+            {pending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+            Yes
+          </button>
+          <button type="button" className="doa-save-btn doa-btn-ghost" onClick={onNo}>
+            No
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Page() {
   const [uker, setUker] = useState<{ id: string; nama: string } | null>(null);
   const dates = useMemo(() => workWeekDates(), []);
@@ -289,12 +335,29 @@ function Page() {
 
   const [draft, setDraft] = useState<Draft>({});
   const [term, setTerm] = useState("");
+  const [askSave, setAskSave] = useState(false);
+  const [locked, setLocked] = useState(false);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
   const sections: DoaPagiSection[] = useMemo(
     () => (board.data?.sections ?? []).slice().sort((a, b) => a.urutan - b.urutan),
     [board.data],
   );
+
+  /** Jabatan pekerja (dari master pegawai unit kerja). */
+  const jabatanOf = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const e of board.data?.employees ?? []) map.set(e.nama, e.jabatan);
+    return (nama: string) => map.get(nama) ?? "-";
+  }, [board.data]);
+
+  /** Kunci absensi harian tersimpan per unit kerja + tanggal. */
+  const lockKey = uker ? `doa-pagi-lock|${uker.id}|${today}` : null;
+  useEffect(() => {
+    if (!lockKey) return;
+    setLocked(window.localStorage.getItem(lockKey) === "1");
+  }, [lockKey]);
+
 
   useEffect(() => {
     if (!board.data) return;
@@ -317,6 +380,35 @@ function Page() {
     mutationFn: (v: { sectionId: string; pekerja: string; qris: string; kehadiran: string }) =>
       saveDoaPagiRecord({ data: { ...v, tanggal: today } }),
   });
+
+  /** Simpan seluruh absensi hari ini ke database. */
+  const saveAll = useMutation({
+    mutationFn: () => {
+      const rows = sections.flatMap((s) =>
+        s.pekerja.map((p) => {
+          const cur = draft[recordKey(s.id, p, today)] ?? { qris: "", kehadiran: "Belum Hadir" };
+          return {
+            sectionId: s.id,
+            pekerja: p,
+            tanggal: today,
+            qris: cur.qris.trim(),
+            kehadiran: cur.kehadiran,
+          };
+        }),
+      );
+      return saveDoaPagiRecords({ data: { rows } });
+    },
+    onSuccess: (r) => {
+      toast.success(`Absensi tersimpan (${r.saved} baris).`);
+      // Bersihkan tampilan lalu kunci absensi untuk hari ini.
+      setDraft({});
+      setAskSave(false);
+      setLocked(true);
+      if (lockKey) window.localStorage.setItem(lockKey, "1");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   const suggest = useQuery({
     queryKey: ["doa-pagi", "qris", term],
@@ -368,6 +460,26 @@ function Page() {
 
   if (!uker) return <UkerDialog onPick={setUker} />;
 
+  if (locked)
+    return (
+      <div className="doa-root">
+        <button
+          type="button"
+          onClick={() => setUker(null)}
+          className="doa-close"
+          aria-label="Ganti unit kerja"
+        >
+          <X className="size-5" />
+        </button>
+        <div className="doa-screen items-center justify-center">
+          <p className="doa-modal-title text-center">Absensi Selesai</p>
+          <p className="mt-2 text-center text-white/80">
+            Absen hari ini {today} sudah selesai untuk {uker.nama}.
+          </p>
+        </div>
+      </div>
+    );
+
   return (
     <div className="doa-root">
       <datalist id="doa-qris-list">
@@ -395,6 +507,7 @@ function Page() {
             dates={dates}
             today={today}
             draft={draft}
+            jabatanOf={jabatanOf}
             onChangeQris={(p, v) => {
               updateCell(s.id, p, { qris: v });
               setTerm(v);
@@ -415,7 +528,10 @@ function Page() {
                 next.focus();
                 next.select();
                 next.scrollIntoView({ block: "center", behavior: "smooth" });
+                return;
               }
+              // Baris terakhir: tampilkan konfirmasi simpan absensi.
+              setAskSave(true);
             }}
           />
         ))
@@ -426,6 +542,16 @@ function Page() {
           </p>
         </div>
       )}
+
+      {askSave ? (
+        <SaveDialog
+          ukerNama={uker.nama}
+          tanggal={today}
+          pending={saveAll.isPending}
+          onYes={() => saveAll.mutate()}
+          onNo={() => setAskSave(false)}
+        />
+      ) : null}
     </div>
   );
 }

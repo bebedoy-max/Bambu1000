@@ -1265,7 +1265,8 @@
 
 .doa-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) auto minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-columns:
+    minmax(0, 1.4fr) minmax(0, 1fr) auto minmax(0, 1.3fr) minmax(0, 0.95fr);
   align-items: center;
   gap: 0.75rem;
 }
@@ -1320,6 +1321,12 @@
   font-weight: 600;
 }
 
+.doa-jabatan {
+  font-size: clamp(0.72rem, 0.95vw, 0.95rem);
+  color: rgb(255 255 255 / 0.85);
+}
+
+
 .doa-input-wrap {
   padding: 0 0.5rem 0 1rem;
 }
@@ -1357,4 +1364,140 @@
   .doa-row-head {
     display: none;
   }
+}
+
+/* Bagian dengan satu pekerja (mis. Pemimpin Cabang):
+   lebar kolom sama dengan bagian lain, hanya tinggi baris lebih besar. */
+.doa-body-solo {
+  justify-content: flex-start;
+  padding-top: clamp(6rem, 28vh, 16rem);
+}
+
+.doa-row-solo {
+  width: 100%;
+  gap: 0.75rem;
+}
+
+.doa-row-solo .doa-pill {
+  min-height: 4.5rem;
+  border-width: 3px;
+}
+
+.doa-row-solo .doa-name,
+.doa-row-solo .doa-jabatan,
+.doa-row-solo .doa-input,
+.doa-row-solo .doa-select {
+  font-size: clamp(0.95rem, 1.4vw, 1.35rem);
+}
+
+.doa-row-solo .doa-day-chip {
+  height: 3rem;
+  width: 3rem;
+  font-size: 1.15rem;
+}
+
+.doa-row-solo.doa-row-head .doa-col-label {
+  font-size: clamp(0.95rem, 1.5vw, 1.5rem);
+}
+
+/* Penanda kehadiran harian — selalu satu ukuran agar ceklis/silang/bulatan sama besar. */
+.doa-mark {
+  display: block;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  overflow: hidden;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+.doa-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.doa-row-solo .doa-mark {
+  width: 3rem;
+  height: 3rem;
+}
+
+.doa-save-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 2.5rem;
+}
+
+.doa-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 2px solid #8fa6ff;
+  background: linear-gradient(180deg, #4a3fbf 0%, #2a1f8a 100%);
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  transition: filter 0.2s ease;
+}
+
+.doa-save-btn:hover {
+  filter: brightness(1.15);
+}
+
+.doa-save-btn:disabled {
+  opacity: 0.6;
+}
+
+/* Popup konfirmasi simpan absensi doa pagi */
+.doa-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(5 3 25 / 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.doa-modal {
+  width: min(92vw, 26rem);
+  border-radius: 1.25rem;
+  border: 2px solid #6c8bff;
+  background: linear-gradient(180deg, #2c1f86 0%, #1a1156 100%);
+  padding: 1.75rem;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.55);
+}
+
+.doa-modal-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(180deg, #fff7cf 0%, #ffcf4a 45%, #b8730a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.doa-modal-sub {
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
+  color: rgb(255 255 255 / 0.8);
+}
+
+.doa-modal-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.doa-btn-ghost {
+  background: transparent;
+  border-color: rgb(255 255 255 / 0.35);
 }

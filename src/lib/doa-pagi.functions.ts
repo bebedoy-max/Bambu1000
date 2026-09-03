@@ -18,13 +18,16 @@ export const getDoaPagiBoard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { ukerId: string; dates: string[] }) => data)
   .handler(async ({ data }) => {
-    const { listSections, listRecords } = await import("@/lib/doa-pagi.server");
-    const sections = await listSections(data.ukerId);
+    const { listSections, listRecords, listEmployees } = await import("@/lib/doa-pagi.server");
+    const [sections, employees] = await Promise.all([
+      listSections(data.ukerId),
+      listEmployees(data.ukerId),
+    ]);
     const records = await listRecords(
       sections.map((s) => s.id),
       data.dates,
     );
-    return { sections, records };
+    return { sections, records, employees };
   });
 
 /** Simpan satu sel absensi (QRIS + kehadiran). */
@@ -107,4 +110,33 @@ export const saveDoaPagiLogos = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
     await saveLogoSettings(data.logos);
     return { ok: true };
+  });
+
+/** Simpan seluruh absensi pada tampilan (tombol Simpan Absensi). */
+export const saveDoaPagiRecords = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      rows: {
+        sectionId: string;
+        pekerja: string;
+        tanggal: string;
+        qris: string;
+        kehadiran: string;
+      }[];
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    const { upsertRecords } = await import("@/lib/doa-pagi.server");
+    const saved = await upsertRecords(data.rows);
+    return { saved };
+  });
+
+/** Laporan riwayat absensi per unit kerja pada rentang tanggal. */
+export const getDoaPagiReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { ukerId: string; from: string; to: string }) => data)
+  .handler(async ({ data }) => {
+    const { listRecordsRange } = await import("@/lib/doa-pagi.server");
+    return listRecordsRange(data.ukerId, data.from, data.to);
   });

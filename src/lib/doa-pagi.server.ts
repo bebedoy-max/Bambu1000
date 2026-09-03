@@ -205,3 +205,65 @@ export async function saveLogoSettings(value: DoaLogoSettings) {
   );
   if (error) throw new Error(error.message);
 }
+
+/** Simpan banyak sel absensi sekaligus (tombol simpan tampilan absensi). */
+export async function upsertRecords(
+  rows: {
+    sectionId: string;
+    pekerja: string;
+    tanggal: string;
+    qris: string;
+    kehadiran: string;
+  }[],
+) {
+  if (!rows.length) return 0;
+  const db = await admin();
+  const now = new Date().toISOString();
+  const { error } = await db.from("doa_pagi_absensi").upsert(
+    rows.map((r) => ({
+      section_id: r.sectionId,
+      pekerja: r.pekerja,
+      tanggal: r.tanggal,
+      qris: r.qris,
+      kehadiran: r.kehadiran,
+      updated_at: now,
+    })),
+    { onConflict: "section_id,pekerja,tanggal" },
+  );
+  if (error) throw new Error(error.message);
+  return rows.length;
+}
+
+/** Riwayat absensi satu unit kerja pada rentang tanggal (laporan). */
+export async function listRecordsRange(
+  ukerId: string,
+  from: string,
+  to: string,
+): Promise<{
+  sections: DoaPagiSection[];
+  records: DoaPagiRecord[];
+  employees: { nama: string; jabatan: string; ukerId: string | null }[];
+}> {
+  const [sections, employees] = await Promise.all([listSections(ukerId), listEmployees(ukerId)]);
+  if (!sections.length) return { sections, records: [], employees };
+  const db = await admin();
+  const { data, error } = await db
+    .from("doa_pagi_absensi")
+    .select("section_id,pekerja,tanggal,qris,kehadiran")
+    .in(
+      "section_id",
+      sections.map((s) => s.id),
+    )
+    .gte("tanggal", from)
+    .lte("tanggal", to)
+    .order("tanggal", { ascending: true });
+  if (error) throw new Error(error.message);
+  const records = (data ?? []).map((r: Record<string, any>) => ({
+    sectionId: String(r["section_id"]),
+    pekerja: String(r["pekerja"] ?? ""),
+    tanggal: String(r["tanggal"] ?? ""),
+    qris: String(r["qris"] ?? ""),
+    kehadiran: String(r["kehadiran"] ?? "Hadir"),
+  }));
+  return { sections, records, employees };
+}
