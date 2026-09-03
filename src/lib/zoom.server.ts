@@ -225,14 +225,23 @@ export async function deleteMeeting(id: string) {
   const row = data as ZoomMeetingRow | null;
   if (row?.zoom_meeting_id) {
     try {
-      await zoomApi(`/meetings/${row.zoom_meeting_id}`, { method: "DELETE" });
+      await zoomApi(`/meetings/${row.zoom_meeting_id}?schedule_for_reminder=false`, {
+        method: "DELETE",
+      });
     } catch (e) {
-      console.error(e);
+      const msg = e instanceof Error ? e.message : String(e);
+      // 404 / kode 3001 = meeting memang sudah tidak ada di Zoom → lanjut hapus lokal.
+      const alreadyGone = msg.includes("[404]") || msg.includes('"code":3001');
+      if (!alreadyGone) {
+        console.error("Zoom delete failed:", msg);
+        throw new Error(`Gagal menghapus meeting di Zoom: ${msg}`);
+      }
     }
   }
   const del = await db.from("zoom_meetings").delete().eq("id", id);
   if (del.error) throw new Error(del.error.message);
 }
+
 
 export type ZoomMeetingRow = {
   id: string;

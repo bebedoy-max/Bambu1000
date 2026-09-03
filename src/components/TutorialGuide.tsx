@@ -103,10 +103,11 @@ export function TutorialGuide() {
         topicKey: topic.key,
         topicLabel: topic.label,
         topicGroup: topic.group,
-        konteks,
+        konteks: topic.konteks ? `${konteks}\nTentang fitur ini: ${topic.konteks}` : konteks,
       },
     });
   }
+
 
   async function generateOne(topic: TutorialTopic) {
     setBusy(topic.key);

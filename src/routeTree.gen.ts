@@ -47,6 +47,7 @@ import { Route as AuthenticatedAdminPluginRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminProjectRouteImport } from './routes/_authenticated/admin/project'
 import { Route as AuthenticatedAdminProjectProgressRouteImport } from './routes/_authenticated/admin/project-progress'
 import { Route as AuthenticatedAdminQrisRouteImport } from './routes/_authenticated/admin/qris'
+import { Route as AuthenticatedAdminSettingDoaPagiRouteImport } from './routes/_authenticated/admin/setting-doa-pagi'
 import { Route as AuthenticatedAdminSlidePekerjaRouteImport } from './routes/_authenticated/admin/slide-pekerja'
 import { Route as AuthenticatedAdminTiketRouteImport } from './routes/_authenticated/admin/tiket'
 import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin/tools'
@@ -58,6 +59,7 @@ import { Route as AuthenticatedAdminEventIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminEventIdRouteImport } from './routes/_authenticated/admin/event/$id'
 import { Route as AuthenticatedAdminToolsIndexRouteImport } from './routes/_authenticated/admin/tools.index'
 import { Route as AuthenticatedAdminToolsAbsensiRouteImport } from './routes/_authenticated/admin/tools.absensi'
+import { Route as AuthenticatedAdminToolsDoaPagiRouteImport } from './routes/_authenticated/admin/tools.doa-pagi'
 import { Route as AuthenticatedAdminToolsNominasiRouteImport } from './routes/_authenticated/admin/tools.nominasi'
 import { Route as AuthenticatedAdminToolsUndianRouteImport } from './routes/_authenticated/admin/tools.undian'
 import { Route as AuthenticatedAdminToolsVoteRouteImport } from './routes/_authenticated/admin/tools.vote'
@@ -283,6 +285,12 @@ const AuthenticatedAdminQrisRoute = AuthenticatedAdminQrisRouteImport.update({
   path: '/admin/qris',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminSettingDoaPagiRoute =
+  AuthenticatedAdminSettingDoaPagiRouteImport.update({
+    id: '/admin/setting-doa-pagi',
+    path: '/admin/setting-doa-pagi',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminSlidePekerjaRoute =
   AuthenticatedAdminSlidePekerjaRouteImport.update({
     id: '/admin/slide-pekerja',
@@ -342,6 +350,12 @@ const AuthenticatedAdminToolsAbsensiRoute =
   AuthenticatedAdminToolsAbsensiRouteImport.update({
     id: '/absensi',
     path: '/absensi',
+    getParentRoute: () => AuthenticatedAdminToolsRoute,
+  } as any)
+const AuthenticatedAdminToolsDoaPagiRoute =
+  AuthenticatedAdminToolsDoaPagiRouteImport.update({
+    id: '/doa-pagi',
+    path: '/doa-pagi',
     getParentRoute: () => AuthenticatedAdminToolsRoute,
   } as any)
 const AuthenticatedAdminToolsNominasiRoute =
@@ -513,6 +527,7 @@ export interface FileRoutesByFullPath {
   '/admin/project': typeof AuthenticatedAdminProjectRoute
   '/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/admin/qris': typeof AuthenticatedAdminQrisRoute
+  '/admin/setting-doa-pagi': typeof AuthenticatedAdminSettingDoaPagiRoute
   '/admin/slide-pekerja': typeof AuthenticatedAdminSlidePekerjaRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/admin/tools': typeof AuthenticatedAdminToolsRouteWithChildren
@@ -523,6 +538,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+  '/admin/tools/doa-pagi': typeof AuthenticatedAdminToolsDoaPagiRoute
   '/admin/tools/nominasi': typeof AuthenticatedAdminToolsNominasiRouteWithChildren
   '/admin/tools/undian': typeof AuthenticatedAdminToolsUndianRouteWithChildren
   '/admin/tools/vote': typeof AuthenticatedAdminToolsVoteRouteWithChildren
@@ -585,6 +601,7 @@ export interface FileRoutesByTo {
   '/admin/project': typeof AuthenticatedAdminProjectRoute
   '/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/admin/qris': typeof AuthenticatedAdminQrisRoute
+  '/admin/setting-doa-pagi': typeof AuthenticatedAdminSettingDoaPagiRoute
   '/admin/slide-pekerja': typeof AuthenticatedAdminSlidePekerjaRoute
   '/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/admin/tutorial': typeof AuthenticatedAdminTutorialRoute
@@ -593,6 +610,7 @@ export interface FileRoutesByTo {
   '/api/zoom/callback': typeof ApiZoomCallbackRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
+  '/admin/tools/doa-pagi': typeof AuthenticatedAdminToolsDoaPagiRoute
   '/api/public/companion/delete-event': typeof ApiPublicCompanionDeleteEventRoute
   '/api/public/companion/drive-status': typeof ApiPublicCompanionDriveStatusRoute
   '/api/public/companion/finalize': typeof ApiPublicCompanionFinalizeRoute
@@ -653,6 +671,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/project': typeof AuthenticatedAdminProjectRoute
   '/_authenticated/admin/project-progress': typeof AuthenticatedAdminProjectProgressRoute
   '/_authenticated/admin/qris': typeof AuthenticatedAdminQrisRoute
+  '/_authenticated/admin/setting-doa-pagi': typeof AuthenticatedAdminSettingDoaPagiRoute
   '/_authenticated/admin/slide-pekerja': typeof AuthenticatedAdminSlidePekerjaRoute
   '/_authenticated/admin/tiket': typeof AuthenticatedAdminTiketRoute
   '/_authenticated/admin/tools': typeof AuthenticatedAdminToolsRouteWithChildren
@@ -663,6 +682,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/event/$id': typeof AuthenticatedAdminEventIdRoute
   '/_authenticated/admin/tools/absensi': typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+  '/_authenticated/admin/tools/doa-pagi': typeof AuthenticatedAdminToolsDoaPagiRoute
   '/_authenticated/admin/tools/nominasi': typeof AuthenticatedAdminToolsNominasiRouteWithChildren
   '/_authenticated/admin/tools/undian': typeof AuthenticatedAdminToolsUndianRouteWithChildren
   '/_authenticated/admin/tools/vote': typeof AuthenticatedAdminToolsVoteRouteWithChildren
@@ -727,6 +747,7 @@ export interface FileRouteTypes {
     | '/admin/project'
     | '/admin/project-progress'
     | '/admin/qris'
+    | '/admin/setting-doa-pagi'
     | '/admin/slide-pekerja'
     | '/admin/tiket'
     | '/admin/tools'
@@ -737,6 +758,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/event/$id'
     | '/admin/tools/absensi'
+    | '/admin/tools/doa-pagi'
     | '/admin/tools/nominasi'
     | '/admin/tools/undian'
     | '/admin/tools/vote'
@@ -799,6 +821,7 @@ export interface FileRouteTypes {
     | '/admin/project'
     | '/admin/project-progress'
     | '/admin/qris'
+    | '/admin/setting-doa-pagi'
     | '/admin/slide-pekerja'
     | '/admin/tiket'
     | '/admin/tutorial'
@@ -807,6 +830,7 @@ export interface FileRouteTypes {
     | '/api/zoom/callback'
     | '/admin'
     | '/admin/event/$id'
+    | '/admin/tools/doa-pagi'
     | '/api/public/companion/delete-event'
     | '/api/public/companion/drive-status'
     | '/api/public/companion/finalize'
@@ -866,6 +890,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/project'
     | '/_authenticated/admin/project-progress'
     | '/_authenticated/admin/qris'
+    | '/_authenticated/admin/setting-doa-pagi'
     | '/_authenticated/admin/slide-pekerja'
     | '/_authenticated/admin/tiket'
     | '/_authenticated/admin/tools'
@@ -876,6 +901,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/admin/event/$id'
     | '/_authenticated/admin/tools/absensi'
+    | '/_authenticated/admin/tools/doa-pagi'
     | '/_authenticated/admin/tools/nominasi'
     | '/_authenticated/admin/tools/undian'
     | '/_authenticated/admin/tools/vote'
@@ -1197,6 +1223,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminQrisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/setting-doa-pagi': {
+      id: '/_authenticated/admin/setting-doa-pagi'
+      path: '/admin/setting-doa-pagi'
+      fullPath: '/admin/setting-doa-pagi'
+      preLoaderRoute: typeof AuthenticatedAdminSettingDoaPagiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/slide-pekerja': {
       id: '/_authenticated/admin/slide-pekerja'
       path: '/admin/slide-pekerja'
@@ -1272,6 +1305,13 @@ declare module '@tanstack/react-router' {
       path: '/absensi'
       fullPath: '/admin/tools/absensi'
       preLoaderRoute: typeof AuthenticatedAdminToolsAbsensiRouteImport
+      parentRoute: typeof AuthenticatedAdminToolsRoute
+    }
+    '/_authenticated/admin/tools/doa-pagi': {
+      id: '/_authenticated/admin/tools/doa-pagi'
+      path: '/doa-pagi'
+      fullPath: '/admin/tools/doa-pagi'
+      preLoaderRoute: typeof AuthenticatedAdminToolsDoaPagiRouteImport
       parentRoute: typeof AuthenticatedAdminToolsRoute
     }
     '/_authenticated/admin/tools/nominasi': {
@@ -1521,6 +1561,7 @@ const AuthenticatedAdminToolsZoomRouteWithChildren =
 
 interface AuthenticatedAdminToolsRouteChildren {
   AuthenticatedAdminToolsAbsensiRoute: typeof AuthenticatedAdminToolsAbsensiRouteWithChildren
+  AuthenticatedAdminToolsDoaPagiRoute: typeof AuthenticatedAdminToolsDoaPagiRoute
   AuthenticatedAdminToolsNominasiRoute: typeof AuthenticatedAdminToolsNominasiRouteWithChildren
   AuthenticatedAdminToolsUndianRoute: typeof AuthenticatedAdminToolsUndianRouteWithChildren
   AuthenticatedAdminToolsVoteRoute: typeof AuthenticatedAdminToolsVoteRouteWithChildren
@@ -1532,6 +1573,7 @@ const AuthenticatedAdminToolsRouteChildren: AuthenticatedAdminToolsRouteChildren
   {
     AuthenticatedAdminToolsAbsensiRoute:
       AuthenticatedAdminToolsAbsensiRouteWithChildren,
+    AuthenticatedAdminToolsDoaPagiRoute: AuthenticatedAdminToolsDoaPagiRoute,
     AuthenticatedAdminToolsNominasiRoute:
       AuthenticatedAdminToolsNominasiRouteWithChildren,
     AuthenticatedAdminToolsUndianRoute:
@@ -1571,6 +1613,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminProjectRoute: typeof AuthenticatedAdminProjectRoute
   AuthenticatedAdminProjectProgressRoute: typeof AuthenticatedAdminProjectProgressRoute
   AuthenticatedAdminQrisRoute: typeof AuthenticatedAdminQrisRoute
+  AuthenticatedAdminSettingDoaPagiRoute: typeof AuthenticatedAdminSettingDoaPagiRoute
   AuthenticatedAdminSlidePekerjaRoute: typeof AuthenticatedAdminSlidePekerjaRoute
   AuthenticatedAdminTiketRoute: typeof AuthenticatedAdminTiketRoute
   AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRouteWithChildren
@@ -1606,6 +1649,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminProjectProgressRoute:
     AuthenticatedAdminProjectProgressRoute,
   AuthenticatedAdminQrisRoute: AuthenticatedAdminQrisRoute,
+  AuthenticatedAdminSettingDoaPagiRoute: AuthenticatedAdminSettingDoaPagiRoute,
   AuthenticatedAdminSlidePekerjaRoute: AuthenticatedAdminSlidePekerjaRoute,
   AuthenticatedAdminTiketRoute: AuthenticatedAdminTiketRoute,
   AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRouteWithChildren,
